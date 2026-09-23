@@ -1,0 +1,104 @@
+import { RuleError } from './engine.js';
+
+export const REGIONS = [
+  {id:'haven',name:'Porto das Cinzas',kind:'sanctuary',x:48,y:48,level:1,board:'court-board',resource:'timber',links:['rosekeep','moonwood','quarry'],description:'O último porto neutro de Véspera. Casas rivais dividem a taverna, a forja e seus segredos.',icon:'⌂'},
+  {id:'rosekeep',name:'Bastião das Rosas',kind:'fortress',x:25,y:28,level:1,board:'court-board',resource:'essence',links:['haven','crown','marsh'],description:'Torres rubras vigiam os caminhos da Corte. Quem controla seus portões controla o oeste.',icon:'♜'},
+  {id:'moonwood',name:'Bosque da Lua Oca',kind:'wilds',x:70,y:27,level:1,board:'forest-board',resource:'timber',links:['haven','peak','lake'],description:'Uivos atravessam a névoa. Caravanas desaparecem onde as raízes abraçam a estrada.',icon:'☾'},
+  {id:'quarry',name:'Pedreira dos Juramentos',kind:'mine',x:42,y:68,level:1,board:'siege-board',resource:'ore',links:['haven','marsh','crypt','bridge'],description:'Ferro negro, pedreiros sem nome e uma dívida antiga alimentam as forjas do reino.',icon:'⚒'},
+  {id:'crown',name:'Coroa de Espinhos',kind:'capital',x:18,y:13,level:2,board:'court-board',resource:'essence',links:['rosekeep'],description:'Uma corte sem soberano, onde cada cadeira vazia é uma declaração de guerra.',icon:'♛'},
+  {id:'marsh',name:'Pântano Carmesim',kind:'wilds',x:20,y:62,level:1,board:'forest-board',resource:'essence',links:['rosekeep','quarry'],description:'Velhas relíquias afundam sob águas cor de vinho. As feridas da terra ainda respiram.',icon:'♦'},
+  {id:'peak',name:'Pico do Primeiro Uivo',kind:'fortress',x:84,y:15,level:2,board:'forest-board',resource:'ore',links:['moonwood','lake'],description:'A fortaleza ancestral das alcateias foi esculpida no osso da montanha.',icon:'♜'},
+  {id:'lake',name:'Lago do Véu Partido',kind:'wilds',x:85,y:43,level:1,board:'forest-board',resource:'essence',links:['moonwood','peak','bridge'],description:'Reflexos de luas esquecidas prometem poder aos que enfrentam seus guardiões.',icon:'◈'},
+  {id:'crypt',name:'Sepulcro de Mordrath',kind:'dungeon',x:48,y:88,level:2,board:'crypt-board',resource:'ore',links:['quarry','bridge'],description:'Uma expedição em três mesas. Venza os guardiões, abra a tumba e desafie o Rei Sepultado.',icon:'☠'},
+  {id:'bridge',name:'Ponte das Viúvas',kind:'fortress',x:67,y:63,level:1,board:'siege-board',resource:'ore',links:['quarry','lake','crypt','citadel'],description:'A travessia entre dois reinos. Sob as correntes, os nomes dos mortos ecoam.',icon:'♜'},
+  {id:'citadel',name:'Cidadela do Eclipse',kind:'capital',x:84,y:78,level:3,board:'siege-board',resource:'essence',links:['bridge'],description:'A última mesa da conquista. Seu estandarte será visto em toda Véspera.',icon:'♛'}
+];
+export const AVATARS=['vesper','kael','mordrath','raven','thorn','oracle'];
+export const POLICIES={expedition:{name:'Expedição',description:'+1 madeira, minério ou essência nas vitórias de expedição.'},commerce:{name:'Comércio',description:'+5 Marcas na primeira vitória remunerada em cada região a cada cinco minutos.'},bastion:{name:'Bastião',description:'Fortalezas exigem uma vitória adicional de invasores para serem tomadas.'}};
+export const MATERIALS={timber:'Madeira',ore:'Minério',essence:'Essência'};
+const check=(ok,message)=>{if(!ok)throw new RuleError(message);};
+const region=id=>REGIONS.find(n=>n.id===id);
+export function createWorld(){return {version:1,houses:[],territories:Object.fromEntries(REGIONS.filter(n=>['capital','fortress'].includes(n.kind)).map(n=>[n.id,{owner:null,influence:{},protectedUntil:0}])),wars:[],events:[]};}
+export function enterRealms(profile,createId,now=Date.now()){
+  if(profile.realm)return false;
+  profile.realm={publicId:createId(),version:1,location:'haven',avatar:profile.starterFaction==='werewolf'?'kael':'vesper',xp:0,level:1,provisions:20,materials:{timber:0,ore:0,essence:0},holdings:{camp:1,forge:0,library:0},visited:['haven'],gathered:{},claims:{},houseId:null,activeRoom:null,expedition:null,seenAt:now};
+  return true;
+}
+function journal(world,text,now){world.events.unshift({text,at:now});world.events=world.events.slice(0,60);world.version++;}
+function houseOf(world,profile){return world.houses.find(h=>h.id===profile.realm.houseId);}
+function debit(profile,coins,materials={}){check(profile.coins>=coins,`São necessárias ${coins} Marcas.`);for(const [k,v]of Object.entries(materials))check(profile.realm.materials[k]>=v,`Faltam ${MATERIALS[k]}: são necessários ${v}.`);profile.coins-=coins;for(const [k,v]of Object.entries(materials))profile.realm.materials[k]-=v;}
+function gainXP(r,amount){r.xp+=amount;r.level=1+Math.floor(r.xp/120);}
+export function expirePolitics(world,now=Date.now()){
+  for(const war of world.wars)if(war.status==='active'&&war.endsAt<=now){war.status='ended';journal(world,'O prazo de uma guerra terminou. As fronteiras conquistadas permanecem.',now);}
+  for(const h of world.houses)if(h.proposal&&h.proposal.endsAt<=now){h.proposal=null;journal(world,`A votação de ${h.name} encerrou sem quórum.`,now);}
+}
+export function realmView(world,profile,profiles,now=Date.now()){
+  const r=profile.realm;r.seenAt=now;expirePolitics(world,now);
+  const people=[...profiles.values()].filter(p=>p.realm&&now-p.realm.seenAt<45000).map(p=>({id:p.realm.publicId,name:p.name,avatar:p.realm.avatar,location:p.realm.location,level:p.realm.level,faction:p.starterFaction,houseId:p.realm.houseId,busy:!!p.realm.activeRoom}));
+  return {version:world.version,serverTime:now,player:structuredClone(r),regions:REGIONS,territories:world.territories,houses:world.houses.map(h=>({...h,members:h.members.map(id=>({id,name:[...profiles.values()].find(p=>p.realm?.publicId===id)?.name||'Viajante'}))})),wars:world.wars.slice(-30),events:world.events.slice(0,12),online:people,profile};
+}
+export function realmAction(world,profile,input,createId,now=Date.now()){
+  expirePolitics(world,now);
+  const r=profile.realm;check(r,'Entre em Reinos primeiro.');check(input.version===r.version,'Sua aventura mudou. Atualize o mapa e tente novamente.');
+  const here=region(r.location),house=houseOf(world,profile),action=input.type;
+  check(!r.activeRoom||action==='avatar','Conclua ou abandone o combate antes de agir no mundo.');
+  if(action==='travel'){
+    const destination=region(input.destination);check(destination&&here.links.includes(destination.id),'Viaje por uma rota conectada.');check(r.level>=destination.level,`Esta região exige nível de exploração ${destination.level}.`);check(r.provisions>0,'Reabasteça suas provisões no acampamento.');
+    r.provisions--;r.location=destination.id;r.expedition=null;if(!r.visited.includes(destination.id)){r.visited.push(destination.id);gainXP(r,20);}
+  }else if(action==='retreat'){r.location='haven';r.expedition=null;}
+  else if(action==='gather'){
+    check(here.kind!=='sanctuary','Explore uma região para coletar recursos.');check(now-(r.gathered[here.id]||0)>=60000,'Este local ainda se recupera. Aguarde um minuto entre coletas.');check(r.provisions>=1,'Você precisa de uma provisão.');
+    r.provisions--;r.gathered[here.id]=now;r.materials[here.resource]+=2+r.holdings.camp;gainXP(r,8);
+  }else if(action==='rest'){check(r.provisions<20+r.holdings.camp*5,'Suas provisões estão completas.');debit(profile,10);r.provisions=Math.min(20+r.holdings.camp*5,r.provisions+8);}
+  else if(action==='upgrade'){
+    check(['camp','forge','library'].includes(input.building),'Construção desconhecida.');const level=r.holdings[input.building];check(level<5,'A construção já está no nível máximo.');
+    debit(profile,20*(level+1),{timber:4*(level+1),ore:3*(level+1)});r.holdings[input.building]++;gainXP(r,25);
+  }else if(action==='refine'){check(r.holdings.forge>0,'Construa uma forja primeiro.');debit(profile,5,{ore:3});profile.scrap+=4+r.holdings.forge;}
+  else if(action==='study'){check(r.holdings.library>0,'Construa uma biblioteca primeiro.');debit(profile,5,{essence:3});profile.dust+=6+r.holdings.library*2;}
+  else if(action==='avatar'){check(AVATARS.includes(input.avatar),'Avatar desconhecido.');r.avatar=input.avatar;}
+  else if(action==='found'){
+    check(!house,'Você já pertence a uma Casa.');const name=String(input.name||'').trim();check(name.length>=3&&name.length<=28,'Use um nome entre 3 e 28 caracteres.');check(!world.houses.some(h=>h.name.toLocaleLowerCase()===name.toLocaleLowerCase()),'Já existe uma Casa com esse nome.');check(world.houses.length<200,'O reino atingiu seu limite de Casas.');debit(profile,100);
+    const h={id:createId(),name,faction:profile.starterFaction,leader:r.publicId,members:[r.publicId],treasury:0,policy:'expedition',proposal:null,createdAt:now};world.houses.push(h);r.houseId=h.id;journal(world,`${profile.name} fundou ${name}.`,now);
+  }else if(action==='join'){
+    check(!house,'Você já pertence a uma Casa.');const h=world.houses.find(h=>h.id===input.houseId);check(h&&h.faction===profile.starterFaction,'Escolha uma Casa da sua linhagem.');check(h.members.length<20,'Esta Casa já tem vinte membros.');h.members.push(r.publicId);r.houseId=h.id;journal(world,`${profile.name} jurou lealdade a ${h.name}.`,now);
+  }else if(action==='donate'){check(house,'Entre em uma Casa.');const amount=Number(input.amount);check(Number.isInteger(amount)&&amount>=1&&amount<=1000,'Doe entre 1 e 1.000 Marcas.');debit(profile,amount);house.treasury+=amount;}
+  else if(action==='propose'){
+    check(house&&house.leader===r.publicId,'Somente o fundador pode propor uma política.');check(!house.proposal,'Já existe uma proposta aberta.');check(Object.hasOwn(POLICIES,input.policy)&&input.policy!==house.policy,'Escolha outra política.');
+    house.proposal={policy:input.policy,eligible:[...house.members],votes:[r.publicId],endsAt:now+600000};resolveVote(house,world,now);
+  }else if(action==='vote'){
+    check(house?.proposal,'Não há uma proposta aberta.');check(house.proposal.eligible.includes(r.publicId),'Você entrou após o início desta votação.');check(!house.proposal.votes.includes(r.publicId),'Seu voto já foi contado.');house.proposal.votes.push(r.publicId);resolveVote(house,world,now);
+  }else if(action==='war'){
+    check(house?.leader===r.publicId,'Somente o fundador pode declarar guerra.');const rival=world.houses.find(h=>h.id===input.houseId);check(rival&&rival.id!==house.id,'Escolha uma Casa rival.');check(Object.values(world.territories).some(t=>t.owner===rival.id),'O rival ainda não possui territórios.');
+    check(!world.wars.some(w=>w.status==='active'&&[w.attacker,w.defender].includes(house.id)),'Sua Casa já participa de uma guerra.');check(!world.wars.some(w=>w.status==='active'&&[w.attacker,w.defender].includes(rival.id)),'Essa Casa já participa de uma guerra.');check(house.treasury>=50,'A guerra exige 50 Marcas do tesouro.');house.treasury-=50;
+    world.wars.push({id:createId(),attacker:house.id,defender:rival.id,status:'active',startsAt:now,endsAt:now+1800000});journal(world,`${house.name} declarou guerra a ${rival.name}. Trinta minutos de disputa.`,now);
+  }else throw new RuleError('Ação de reino desconhecida.');
+  r.version++;world.version++;r.seenAt=now;return r;
+}
+function resolveVote(house,world,now){const p=house.proposal;if(p.votes.length>=Math.floor(p.eligible.length/2)+1){house.policy=p.policy;house.proposal=null;journal(world,`${house.name} aprovou a política ${POLICIES[p.policy].name}.`,now);}}
+export function prepareEncounter(world,profile,now=Date.now()){
+  const r=profile.realm,n=region(r.location);check(!r.activeRoom,'Você já tem uma aventura em combate.');check(n.kind!=='sanctuary','O porto é uma zona de paz.');check(r.provisions>=2,'Uma expedição exige duas provisões.');
+  const territory=world.territories[n.id],house=houseOf(world,profile);
+  if(territory?.owner&&territory.owner!==house?.id){check(world.wars.some(w=>w.status==='active'&&w.endsAt>now&&[w.attacker,w.defender].includes(territory.owner)&&[w.attacker,w.defender].includes(house?.id)),'Este território pertence a outra Casa. Declare guerra antes de atacar.');check(territory.protectedUntil<=now,'Este território está sob trégua após uma conquista.');}
+  const stage=n.kind==='dungeon'?(r.expedition?.node===n.id?r.expedition.stage:0):0;
+  return {node:n.id,stage,stages:n.kind==='dungeon'?3:1,board:n.board,title:n.kind==='dungeon'?['Portão dos Sepultados','Galeria dos Esquecidos','Trono de Mordrath'][stage]:`Disputa por ${n.name}`,difficulty:n.level,houseId:house?.id||null};
+}
+export function settleEncounter(world,profile,encounter,won,conceded,now=Date.now()){
+  const r=profile.realm;r.activeRoom=null;r.version++;const n=region(encounter.node),house=houseOf(world,profile);const reward={xp:0,coins:0,materials:0,loot:false,message:''};
+  if(!won||conceded){r.expedition=null;reward.message='A expedição recuou. Seus territórios e construções permanecem.';return reward;}
+  const final=encounter.stage+1>=encounter.stages;
+  r.expedition=final?null:{node:n.id,stage:encounter.stage+1};
+  const key=`${n.id}:${encounter.stage}`,eligible=now-(r.claims[key]||0)>=300000;
+  if(eligible){r.claims[key]=now;reward.xp=30+encounter.difficulty*10;gainXP(r,reward.xp);reward.coins=10+(house?.policy==='commerce'?5:0);profile.coins+=reward.coins;reward.materials=2+(house?.policy==='expedition'?1:0);r.materials[n.resource]+=reward.materials;reward.loot=final;}
+  reward.message=final?'Expedição concluída.':'Mesa vencida. A próxima instância está aberta.';
+  const t=world.territories[n.id];
+  if(t&&house&&house.id===encounter.houseId&&eligible){
+    if(t.owner!==house.id){
+      const legal=!t.owner||world.wars.some(w=>w.status==='active'&&w.endsAt>now&&[w.attacker,w.defender].includes(t.owner)&&[w.attacker,w.defender].includes(house.id));
+      if(legal&&t.protectedUntil<=now){t.influence[house.id]=(t.influence[house.id]||0)+1;const defender=world.houses.find(h=>h.id===t.owner),needed=3+(defender?.policy==='bastion'?1:0);
+        if(t.influence[house.id]>=needed){t.owner=house.id;t.influence={};t.protectedUntil=now+600000;journal(world,`${house.name} conquistou ${n.name}. Trégua territorial de dez minutos.`,now);reward.message+=` ${n.name} agora pertence à sua Casa!`;}
+        else reward.message+=` Influência territorial: ${t.influence[house.id]}/${needed}.`;
+      }
+    }else{house.treasury+=5;reward.message+=' +5 Marcas ao tesouro da Casa.';}
+  }
+  journal(world,`${profile.name} venceu em ${n.name}${encounter.stages>1?` · mesa ${encounter.stage+1}/3`:''}.`,now);return reward;
+}

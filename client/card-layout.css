@@ -1,0 +1,252 @@
+/* One readable face size for the collection; the hand keeps its arena dimensions. */
+.menu-backdrop .collection-grid {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+  grid-auto-rows: max-content;
+  gap: 24px 14px;
+  overflow-x: hidden;
+}
+.menu-backdrop .collection-card {
+  display: grid;
+  grid-template-rows: auto minmax(48px, 1fr) auto auto;
+  justify-items: center;
+  align-content: start;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 6px;
+  overflow: visible;
+}
+.menu-backdrop .collection-grid .collection-card > .game-card {
+  --card-w: 143px;
+  --card-h: 205px;
+  width: var(--card-w);
+  height: var(--card-h);
+  max-width: 100%;
+  flex: 0 0 auto;
+  margin: 0 auto;
+  aspect-ratio: 2.8 / 4;
+}
+.menu-backdrop .collection-grid .collection-card > p {
+  width: min(100%, 172px);
+  min-height: 48px;
+  margin: 12px 0 6px;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.menu-backdrop .collection-grid .collection-card > .rarity-label {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  line-height: 1.5;
+  text-align: center;
+}
+.menu-backdrop .collection-grid .collection-card > button:not(.game-card) {
+  width: min(100%, 172px);
+  min-height: 36px;
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+/* Deck rows now wrap the card face and label inside one inspect button. */
+.menu-backdrop .deck-editor-columns {
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  min-width: 0;
+  align-items: start;
+}
+.menu-backdrop .deck-current,
+.menu-backdrop .deck-pool {
+  min-width: 0;
+  overflow-x: hidden;
+}
+.menu-backdrop .deck-card-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px;
+}
+.menu-backdrop .deck-card-row > .deck-inspect {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  padding: 3px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.menu-backdrop .deck-card-row > .deck-inspect > .mini-art.image-art {
+  position: relative;
+  inset: auto;
+  display: block;
+  width: 38px;
+  height: 50px;
+  max-width: none;
+  flex: none;
+  object-fit: cover;
+  object-position: center;
+  border: 1px solid #93845f88;
+}
+.menu-backdrop .deck-card-row > .deck-inspect > span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #e1d5bd;
+  font: 12px/1.35 Georgia, serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.menu-backdrop .deck-card-row > .deck-inspect > span > small {
+  display: block;
+  max-width: 100%;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #a9ad9f;
+  font: 9px/1.4 Arial, sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.menu-backdrop .deck-card-row > b {
+  min-width: 28px;
+  text-align: center;
+}
+.menu-backdrop .deck-card-row > button[data-card-remove],
+.menu-backdrop .deck-card-row > button[data-card-add] {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  padding: 0;
+}
+
+/* Illustration crops fill only their intended card/art wells. */
+.game-card > img.art.image-art {
+  position: absolute;
+  top: 4px;
+  right: auto;
+  bottom: auto;
+  left: 4px;
+  width: calc(100% - 8px);
+  height: auto;
+  aspect-ratio: 1;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+}
+.booster-pull .game-card > img.art.image-art {
+  top: 4px;
+  right: auto;
+  bottom: auto;
+  left: 4px;
+  width: calc(100% - 8px);
+  height: auto;
+  aspect-ratio: 1;
+}
+.fighter > img.art.image-art {
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+}
+.market-art > img.art.image-art {
+  position: static;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gear-badge > img.art.image-art {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+}
+.booster-face-art > img.art.image-art {
+  top: 0;
+  right: auto;
+  bottom: auto;
+  left: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+}
+.deck-crest > img.art.image-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Keep combat leader portraits inside the existing beveled portrait frame. */
+.hero-portrait > img.art.image-art {
+  width: calc(100% - 8px);
+  height: calc(100% - 14px);
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center top;
+}
+
+@media (max-width: 760px) {
+  .menu-backdrop .deck-editor-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .menu-backdrop .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 10px;
+  }
+  .menu-backdrop .collection-grid .collection-card > .game-card {
+    --card-w: 115px;
+    --card-h: 172px;
+  }
+}
+
+/* Holographic inspection: the full card pivots at its visual centre. */
+.menu-backdrop .full-card-inspect > .game-card {
+  transform: perspective(1100px) rotateX(0deg) rotateY(0deg) scale(1) !important;
+  transform-origin: 50% 50% !important;
+  transform-style: preserve-3d;
+  transition: transform 240ms cubic-bezier(.2,.72,.2,1), filter 220ms ease, box-shadow 220ms ease;
+  will-change: transform;
+  touch-action: none;
+  cursor: grab;
+}
+.menu-backdrop .full-card-inspect > .game-card.is-tilting {
+  transform: perspective(1100px) rotateX(var(--inspect-tilt-x,0deg)) rotateY(var(--inspect-tilt-y,0deg)) scale(1.025) !important;
+  filter: saturate(1.12) brightness(1.06);
+  box-shadow: 0 24px 60px #000d, 0 0 34px #dbb75b77, 0 0 0 2px #f0d293 !important;
+  transition-duration: 80ms, 160ms, 180ms;
+  cursor: grabbing;
+}
+.menu-backdrop .full-card-inspect > .game-card::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  left: 4px;
+  width: calc(100% - 8px);
+  height: calc(var(--card-w) - 8px);
+  border-radius: 5px 5px 0 0;
+  background: radial-gradient(ellipse at var(--inspect-shine-x,50%) var(--inspect-shine-y,50%), #fff9, #b6eff044 18%, #daecff20 38%, transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+.menu-backdrop .full-card-inspect > .game-card.is-tilting::before { opacity: .8; }
+.menu-backdrop .official-pack { box-shadow: none; }
+@media (prefers-reduced-motion: reduce) {
+  .menu-backdrop .full-card-inspect > .game-card,
+  .menu-backdrop .full-card-inspect > .game-card.is-tilting { transition: none; }
+}

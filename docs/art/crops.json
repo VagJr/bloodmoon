@@ -1,0 +1,1122 @@
+[
+  {
+    "id": "renewal",
+    "sheet": "collection-01",
+    "bounds": [
+      0,
+      0,
+      314,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "blade",
+    "sheet": "collection-01",
+    "bounds": [
+      314,
+      0,
+      627,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "ward",
+    "sheet": "collection-01",
+    "bounds": [
+      627,
+      0,
+      940,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "relic",
+    "sheet": "collection-01",
+    "bounds": [
+      940,
+      0,
+      1254,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "reaver",
+    "sheet": "collection-01",
+    "bounds": [
+      0,
+      314,
+      314,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "ravager",
+    "sheet": "collection-01",
+    "bounds": [
+      314,
+      314,
+      627,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "execution",
+    "sheet": "collection-01",
+    "bounds": [
+      627,
+      314,
+      940,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "pounce",
+    "sheet": "collection-01",
+    "bounds": [
+      940,
+      314,
+      1254,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "warden",
+    "sheet": "collection-01",
+    "bounds": [
+      0,
+      627,
+      314,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "bloodbat",
+    "sheet": "collection-01",
+    "bounds": [
+      314,
+      627,
+      627,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "duchess",
+    "sheet": "collection-01",
+    "bounds": [
+      627,
+      627,
+      940,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "gravefang",
+    "sheet": "collection-01",
+    "bounds": [
+      940,
+      627,
+      1254,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "mooncaller",
+    "sheet": "collection-01",
+    "bounds": [
+      0,
+      940,
+      314,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "bloodshard",
+    "sheet": "collection-01",
+    "bounds": [
+      314,
+      940,
+      627,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "moonfire",
+    "sheet": "collection-01",
+    "bounds": [
+      627,
+      940,
+      940,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "nightcourt",
+    "sheet": "collection-01",
+    "bounds": [
+      940,
+      940,
+      1254,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "bloodscribe",
+    "sheet": "collection-02",
+    "bounds": [
+      0,
+      0,
+      314,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "duskwidow",
+    "sheet": "collection-02",
+    "bounds": [
+      314,
+      0,
+      627,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "scarletmarshal",
+    "sheet": "collection-02",
+    "bounds": [
+      627,
+      0,
+      940,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "redvow",
+    "sheet": "collection-02",
+    "bounds": [
+      940,
+      0,
+      1254,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "bloodguard",
+    "sheet": "collection-02",
+    "bounds": [
+      0,
+      314,
+      314,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "crimsonrelic",
+    "sheet": "collection-02",
+    "bounds": [
+      314,
+      314,
+      627,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "packrunner",
+    "sheet": "collection-02",
+    "bounds": [
+      627,
+      314,
+      940,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "moonhowler",
+    "sheet": "collection-02",
+    "bounds": [
+      940,
+      314,
+      1254,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "starmaw",
+    "sheet": "collection-02",
+    "bounds": [
+      0,
+      627,
+      314,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "mosskeeper",
+    "sheet": "collection-02",
+    "bounds": [
+      314,
+      627,
+      627,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "bloodtrail",
+    "sheet": "collection-02",
+    "bounds": [
+      627,
+      627,
+      940,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "frostalpha",
+    "sheet": "collection-02",
+    "bounds": [
+      940,
+      627,
+      1254,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "howlcaller",
+    "sheet": "collection-02",
+    "bounds": [
+      0,
+      940,
+      314,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "ivorychain",
+    "sheet": "collection-02",
+    "bounds": [
+      314,
+      940,
+      627,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "fangofeclipse",
+    "sheet": "collection-02",
+    "bounds": [
+      627,
+      940,
+      940,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "blackcrown",
+    "sheet": "collection-02",
+    "bounds": [
+      940,
+      940,
+      1254,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "veilstalker",
+    "sheet": "collection-03",
+    "bounds": [
+      0,
+      0,
+      314,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "crimsonnotary",
+    "sheet": "collection-03",
+    "bounds": [
+      314,
+      0,
+      627,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "cinderconfessor",
+    "sheet": "collection-03",
+    "bounds": [
+      627,
+      0,
+      940,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "courtduelist",
+    "sheet": "collection-03",
+    "bounds": [
+      940,
+      0,
+      1254,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "bloodvicar",
+    "sheet": "collection-03",
+    "bounds": [
+      0,
+      314,
+      314,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "graveauditor",
+    "sheet": "collection-03",
+    "bounds": [
+      314,
+      314,
+      627,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "velvetstalker",
+    "sheet": "collection-03",
+    "bounds": [
+      627,
+      314,
+      940,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "nocturneherald",
+    "sheet": "collection-03",
+    "bounds": [
+      940,
+      314,
+      1254,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "crimsonpage",
+    "sheet": "collection-03",
+    "bounds": [
+      0,
+      627,
+      314,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "gloamduelist",
+    "sheet": "collection-03",
+    "bounds": [
+      314,
+      627,
+      627,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "rosenvaultkeeper",
+    "sheet": "collection-03",
+    "bounds": [
+      627,
+      627,
+      940,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "heartseeker",
+    "sheet": "collection-03",
+    "bounds": [
+      940,
+      627,
+      1254,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "dreadconsort",
+    "sheet": "collection-03",
+    "bounds": [
+      0,
+      940,
+      314,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "bloodchorister",
+    "sheet": "collection-03",
+    "bounds": [
+      314,
+      940,
+      627,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "sanguinelegate",
+    "sheet": "collection-03",
+    "bounds": [
+      627,
+      940,
+      940,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "redfangthrall",
+    "sheet": "collection-03",
+    "bounds": [
+      940,
+      940,
+      1254,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "throneoflastbreath",
+    "sheet": "collection-05",
+    "bounds": [
+      0,
+      0,
+      314,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "cruelvow",
+    "sheet": "collection-05",
+    "bounds": [
+      314,
+      0,
+      627,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "moonclawrunner",
+    "sheet": "collection-05",
+    "bounds": [
+      627,
+      0,
+      940,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "iceveinwarden",
+    "sheet": "collection-05",
+    "bounds": [
+      940,
+      0,
+      1254,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "howlmarker",
+    "sheet": "collection-05",
+    "bounds": [
+      0,
+      314,
+      314,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "packtracker",
+    "sheet": "collection-05",
+    "bounds": [
+      314,
+      314,
+      627,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "thornback",
+    "sheet": "collection-05",
+    "bounds": [
+      627,
+      314,
+      940,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "redmoonmauler",
+    "sheet": "collection-05",
+    "bounds": [
+      940,
+      314,
+      1254,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "frostfang",
+    "sheet": "collection-05",
+    "bounds": [
+      0,
+      627,
+      314,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "mossbloodshaman",
+    "sheet": "collection-05",
+    "bounds": [
+      314,
+      627,
+      627,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "youngalpha",
+    "sheet": "collection-05",
+    "bounds": [
+      627,
+      627,
+      940,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "moonpackvanguard",
+    "sheet": "collection-05",
+    "bounds": [
+      940,
+      627,
+      1254,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "scarjaw",
+    "sheet": "collection-05",
+    "bounds": [
+      0,
+      940,
+      314,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "whitehowlseer",
+    "sheet": "collection-05",
+    "bounds": [
+      314,
+      940,
+      627,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "ironrootbeast",
+    "sheet": "collection-05",
+    "bounds": [
+      627,
+      940,
+      940,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "lunarreclaimer",
+    "sheet": "collection-05",
+    "bounds": [
+      940,
+      940,
+      1254,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "frostpackleader",
+    "sheet": "collection-06",
+    "bounds": [
+      0,
+      0,
+      314,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "ashenwolfblade",
+    "sheet": "collection-06",
+    "bounds": [
+      314,
+      0,
+      627,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "starvedfury",
+    "sheet": "collection-06",
+    "bounds": [
+      627,
+      0,
+      940,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "baneofcourt",
+    "sheet": "collection-06",
+    "bounds": [
+      940,
+      0,
+      1254,
+      314
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "gloamstalker",
+    "sheet": "collection-06",
+    "bounds": [
+      0,
+      314,
+      314,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "eclipsehowler",
+    "sheet": "collection-06",
+    "bounds": [
+      314,
+      314,
+      627,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "denmother",
+    "sheet": "collection-06",
+    "bounds": [
+      627,
+      314,
+      940,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "moonlitprowler",
+    "sheet": "collection-06",
+    "bounds": [
+      940,
+      314,
+      1254,
+      627
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "wildvowkeeper",
+    "sheet": "collection-06",
+    "bounds": [
+      0,
+      627,
+      314,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "fenalpha",
+    "sheet": "collection-06",
+    "bounds": [
+      314,
+      627,
+      627,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "packcall",
+    "sheet": "collection-06",
+    "bounds": [
+      627,
+      627,
+      940,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "moonshriek",
+    "sheet": "collection-06",
+    "bounds": [
+      940,
+      627,
+      1254,
+      940
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "gnawinghex",
+    "sheet": "collection-06",
+    "bounds": [
+      0,
+      940,
+      314,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "breathofmoon",
+    "sheet": "collection-06",
+    "bounds": [
+      314,
+      940,
+      627,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "wildconvergence",
+    "sheet": "collection-06",
+    "bounds": [
+      627,
+      940,
+      940,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "iceboundcharge",
+    "sheet": "collection-06",
+    "bounds": [
+      940,
+      940,
+      1254,
+      1254
+    ],
+    "sourceSize": [
+      1254,
+      1254
+    ]
+  }
+]
