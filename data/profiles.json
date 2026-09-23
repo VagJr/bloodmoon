@@ -1,0 +1,365 @@
+[
+  {
+    "id": "8d011a68-ef75-494b-a843-ef8218547f21",
+    "name": "Viajante",
+    "xp": 200,
+    "level": 1,
+    "wins": 0,
+    "matches": 4,
+    "trophies": []
+  },
+  {
+    "id": "3bb29323-7eb4-4ea0-8b6c-c0cacac552a7",
+    "name": "Viajante",
+    "xp": 650,
+    "level": 3,
+    "wins": 2,
+    "matches": 11,
+    "trophies": []
+  },
+  {
+    "id": "f3d5b392-169b-428e-95a9-654a9537edf4",
+    "name": "Caçador",
+    "xp": 1450,
+    "level": 5,
+    "wins": 6,
+    "matches": 23,
+    "trophies": [],
+    "coins": 599,
+    "dust": 937,
+    "collection": {
+      "envoy": 2,
+      "duelist": 2,
+      "thrall": 2,
+      "bloodbat": 2,
+      "nightcourt": 2,
+      "bloodscribe": 2,
+      "reaver": 1,
+      "oracle": 1,
+      "blood": 2,
+      "pact": 2,
+      "execution": 2,
+      "duskwidow": 2,
+      "blade": 0,
+      "ward": 0,
+      "starmaw": 2,
+      "renewal": 2,
+      "moonfire": 2,
+      "howlcaller": 2,
+      "redvow": 1,
+      "frostalpha": 2,
+      "mooncaller": 2,
+      "howl": 2,
+      "elder": 2,
+      "bloodguard": 2,
+      "bloodshard": 0,
+      "mosskeeper": 2,
+      "fang": 1,
+      "relic": 0,
+      "bloodtrail": 1,
+      "ravager": 2,
+      "packrunner": 2,
+      "scarletmarshal": 1,
+      "scout": 1
+    },
+    "decks": [
+      {
+        "name": "Corte Rubra · Juramento Inic",
+        "faction": "vampire",
+        "cards": [
+          "envoy",
+          "envoy",
+          "duelist",
+          "duelist",
+          "thrall",
+          "thrall",
+          "bloodbat",
+          "bloodbat",
+          "nightcourt",
+          "nightcourt",
+          "bloodscribe",
+          "reaver",
+          "oracle",
+          "blood",
+          "pact",
+          "execution",
+          "duskwidow",
+          "duskwidow",
+          "blade",
+          "ward"
+        ],
+        "starter": true,
+        "id": "8ad91e66-1413-4103-bb69-5aa464082d10"
+      }
+    ],
+    "activeDecks": {
+      "vampire": "8ad91e66-1413-4103-bb69-5aa464082d10"
+    },
+    "contracts": {
+      "matches": 2,
+      "kills": 4,
+      "wins": 0
+    },
+    "starterFaction": "vampire",
+    "starterGranted": true,
+    "items": [
+      {
+        "id": "11a7dcec-69c0-44e0-aefb-59da460f07b5",
+        "cardId": "blade",
+        "rarity": "common",
+        "durability": 2,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "legacy",
+        "createdAt": 1790113238399
+      },
+      {
+        "id": "d674815d-cce5-495d-88dc-441315862227",
+        "cardId": "blade",
+        "rarity": "common",
+        "durability": 1,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "legacy",
+        "createdAt": 1790113238399
+      },
+      {
+        "id": "a011c681-6456-48d3-a1d8-74511c31e998",
+        "cardId": "ward",
+        "rarity": "common",
+        "durability": 2,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "legacy",
+        "createdAt": 1790113238399
+      },
+      {
+        "id": "4ba3a858-aaff-4c7b-88d1-e23fbe5aeab6",
+        "cardId": "ward",
+        "rarity": "common",
+        "durability": 1,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "legacy",
+        "createdAt": 1790113238399
+      },
+      {
+        "id": "4a791fe3-104f-449a-b5d6-0cef7a8b2c0c",
+        "cardId": "relic",
+        "rarity": "rare",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "legacy",
+        "createdAt": 1790113238399
+      },
+      {
+        "id": "7b231fb5-93f9-43ed-9c6f-91a51ce4b9dd",
+        "cardId": "bloodshard",
+        "rarity": "common",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "legacy",
+        "createdAt": 1790113238399
+      },
+      {
+        "id": "7c530afe-f2ac-4901-9eb2-63577a4483c5",
+        "cardId": "bloodshard",
+        "rarity": "common",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "legacy",
+        "createdAt": 1790113238399
+      },
+      {
+        "id": "2c7a5595-e0ae-47c3-a9fb-03fc0593edb7",
+        "cardId": "ivorychain",
+        "rarity": "common",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790113273844
+      },
+      {
+        "id": "241e0af1-2c39-480a-9f23-b8c211277951",
+        "cardId": "blackcrown",
+        "rarity": "rare",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790113273844,
+        "listingId": "d58639a9-4d2c-4bab-a485-fc4c36d0ad0a",
+        "price": 60,
+        "listedAt": 1790114442627
+      },
+      {
+        "id": "56a15d9e-1e34-4fe9-8c5c-6f17495efcaa",
+        "cardId": "blade",
+        "rarity": "common",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790113501104
+      },
+      {
+        "id": "5f5e5283-767e-487b-8f2e-b979fac93e78",
+        "cardId": "crimsonrelic",
+        "rarity": "epic",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790114266312
+      },
+      {
+        "id": "b74b10c5-9af4-4b0f-9e47-f89c62d8ef8b",
+        "cardId": "ward",
+        "rarity": "common",
+        "durability": 2,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790114659703
+      },
+      {
+        "id": "5300e76d-158e-4059-9fe9-eb7029806666",
+        "cardId": "fangofeclipse",
+        "rarity": "uncommon",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790115319543
+      },
+      {
+        "id": "82c069cf-1e57-49f3-9d22-683747daaf79",
+        "cardId": "ivorychain",
+        "rarity": "common",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790115513513
+      },
+      {
+        "id": "edf1efef-8b5c-4733-b11e-b95dd9836622",
+        "cardId": "crimsonrelic",
+        "rarity": "epic",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790115513513
+      }
+    ],
+    "scrap": 7
+  },
+  {
+    "id": "679f00e3-e8fd-44cd-9aa2-fc9e331d5d62",
+    "name": "Caçador",
+    "xp": 0,
+    "level": 1,
+    "wins": 0,
+    "matches": 0,
+    "trophies": [],
+    "collection": {
+      "envoy": 2,
+      "duelist": 2,
+      "thrall": 2,
+      "bloodbat": 2,
+      "nightcourt": 2,
+      "bloodscribe": 1,
+      "reaver": 1,
+      "oracle": 1,
+      "blood": 1,
+      "pact": 1,
+      "execution": 1,
+      "duskwidow": 2,
+      "scout": 1,
+      "redvow": 1,
+      "moonhowler": 1,
+      "howlcaller": 2,
+      "renewal": 2
+    },
+    "items": [
+      {
+        "id": "7db8b621-6c38-4b16-b134-aa290cfb5157",
+        "cardId": "blade",
+        "rarity": "common",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": true,
+        "source": "starter",
+        "createdAt": 1790115385645
+      },
+      {
+        "id": "590fbb94-b822-4765-967c-6108c593ccd7",
+        "cardId": "ward",
+        "rarity": "common",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": true,
+        "source": "starter",
+        "createdAt": 1790115385645
+      },
+      {
+        "id": "217a2273-5bdf-479b-bd18-0e3609d9c730",
+        "cardId": "bloodshard",
+        "rarity": "common",
+        "durability": 3,
+        "maxDurability": 3,
+        "bound": false,
+        "source": "booster",
+        "createdAt": 1790115430993
+      }
+    ],
+    "scrap": 0,
+    "coins": 100,
+    "dust": 24,
+    "decks": [
+      {
+        "name": "Corte Rubra · Juramento Inicial",
+        "faction": "vampire",
+        "cards": [
+          "envoy",
+          "envoy",
+          "duelist",
+          "duelist",
+          "thrall",
+          "thrall",
+          "bloodbat",
+          "bloodbat",
+          "nightcourt",
+          "nightcourt",
+          "bloodscribe",
+          "reaver",
+          "oracle",
+          "blood",
+          "pact",
+          "execution",
+          "duskwidow",
+          "duskwidow",
+          "blade",
+          "ward"
+        ],
+        "starter": true,
+        "id": "3f9f7002-4c49-4ee7-8f58-b224092754b2"
+      }
+    ],
+    "activeDecks": {
+      "vampire": "3f9f7002-4c49-4ee7-8f58-b224092754b2"
+    },
+    "contracts": {
+      "matches": 0,
+      "kills": 0,
+      "wins": 0
+    },
+    "starterFaction": "vampire",
+    "starterGranted": true
+  }
+]

@@ -1,0 +1,3061 @@
+[
+  {
+    "id": "collection-01",
+    "cards": [
+      {
+        "id": "renewal",
+        "name": "Memória Selvagem",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 1,
+        "effect": "heal",
+        "text": "Recupere 3 de vitalidade.",
+        "flavor": "A cicatriz é um caminho de volta.",
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "moon"
+        ]
+      },
+      {
+        "id": "blade",
+        "name": "Lâmina de Obsidiana",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 2,
+        "health": 0,
+        "text": "Equipe um aliado: +2 ataque. Em seu líder, habilidades recebem +1 dano. Máximo: 2 por criatura, 1 no líder.",
+        "flavor": "Forjada onde a luz termina.",
+        "rarity": "common",
+        "tags": [
+          "relic",
+          "blade"
+        ]
+      },
+      {
+        "id": "ward",
+        "name": "Manto de Ossos",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 3,
+        "text": "Equipe um aliado: +3 vida máxima e atual. Em seu líder, +3 vida máxima e atual. Máximo: 2 por criatura, 1 no líder.",
+        "flavor": "Uma dívida que veste bem.",
+        "rarity": "common",
+        "tags": [
+          "relic",
+          "guard"
+        ]
+      },
+      {
+        "id": "relic",
+        "name": "Fragmento da Primeira Noite",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 2,
+        "text": "Catacumbas podem criar uma cópia temporária desta carta. Equipe uma criatura: +1 ataque e +2 vida.",
+        "flavor": "Antes do primeiro amanhecer, houve uma escolha.",
+        "rarity": "rare",
+        "tags": [
+          "relic",
+          "blood"
+        ]
+      },
+      {
+        "id": "reaver",
+        "name": "Ceifadora Escarlate",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 4,
+        "influence": 1,
+        "keyword": "lifesteal",
+        "text": "Drenar: ao atacar, cura seu líder pelo dano causado.",
+        "flavor": "A noite bebe através dela.",
+        "rarity": "rare",
+        "tags": [
+          "blood",
+          "lifesteal"
+        ]
+      },
+      {
+        "id": "ravager",
+        "name": "Rasga-Carne",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 5,
+        "influence": 1,
+        "keyword": "bleed",
+        "text": "Sangrar: ataques contra aliados aplicam 1 dano no fim da rodada.",
+        "flavor": "O primeiro golpe nunca é o último.",
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "bleed"
+        ]
+      },
+      {
+        "id": "execution",
+        "name": "Execução Rubra",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 3,
+        "effect": "execute",
+        "text": "Cause 4 de dano a um inimigo escolhido.",
+        "flavor": "Nem toda sentença precisa de palavras.",
+        "rarity": "rare",
+        "tags": [
+          "ritual",
+          "removal"
+        ]
+      },
+      {
+        "id": "pounce",
+        "name": "Salto Predatório",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 2,
+        "effect": "pounce",
+        "text": "Um aliado ganha +2 ataque e pode atacar novamente.",
+        "flavor": "Não existe lugar seguro.",
+        "rarity": "uncommon",
+        "tags": [
+          "ritual",
+          "pack"
+        ]
+      },
+      {
+        "id": "warden",
+        "name": "Sentinela Sepulcral",
+        "faction": "neutral",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 6,
+        "influence": 1,
+        "text": "Guardião do Rei Sepultado.",
+        "flavor": "Nem a morte encerrou seu serviço.",
+        "rarity": "legendary",
+        "tags": [
+          "relic",
+          "guard"
+        ]
+      },
+      {
+        "id": "bloodbat",
+        "name": "Morcego do Banquete",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 1,
+        "attack": 1,
+        "health": 2,
+        "influence": 1,
+        "keyword": "lifesteal",
+        "text": "Drenar: cure seu líder pelo dano causado em ataques, inclusive contra combatentes.",
+        "flavor": "A fome também sabe voar.",
+        "rarity": "common",
+        "tags": [
+          "blood",
+          "lifesteal"
+        ]
+      },
+      {
+        "id": "duchess",
+        "name": "Duquesa das Cinzas",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 4,
+        "attack": 3,
+        "health": 5,
+        "influence": 4,
+        "text": "Uma voz pode derrubar um castelo.",
+        "flavor": "Sua corte começa onde ela respira.",
+        "rarity": "rare",
+        "tags": [
+          "court",
+          "coven"
+        ]
+      },
+      {
+        "id": "gravefang",
+        "name": "Presalva Tumular",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 4,
+        "attack": 5,
+        "health": 3,
+        "influence": 1,
+        "keyword": "bleed",
+        "text": "Sangrar: deixa feridas abertas no inimigo.",
+        "flavor": "O túmulo não era para ela.",
+        "rarity": "rare",
+        "tags": [
+          "pack",
+          "bleed"
+        ]
+      },
+      {
+        "id": "mooncaller",
+        "name": "Chamadora da Lua Oca",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 3,
+        "influence": 2,
+        "text": "Conduz o juramento e a investida.",
+        "flavor": "A lua partida ainda ouve seu nome.",
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "court"
+        ]
+      },
+      {
+        "id": "bloodshard",
+        "name": "Estilhaço Escarlate",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 1,
+        "text": "Equipe um aliado: +1 ataque e +1 vida. Em seu líder, habilidades recebem +1 dano e +1 vida.",
+        "flavor": "O cristal pulsa ao ouvir seu portador.",
+        "rarity": "common",
+        "tags": [
+          "relic",
+          "blood"
+        ]
+      },
+      {
+        "id": "moonfire",
+        "name": "Chama da Alcateia",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 2,
+        "effect": "damage",
+        "text": "Cause 2 de dano a um inimigo escolhido.",
+        "flavor": "A lua também sabe queimar.",
+        "rarity": "uncommon",
+        "tags": [
+          "ritual",
+          "moon",
+          "removal"
+        ]
+      },
+      {
+        "id": "nightcourt",
+        "name": "Sanguinista da Corte",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 1,
+        "health": 3,
+        "influence": 3,
+        "tags": [
+          "court",
+          "coven"
+        ],
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "influence",
+          "amount": 1,
+          "limit": "round"
+        },
+        "text": "Sinergia · uma vez por rodada, ao lançar ritual nesta frente, recebe +1 influência até o fim da rodada.",
+        "flavor": "Cada voto tem um preço rubro.",
+        "rarity": "common"
+      }
+    ]
+  },
+  {
+    "id": "collection-02",
+    "cards": [
+      {
+        "id": "bloodscribe",
+        "name": "Escrivã do Dízimo",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 3,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "coven",
+          "sacrifice"
+        ],
+        "synergy": {
+          "trigger": "ally-dies",
+          "effect": "draw",
+          "amount": 1,
+          "limit": "round"
+        },
+        "text": "Sinergia · na primeira morte aliada nesta frente a cada rodada, compre 1 carta.",
+        "flavor": "Nenhuma dívida desaparece com o devedor."
+      },
+      {
+        "id": "duskwidow",
+        "name": "Viúva do Crepúsculo",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 3,
+        "influence": 1,
+        "tags": [
+          "coven",
+          "blood"
+        ],
+        "synergy": {
+          "trigger": "ally-dies",
+          "effect": "heal",
+          "amount": 1,
+          "limit": "round"
+        },
+        "text": "Sinergia · na primeira morte aliada nesta frente a cada rodada, cure 1 do líder.",
+        "flavor": "Ela chora apenas quando alguém está olhando.",
+        "rarity": "common"
+      },
+      {
+        "id": "scarletmarshal",
+        "name": "Marechal Escarlate",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 4,
+        "influence": 2,
+        "rarity": "rare",
+        "tags": [
+          "court",
+          "coven"
+        ],
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        },
+        "text": "Sinergia · uma vez por rodada, ao lançar ritual nesta frente, recebe +1 ataque até o fim da rodada.",
+        "flavor": "A ordem da Corte chega antes da lâmina."
+      },
+      {
+        "id": "redvow",
+        "name": "Voto da Câmara Rubra",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 1,
+        "effect": "influence",
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "court",
+          "coven"
+        ],
+        "text": "Conceda +3 poder de conquista à frente escolhida nesta rodada.",
+        "flavor": "A Corte nunca vota de graça."
+      },
+      {
+        "id": "bloodguard",
+        "name": "Cavaleiro do Cálice Negro",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 4,
+        "attack": 4,
+        "health": 4,
+        "influence": 1,
+        "rarity": "rare",
+        "keyword": "lifesteal",
+        "tags": [
+          "blood",
+          "coven",
+          "lifesteal"
+        ],
+        "text": "Drenar · cure seu líder pelo dano causado em ataques, mesmo contra combatentes.",
+        "flavor": "Seu escudo guarda a sede de uma dinastia."
+      },
+      {
+        "id": "crimsonrelic",
+        "name": "Coração da Primeira Noite",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 2,
+        "rarity": "epic",
+        "tags": [
+          "relic",
+          "blood"
+        ],
+        "text": "Equipe uma criatura: +2 ataque e +2 vida. Em seu líder, habilidades recebem +1 dano e +2 vida máxima.",
+        "flavor": "A relíquia pulsa quando a guerra recomeça."
+      },
+      {
+        "id": "packrunner",
+        "name": "Corredor da Geada",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 3,
+        "influence": 1,
+        "tags": [
+          "pack",
+          "hunt"
+        ],
+        "synergy": {
+          "trigger": "ally-summoned",
+          "faction": "werewolf",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        },
+        "text": "Sinergia · uma vez por rodada, ao invocar outro lobisomem nesta frente, recebe +1 ataque até o fim da rodada.",
+        "flavor": "A alcateia chega antes que a neve se assente.",
+        "rarity": "common"
+      },
+      {
+        "id": "moonhowler",
+        "name": "Uivadora das Feridas",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 3,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "bleed",
+          "moon"
+        ],
+        "synergy": {
+          "trigger": "bleed-applied",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        },
+        "text": "Sinergia · uma vez por rodada, quando inimigo começa a sangrar nesta frente, recebe +1 ataque até o fim da rodada.",
+        "flavor": "O uivo encontra cada ferida aberta."
+      },
+      {
+        "id": "starmaw",
+        "name": "Mordedora Estelar",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 1,
+        "attack": 2,
+        "health": 1,
+        "influence": 1,
+        "keyword": "bleed",
+        "tags": [
+          "pack",
+          "bleed",
+          "hunt"
+        ],
+        "text": "Sangrar · ao ferir um inimigo que sobrevive, causa 1 dano adicional no confronto.",
+        "flavor": "Uma estrela cadente. Uma presa certeira.",
+        "rarity": "common"
+      },
+      {
+        "id": "mosskeeper",
+        "name": "Guardião do Musgo Antigo",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 1,
+        "health": 4,
+        "influence": 2,
+        "tags": [
+          "pack",
+          "moon",
+          "court"
+        ],
+        "text": "Resiste na Corte e protege uma frente por vez.",
+        "flavor": "Raízes também sabem cerrar os dentes.",
+        "rarity": "common"
+      },
+      {
+        "id": "bloodtrail",
+        "name": "Rastro de Sangue",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 2,
+        "effect": "rend",
+        "rarity": "rare",
+        "tags": [
+          "ritual",
+          "bleed",
+          "hunt"
+        ],
+        "text": "Cause 1 dano a um inimigo escolhido e aplique Sangramento.",
+        "flavor": "A caça só termina quando a trilha esfria."
+      },
+      {
+        "id": "frostalpha",
+        "name": "Alfa da Lua Partida",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 4,
+        "attack": 4,
+        "health": 5,
+        "influence": 2,
+        "rarity": "rare",
+        "tags": [
+          "pack",
+          "moon"
+        ],
+        "synergy": {
+          "trigger": "ally-summoned",
+          "faction": "werewolf",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        },
+        "text": "Sinergia · uma vez por rodada, ao invocar outro lobisomem nesta frente, recebe +1 ataque até o fim da rodada.",
+        "flavor": "A alcateia inteira cabe em um único rugido."
+      },
+      {
+        "id": "howlcaller",
+        "name": "Oráculo do Uivo Branco",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 5,
+        "attack": 4,
+        "health": 5,
+        "influence": 2,
+        "rarity": "epic",
+        "tags": [
+          "pack",
+          "moon",
+          "ritual"
+        ],
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        },
+        "text": "Sinergia · uma vez por rodada, ao lançar ritual nesta frente, recebe +1 ataque até o fim da rodada.",
+        "flavor": "A lua responde em vozes que já partiram."
+      },
+      {
+        "id": "ivorychain",
+        "name": "Malha de Marfim",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 2,
+        "rarity": "common",
+        "tags": [
+          "relic",
+          "guard"
+        ],
+        "text": "Um aliado recebe +2 vida. Em um líder, aumenta a vida máxima e atual em 2.",
+        "flavor": "Cada elo guarda uma última oração."
+      },
+      {
+        "id": "fangofeclipse",
+        "name": "Presa do Eclipse",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 2,
+        "health": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "relic",
+          "hunt"
+        ],
+        "text": "Um aliado recebe +2 ataque e +1 vida. Em um líder, fortalece habilidades e vida máxima.",
+        "flavor": "A lua morde de volta."
+      },
+      {
+        "id": "blackcrown",
+        "name": "Diadema do Rei Oco",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 3,
+        "rarity": "rare",
+        "tags": [
+          "relic",
+          "court"
+        ],
+        "text": "Um aliado recebe +1 ataque e +3 vida. Em um líder, fortalece habilidades e amplia a vida máxima.",
+        "flavor": "Todo trono cobra uma parte de quem o usa."
+      }
+    ]
+  },
+  {
+    "id": "collection-03",
+    "cards": [
+      {
+        "id": "veilstalker",
+        "name": "Perseguidora do Véu",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 3,
+        "health": 2,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "blood",
+          "coven",
+          "lifesteal"
+        ],
+        "text": "Drenar: seu líder recupera vida pelo dano que ela causa ao atacar.",
+        "flavor": "Ela aprendeu a desaparecer entre um batimento e outro.",
+        "keyword": "lifesteal"
+      },
+      {
+        "id": "crimsonnotary",
+        "name": "Notário da Última Dívida",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 1,
+        "attack": 1,
+        "health": 3,
+        "influence": 2,
+        "rarity": "common",
+        "tags": [
+          "court",
+          "coven",
+          "ritual"
+        ],
+        "text": "Sinergia: o primeiro ritual nesta frente a cada rodada lhe concede +1 influência.",
+        "flavor": "Cada assinatura foi reconhecida por alguém que já morreu.",
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "influence",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "cinderconfessor",
+        "name": "Confessor das Brasas",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 3,
+        "influence": 2,
+        "rarity": "common",
+        "tags": [
+          "blood",
+          "sacrifice",
+          "coven"
+        ],
+        "text": "Sinergia: na primeira morte aliada nesta frente, concede 1 Frenesi.",
+        "flavor": "Ele absolve os vivos com as cinzas dos culpados.",
+        "synergy": {
+          "trigger": "ally-dies",
+          "stat": null,
+          "amount": 1,
+          "effect": "rage",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "courtduelist",
+        "name": "Duelista da Câmara Velada",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 4,
+        "health": 3,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "court",
+          "blade",
+          "coven"
+        ],
+        "text": "Sangramento: ataques deixam uma ferida que se abre no confronto.",
+        "flavor": "A etiqueta acaba no instante em que as lâminas se cruzam.",
+        "keyword": "bleed"
+      },
+      {
+        "id": "bloodvicar",
+        "name": "Vigário do Sangue Antigo",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 2,
+        "health": 4,
+        "influence": 3,
+        "rarity": "rare",
+        "tags": [
+          "court",
+          "blood",
+          "ritual"
+        ],
+        "text": "Sinergia: o primeiro ritual nesta frente a cada rodada concede +1 influência.",
+        "flavor": "Sua congregação se reúne em capelas sem portas.",
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "influence",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "graveauditor",
+        "name": "Auditor das Sepulturas",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 4,
+        "attack": 3,
+        "health": 5,
+        "influence": 2,
+        "rarity": "rare",
+        "tags": [
+          "coven",
+          "sacrifice",
+          "grave"
+        ],
+        "text": "Sinergia: na primeira morte aliada nesta frente, compre 1 carta.",
+        "flavor": "Ele confere cada nome antes que a terra se feche.",
+        "synergy": {
+          "trigger": "ally-dies",
+          "stat": null,
+          "amount": 1,
+          "effect": "draw",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "velvetstalker",
+        "name": "Predador de Veludo",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 3,
+        "health": 2,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "blood",
+          "hunt",
+          "coven"
+        ],
+        "text": "Sinergia: o primeiro ataque aliado nesta frente a cada rodada lhe concede +1 ataque.",
+        "flavor": "O veludo não faz ruído quando cai sobre a presa.",
+        "synergy": {
+          "trigger": "ally-attacks",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "nocturneherald",
+        "name": "Arauto da Nocturna",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 2,
+        "health": 4,
+        "influence": 2,
+        "rarity": "rare",
+        "tags": [
+          "court",
+          "equipment",
+          "coven"
+        ],
+        "text": "Sinergia: ao equipar um aliado nesta frente, recebe +1 ataque.",
+        "flavor": "Uma relíquia anunciada em voz alta já escolheu seu portador.",
+        "synergy": {
+          "trigger": "equipment-played",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "crimsonpage",
+        "name": "Pajem da Vigília Rubra",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 1,
+        "attack": 2,
+        "health": 2,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "coven",
+          "court",
+          "pack"
+        ],
+        "text": "Sinergia: a primeira invocação vampírica nesta frente concede +1 ataque.",
+        "flavor": "A corte o considera jovem; os túmulos, não.",
+        "synergy": {
+          "trigger": "ally-summoned",
+          "stat": "attack",
+          "amount": 1,
+          "faction": "vampire",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "gloamduelist",
+        "name": "Espadachim do Ocaso",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 4,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "blade",
+          "bleed",
+          "hunt"
+        ],
+        "text": "Sangramento: se o alvo sobreviver ao ataque, sangrará no confronto.",
+        "flavor": "A lâmina encontra a fresta entre armadura e juramento.",
+        "keyword": "bleed"
+      },
+      {
+        "id": "rosenvaultkeeper",
+        "name": "Guardiã do Cofre de Rosas",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 1,
+        "health": 3,
+        "influence": 2,
+        "rarity": "common",
+        "tags": [
+          "guard",
+          "court",
+          "coven"
+        ],
+        "text": "Guarda: reduz em 1 o primeiro dano que receber a cada rodada.",
+        "flavor": "As rosas crescem em torno da chave, nunca do cofre.",
+        "keyword": "guard"
+      },
+      {
+        "id": "heartseeker",
+        "name": "Rastreadora de Corações",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 4,
+        "health": 2,
+        "influence": 1,
+        "rarity": "rare",
+        "tags": [
+          "blood",
+          "hunt",
+          "overwhelm"
+        ],
+        "text": "Transbordo: dano excedente ao abater um inimigo atinge o líder rival.",
+        "flavor": "Ela segue o pulso que o coração tenta esconder.",
+        "keyword": "overwhelm"
+      },
+      {
+        "id": "dreadconsort",
+        "name": "Consorte do Trono Vazio",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 4,
+        "attack": 3,
+        "health": 5,
+        "influence": 4,
+        "rarity": "epic",
+        "tags": [
+          "court",
+          "coven",
+          "ritual"
+        ],
+        "text": "Sinergia: o primeiro ritual nesta frente concede +1 influência.",
+        "flavor": "Ninguém se senta ao lado dela duas vezes.",
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "influence",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "bloodchorister",
+        "name": "Corista do Cálice Partido",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 1,
+        "health": 4,
+        "influence": 2,
+        "rarity": "common",
+        "tags": [
+          "blood",
+          "bleed",
+          "ritual"
+        ],
+        "text": "Sinergia: quando um rival começa a sangrar nesta frente, recebe +1 ataque.",
+        "flavor": "O coro começa sempre depois do primeiro corte.",
+        "synergy": {
+          "trigger": "bleed-applied",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "sanguinelegate",
+        "name": "Delegado da Câmara Rubra",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 1,
+        "health": 3,
+        "influence": 3,
+        "rarity": "uncommon",
+        "tags": [
+          "court",
+          "coven",
+          "sacrifice"
+        ],
+        "text": "Sinergia: a primeira morte aliada nesta frente concede +1 influência.",
+        "flavor": "Um voto pesa mais quando o eleitor está enterrado.",
+        "synergy": {
+          "trigger": "ally-dies",
+          "stat": "influence",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "redfangthrall",
+        "name": "Servo da Presa Vermelha",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 1,
+        "attack": 2,
+        "health": 1,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "blood",
+          "lifesteal",
+          "coven"
+        ],
+        "text": "Drenar: seu líder recupera vida pelo dano de seus ataques.",
+        "flavor": "A coleira foi forjada com a promessa de uma refeição.",
+        "keyword": "lifesteal"
+      }
+    ]
+  },
+  {
+    "id": "collection-04",
+    "cards": [
+      {
+        "id": "casketwarden",
+        "name": "Sentinela dos Sete Caixões",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 1,
+        "health": 5,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "guard",
+          "grave",
+          "coven"
+        ],
+        "text": "Guarda: reduz em 1 o primeiro dano que receber a cada rodada.",
+        "flavor": "Sua vigília termina apenas quando todos os caixões abrem.",
+        "keyword": "guard"
+      },
+      {
+        "id": "velvetexecutioner",
+        "name": "Carrasca do Manto Negro",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 4,
+        "attack": 5,
+        "health": 3,
+        "influence": 1,
+        "rarity": "rare",
+        "tags": [
+          "hunt",
+          "blood",
+          "overwhelm"
+        ],
+        "text": "Transbordo: dano excedente ao abater um inimigo atinge o líder rival.",
+        "flavor": "A execução é pública; a misericórdia, privada.",
+        "keyword": "overwhelm"
+      },
+      {
+        "id": "dukeofhollows",
+        "name": "Duque dos Salões Ocos",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 5,
+        "attack": 4,
+        "health": 6,
+        "influence": 5,
+        "rarity": "legendary",
+        "tags": [
+          "court",
+          "coven",
+          "grave"
+        ],
+        "text": "Sinergia: na primeira morte inimiga nesta frente a cada rodada, recebe +1 ataque.",
+        "flavor": "Seus convidados continuam chegando, mesmo sem convite.",
+        "synergy": {
+          "trigger": "enemy-dies",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "keepspeaker",
+        "name": "Porta-Voz da Fortaleza Velha",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 2,
+        "health": 4,
+        "influence": 3,
+        "rarity": "uncommon",
+        "tags": [
+          "court",
+          "equipment",
+          "coven"
+        ],
+        "text": "Sinergia: ao equipar um aliado nesta frente, compre 1 carta.",
+        "flavor": "Sua voz alcança até os salões que foram emparedados.",
+        "synergy": {
+          "trigger": "equipment-played",
+          "stat": null,
+          "amount": 1,
+          "effect": "draw",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "paleadvocate",
+        "name": "Advogada Pálida",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 1,
+        "health": 4,
+        "influence": 4,
+        "rarity": "rare",
+        "tags": [
+          "court",
+          "ritual",
+          "coven"
+        ],
+        "text": "Sinergia: o primeiro ritual nesta frente concede +1 influência.",
+        "flavor": "Ela vence os julgamentos que ainda não foram marcados.",
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "influence",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "thirstingacolyte",
+        "name": "Acólita da Sede Longa",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 1,
+        "attack": 2,
+        "health": 2,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "blood",
+          "lifesteal",
+          "ritual"
+        ],
+        "text": "Drenar: seu líder recupera vida pelo dano causado ao atacar.",
+        "flavor": "A primeira gota é uma oração; a última, uma resposta.",
+        "keyword": "lifesteal"
+      },
+      {
+        "id": "rosebladecaptain",
+        "name": "Capitã da Lâmina Rosa",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 3,
+        "attack": 4,
+        "health": 3,
+        "influence": 2,
+        "rarity": "uncommon",
+        "tags": [
+          "court",
+          "blade",
+          "coven"
+        ],
+        "text": "Sinergia: o primeiro ataque aliado nesta frente lhe concede +1 ataque.",
+        "flavor": "Ela escolhe a formação antes de escolher a vítima.",
+        "synergy": {
+          "trigger": "ally-attacks",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "graveborncourier",
+        "name": "Mensageiro Nascido da Cripta",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 2,
+        "influence": 2,
+        "rarity": "common",
+        "tags": [
+          "grave",
+          "coven",
+          "summon"
+        ],
+        "text": "Sinergia: na primeira invocação vampírica nesta frente, compre 1 carta.",
+        "flavor": "O envelope chega antes da notícia da morte.",
+        "synergy": {
+          "trigger": "ally-summoned",
+          "stat": null,
+          "amount": 1,
+          "effect": "draw",
+          "faction": "vampire",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "bloodarchon",
+        "name": "Arquiduque das Feridas",
+        "faction": "vampire",
+        "type": "unit",
+        "cost": 4,
+        "attack": 3,
+        "health": 5,
+        "influence": 4,
+        "rarity": "epic",
+        "tags": [
+          "blood",
+          "bleed",
+          "court"
+        ],
+        "text": "Sinergia: quando um rival começa a sangrar nesta frente, recebe +1 ataque.",
+        "flavor": "Ele governa a distância entre a ferida e o grito.",
+        "synergy": {
+          "trigger": "bleed-applied",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "whisperedledger",
+        "name": "Livro dos Sussurros Devidos",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 1,
+        "effect": "draw",
+        "effectAmount": 2,
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "court",
+          "coven"
+        ],
+        "text": "Compre 2 cartas.",
+        "flavor": "Os nomes escritos nas margens ainda respondem."
+      },
+      {
+        "id": "rededict",
+        "name": "Édito da Câmara Escarlate",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 1,
+        "effect": "influence",
+        "effectAmount": 3,
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "court",
+          "coven"
+        ],
+        "text": "Conceda +3 poder de conquista à frente nesta rodada.",
+        "flavor": "A lei muda quando o sangue assina."
+      },
+      {
+        "id": "bloodthread",
+        "name": "Fio Rubro",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 2,
+        "effect": "rend",
+        "effectAmount": 1,
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "blood",
+          "bleed"
+        ],
+        "text": "Cause 1 dano a um inimigo. Se sobreviver, aplique Sangramento.",
+        "flavor": "Um fio basta para puxar o destino."
+      },
+      {
+        "id": "quenchedpulse",
+        "name": "Pulso Reaceso",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 1,
+        "effect": "heal",
+        "effectAmount": 3,
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "blood",
+          "survival"
+        ],
+        "text": "Recupere 3 de vida.",
+        "flavor": "O coração lembra de uma noite que nunca viveu."
+      },
+      {
+        "id": "ravensummons",
+        "name": "Convocação dos Corvos",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 2,
+        "effect": "pounce",
+        "effectAmount": 2,
+        "rarity": "uncommon",
+        "tags": [
+          "ritual",
+          "coven",
+          "hunt"
+        ],
+        "text": "Um aliado ganha +2 ataque e pode atacar novamente.",
+        "flavor": "Os corvos chegam antes da ordem."
+      },
+      {
+        "id": "quietus",
+        "name": "Quietude Final",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 3,
+        "effect": "execute",
+        "effectAmount": 4,
+        "rarity": "rare",
+        "tags": [
+          "ritual",
+          "removal",
+          "blood"
+        ],
+        "text": "Cause 4 de dano a um inimigo escolhido.",
+        "flavor": "O silêncio é a sentença mais antiga."
+      },
+      {
+        "id": "duskwell",
+        "name": "Poço do Crepúsculo",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 2,
+        "effect": "damage",
+        "effectAmount": 2,
+        "rarity": "uncommon",
+        "tags": [
+          "ritual",
+          "blood",
+          "removal"
+        ],
+        "text": "Cause 2 de dano a um inimigo escolhido.",
+        "flavor": "O poço devolve a voz de quem cai."
+      }
+    ]
+  },
+  {
+    "id": "collection-05",
+    "cards": [
+      {
+        "id": "throneoflastbreath",
+        "name": "Trono do Último Fôlego",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 2,
+        "effect": "sacrifice",
+        "effectAmount": 2,
+        "rarity": "rare",
+        "tags": [
+          "ritual",
+          "sacrifice",
+          "court"
+        ],
+        "text": "Perca 2 de vida e compre 2 cartas.",
+        "flavor": "A coroa só serve a quem aceita o preço."
+      },
+      {
+        "id": "cruelvow",
+        "name": "Juramento Cruel",
+        "faction": "vampire",
+        "type": "spell",
+        "cost": 2,
+        "effect": "rally",
+        "effectAmount": 2,
+        "rarity": "uncommon",
+        "tags": [
+          "ritual",
+          "coven",
+          "blade"
+        ],
+        "text": "Um aliado recebe +2 ataque até o fim da rodada.",
+        "flavor": "Prometer é escolher quem pagará primeiro.",
+        "target": "ally"
+      },
+      {
+        "id": "moonclawrunner",
+        "name": "Corredora das Garras Lunares",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 1,
+        "attack": 2,
+        "health": 2,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "moon",
+          "bleed"
+        ],
+        "text": "Sangramento: seus ataques deixam ferida aberta até o confronto.",
+        "flavor": "Ela alcança o rastro antes que a neve o cubra.",
+        "keyword": "bleed"
+      },
+      {
+        "id": "iceveinwarden",
+        "name": "Vigia das Veias de Gelo",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 1,
+        "health": 3,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "guard",
+          "moon"
+        ],
+        "text": "Guarda: reduz em 1 o primeiro dano que receber a cada rodada.",
+        "flavor": "A geada cresce em suas veias, não em sua lealdade.",
+        "keyword": "guard"
+      },
+      {
+        "id": "howlmarker",
+        "name": "Marcador do Uivo Distante",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 3,
+        "influence": 2,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "bleed",
+          "moon"
+        ],
+        "text": "Sinergia: quando um rival começa a sangrar nesta frente, recebe +1 ataque.",
+        "flavor": "Ele marca cada ferida com um chamado.",
+        "synergy": {
+          "trigger": "bleed-applied",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "packtracker",
+        "name": "Rastreadora da Matilha Cinzenta",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 3,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "hunt",
+          "summon"
+        ],
+        "text": "Sinergia: a primeira invocação lupina nesta frente concede +1 ataque.",
+        "flavor": "A matilha conhece o caminho porque o fez correndo.",
+        "synergy": {
+          "trigger": "ally-summoned",
+          "stat": "attack",
+          "amount": 1,
+          "faction": "werewolf",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "thornback",
+        "name": "Costas de Espinheiro",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 2,
+        "health": 4,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "guard",
+          "bleed"
+        ],
+        "text": "Guarda: reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "Cada cicatriz aprendeu a devolver a visita.",
+        "keyword": "guard"
+      },
+      {
+        "id": "redmoonmauler",
+        "name": "Esmagador da Lua Rubra",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 3,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "moon",
+          "overwhelm"
+        ],
+        "text": "Transbordo: dano excedente ao abater um inimigo atinge o líder rival.",
+        "flavor": "Ele não distingue muralha de presa.",
+        "keyword": "overwhelm"
+      },
+      {
+        "id": "frostfang",
+        "name": "Presa da Geada Alta",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 3,
+        "health": 2,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "bleed",
+          "hunt"
+        ],
+        "text": "Sangramento: um inimigo ferido que sobrevive sangra no confronto.",
+        "flavor": "A mordida congela antes de doer.",
+        "keyword": "bleed"
+      },
+      {
+        "id": "mossbloodshaman",
+        "name": "Xamã do Sangue Musgoso",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 2,
+        "health": 4,
+        "influence": 3,
+        "rarity": "rare",
+        "tags": [
+          "pack",
+          "moon",
+          "bleed"
+        ],
+        "text": "Sinergia: ao abrir uma ferida rival nesta frente, cure 1 do líder.",
+        "flavor": "A floresta fecha feridas apenas para cobrar depois.",
+        "synergy": {
+          "trigger": "bleed-applied",
+          "stat": null,
+          "amount": 1,
+          "effect": "heal",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "youngalpha",
+        "name": "Alfa Recém-Jurado",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 2,
+        "health": 3,
+        "influence": 2,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "moon",
+          "summon"
+        ],
+        "text": "Sinergia: a primeira invocação lupina nesta frente concede +1 ataque.",
+        "flavor": "O primeiro uivo ainda treme; a matilha não.",
+        "synergy": {
+          "trigger": "ally-summoned",
+          "stat": "attack",
+          "amount": 1,
+          "faction": "werewolf",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "moonpackvanguard",
+        "name": "Vanguarda do Bando Lunar",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 3,
+        "influence": 2,
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "hunt",
+          "moon"
+        ],
+        "text": "Sinergia: o primeiro ataque aliado nesta frente lhe concede +1 ataque.",
+        "flavor": "A vanguarda corre para que os outros possam uivar.",
+        "synergy": {
+          "trigger": "ally-attacks",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "scarjaw",
+        "name": "Mandíbula Marcada",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 4,
+        "influence": 1,
+        "rarity": "rare",
+        "tags": [
+          "pack",
+          "bleed",
+          "hunt"
+        ],
+        "text": "Sangramento: ataques deixam uma ferida que pulsa no confronto.",
+        "flavor": "O nome antigo foi arrancado junto com metade do rosto.",
+        "keyword": "bleed"
+      },
+      {
+        "id": "whitehowlseer",
+        "name": "Vidente do Uivo Branco",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 4,
+        "attack": 3,
+        "health": 5,
+        "influence": 4,
+        "rarity": "epic",
+        "tags": [
+          "pack",
+          "moon",
+          "ritual"
+        ],
+        "text": "Sinergia: o primeiro ritual nesta frente concede +1 influência.",
+        "flavor": "Sua profecia tem o som de uma alcateia vazia.",
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "influence",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "ironrootbeast",
+        "name": "Fera de Raiz de Ferro",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 4,
+        "attack": 3,
+        "health": 5,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "guard",
+          "court"
+        ],
+        "text": "Guarda: reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "Raízes de ferro também sabem avançar.",
+        "keyword": "guard"
+      },
+      {
+        "id": "lunarreclaimer",
+        "name": "Reclamadora do Luar",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 3,
+        "influence": 2,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "blood",
+          "lifesteal"
+        ],
+        "text": "Drenar: seu líder recupera vida pelo dano causado ao atacar.",
+        "flavor": "Ela devolve à lua o que a noite tomou.",
+        "keyword": "lifesteal"
+      }
+    ]
+  },
+  {
+    "id": "collection-06",
+    "cards": [
+      {
+        "id": "frostpackleader",
+        "name": "Líder da Matilha Invernal",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 4,
+        "attack": 4,
+        "health": 5,
+        "influence": 3,
+        "rarity": "rare",
+        "tags": [
+          "pack",
+          "moon",
+          "summon"
+        ],
+        "text": "Sinergia: a primeira invocação lupina nesta frente concede +1 ataque.",
+        "flavor": "O frio espera pela ordem dela.",
+        "synergy": {
+          "trigger": "ally-summoned",
+          "stat": "attack",
+          "amount": 1,
+          "faction": "werewolf",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "ashenwolfblade",
+        "name": "Lâmina de Lobo Cinzento",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 3,
+        "health": 3,
+        "influence": 1,
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "blade",
+          "overwhelm"
+        ],
+        "text": "Transbordo: dano excedente ao abater um inimigo atinge o líder rival.",
+        "flavor": "Foi forjada para cortar aquilo que a matilha não alcança.",
+        "keyword": "overwhelm"
+      },
+      {
+        "id": "starvedfury",
+        "name": "Fúria Sem Estrelas",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 3,
+        "health": 1,
+        "influence": 1,
+        "rarity": "rare",
+        "tags": [
+          "pack",
+          "fury",
+          "hunt"
+        ],
+        "text": "Frenesi: ao atacar, gera 1 Frenesi adicional.",
+        "flavor": "A fome encontra uma lua mesmo quando o céu está vazio.",
+        "keyword": "fury"
+      },
+      {
+        "id": "baneofcourt",
+        "name": "Ruína da Corte de Pedra",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 4,
+        "attack": 5,
+        "health": 3,
+        "influence": 1,
+        "rarity": "rare",
+        "tags": [
+          "pack",
+          "bleed",
+          "court"
+        ],
+        "text": "Sangramento: feridas abertas continuam após o golpe.",
+        "flavor": "Ela aprendeu os títulos nobres para saber onde morder.",
+        "keyword": "bleed"
+      },
+      {
+        "id": "gloamstalker",
+        "name": "Espreitador do Gloaming",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 2,
+        "health": 4,
+        "influence": 2,
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "hunt",
+          "grave"
+        ],
+        "text": "Sinergia: na primeira morte rival nesta frente, concede 1 Frenesi.",
+        "flavor": "O crepúsculo deixa rastros que apenas ele vê.",
+        "synergy": {
+          "trigger": "enemy-dies",
+          "stat": null,
+          "amount": 1,
+          "effect": "rage",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "eclipsehowler",
+        "name": "Uivador do Eclipse Total",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 5,
+        "attack": 5,
+        "health": 5,
+        "influence": 3,
+        "rarity": "legendary",
+        "tags": [
+          "pack",
+          "moon",
+          "bleed"
+        ],
+        "text": "Sinergia: quando um rival começa a sangrar nesta frente, recebe +1 ataque.",
+        "flavor": "Seu uivo apaga a fronteira entre lua e ferida.",
+        "synergy": {
+          "trigger": "bleed-applied",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "denmother",
+        "name": "Matriarca do Covil Fundo",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 3,
+        "attack": 2,
+        "health": 5,
+        "influence": 3,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "court",
+          "survival"
+        ],
+        "text": "Sinergia: na primeira morte aliada nesta frente, cure 1 do líder.",
+        "flavor": "O covil inteiro conhece o som de sua respiração.",
+        "synergy": {
+          "trigger": "ally-dies",
+          "stat": null,
+          "amount": 1,
+          "effect": "heal",
+          "limit": "round"
+        }
+      },
+      {
+        "id": "moonlitprowler",
+        "name": "Predadora à Luz Morta",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 3,
+        "health": 2,
+        "influence": 1,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "hunt",
+          "moon"
+        ],
+        "text": "Sinergia: o primeiro ataque aliado nesta frente lhe concede +1 ataque.",
+        "flavor": "Ela caça entre duas batidas do mesmo coração.",
+        "synergy": {
+          "trigger": "ally-attacks",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "wildvowkeeper",
+        "name": "Guardiã do Voto Selvagem",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 2,
+        "attack": 1,
+        "health": 4,
+        "influence": 3,
+        "rarity": "common",
+        "tags": [
+          "pack",
+          "ritual",
+          "court"
+        ],
+        "text": "Sinergia: o primeiro ritual nesta frente concede +1 ataque.",
+        "flavor": "Nenhum juramento sobrevive intacto à mata.",
+        "synergy": {
+          "trigger": "spell-played",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "fenalpha",
+        "name": "Alfa das Águas Negras",
+        "faction": "werewolf",
+        "type": "unit",
+        "cost": 4,
+        "attack": 4,
+        "health": 4,
+        "influence": 2,
+        "rarity": "uncommon",
+        "tags": [
+          "pack",
+          "hunt",
+          "grave"
+        ],
+        "text": "Sinergia: na primeira morte rival nesta frente, recebe +1 ataque.",
+        "flavor": "O pântano devolve todos os que ela escolhe.",
+        "synergy": {
+          "trigger": "enemy-dies",
+          "stat": "attack",
+          "amount": 1,
+          "limit": "round"
+        }
+      },
+      {
+        "id": "packcall",
+        "name": "Chamado do Covil",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 1,
+        "effect": "rally",
+        "effectAmount": 2,
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "pack",
+          "summon"
+        ],
+        "text": "Um aliado recebe +2 ataque até o fim da rodada.",
+        "flavor": "O chamado alcança mesmo quem esqueceu o próprio nome.",
+        "target": "ally"
+      },
+      {
+        "id": "moonshriek",
+        "name": "Guincho da Lua Partida",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 2,
+        "effect": "damage",
+        "effectAmount": 2,
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "moon",
+          "removal"
+        ],
+        "text": "Cause 2 de dano a um inimigo escolhido.",
+        "flavor": "A pedra racha antes que o eco termine."
+      },
+      {
+        "id": "gnawinghex",
+        "name": "Maldição que Rói",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 2,
+        "effect": "rend",
+        "effectAmount": 1,
+        "rarity": "common",
+        "tags": [
+          "ritual",
+          "bleed",
+          "pack"
+        ],
+        "text": "Cause 1 dano a um inimigo. Se sobreviver, aplique Sangramento.",
+        "flavor": "A maldição encontra cada ferida deixada para trás."
+      },
+      {
+        "id": "breathofmoon",
+        "name": "Fôlego da Lua",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 1,
+        "effect": "heal",
+        "effectAmount": 3,
+        "rarity": "uncommon",
+        "tags": [
+          "ritual",
+          "moon",
+          "survival"
+        ],
+        "text": "Recupere 3 de vida.",
+        "flavor": "O ar frio ensina o corpo a continuar."
+      },
+      {
+        "id": "wildconvergence",
+        "name": "Convergência Selvagem",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 2,
+        "effect": "influence",
+        "effectAmount": 3,
+        "rarity": "uncommon",
+        "tags": [
+          "ritual",
+          "pack",
+          "court"
+        ],
+        "text": "Conceda +3 poder de conquista à frente nesta rodada.",
+        "flavor": "Três trilhas viram uma quando a matilha decide."
+      },
+      {
+        "id": "iceboundcharge",
+        "name": "Investida Aprisionada no Gelo",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 2,
+        "effect": "pounce",
+        "effectAmount": 2,
+        "rarity": "uncommon",
+        "tags": [
+          "ritual",
+          "pack",
+          "hunt"
+        ],
+        "text": "Um aliado ganha +2 ataque e pode atacar novamente.",
+        "flavor": "A geada quebra quando a matilha atinge a encosta."
+      }
+    ]
+  },
+  {
+    "id": "collection-07",
+    "cards": [
+      {
+        "id": "nightfallambush",
+        "name": "Emboscada da Noite Longa",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 3,
+        "effect": "execute",
+        "effectAmount": 4,
+        "rarity": "rare",
+        "tags": [
+          "ritual",
+          "hunt",
+          "removal"
+        ],
+        "text": "Cause 4 de dano a um inimigo escolhido.",
+        "flavor": "O último ruído é sempre o primeiro aviso."
+      },
+      {
+        "id": "ancestralclaim",
+        "name": "Reivindicação Ancestral",
+        "faction": "werewolf",
+        "type": "spell",
+        "cost": 2,
+        "effect": "influence",
+        "effectAmount": 4,
+        "rarity": "epic",
+        "tags": [
+          "ritual",
+          "moon",
+          "court"
+        ],
+        "text": "Conceda +4 poder de conquista à frente nesta rodada.",
+        "flavor": "As raízes se lembram de quem chegou primeiro."
+      },
+      {
+        "id": "ashwoodbuckler",
+        "name": "Broquel de Freixo",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 2,
+        "rarity": "common",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "guard",
+          "pack"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "A madeira ainda guarda o cheiro de chuva sobre folhas mortas."
+      },
+      {
+        "id": "crimsonlariat",
+        "name": "Laço Carmesim",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 0,
+        "rarity": "common",
+        "gearEffect": "bleed",
+        "tags": [
+          "relic",
+          "equipment",
+          "bleed",
+          "blood",
+          "bleed"
+        ],
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas.",
+        "flavor": "A ponta retorna sozinha à mão que a lançou."
+      },
+      {
+        "id": "wolfsilvergorget",
+        "name": "Gorgete de Prata Fria",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 2,
+        "rarity": "common",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "moon",
+          "guard"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "A prata não fere quem sabe usá-la como promessa."
+      },
+      {
+        "id": "votivedagger",
+        "name": "Adaga Votiva",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 0,
+        "rarity": "common",
+        "gearEffect": "lifesteal",
+        "tags": [
+          "relic",
+          "equipment",
+          "lifesteal",
+          "blood",
+          "blade"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado.",
+        "flavor": "Um fio de sangue basta para acender a gravação."
+      },
+      {
+        "id": "blackglasskite",
+        "name": "Escudo de Vidro Negro",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 0,
+        "rarity": "common",
+        "gearEffect": "pierce",
+        "tags": [
+          "relic",
+          "equipment",
+          "pierce",
+          "court",
+          "blade"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano.",
+        "flavor": "Reflete o golpe com o rosto de quem o desferiu."
+      },
+      {
+        "id": "chainofninevows",
+        "name": "Corrente dos Nove Votos",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 2,
+        "rarity": "common",
+        "gearEffect": "focus",
+        "tags": [
+          "relic",
+          "equipment",
+          "focus",
+          "court",
+          "ritual"
+        ],
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano.",
+        "flavor": "Cada elo guarda um nome que a Corte preferia esquecer."
+      },
+      {
+        "id": "mourningspurs",
+        "name": "Esporas de Luto",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 0,
+        "rarity": "common",
+        "gearEffect": "fury",
+        "tags": [
+          "relic",
+          "equipment",
+          "fury",
+          "pack",
+          "hunt"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional.",
+        "flavor": "Cada passo faz uma lápide lembrar do próprio peso."
+      },
+      {
+        "id": "quarrygauntlet",
+        "name": "Manopla da Pedreira",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 1,
+        "rarity": "common",
+        "gearEffect": "rally",
+        "tags": [
+          "relic",
+          "equipment",
+          "rally",
+          "blade",
+          "pack"
+        ],
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista.",
+        "flavor": "A rocha cede antes do braço que a veste."
+      },
+      {
+        "id": "cindermantle",
+        "name": "Manto de Brasa Fria",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 2,
+        "rarity": "common",
+        "gearEffect": "mend",
+        "tags": [
+          "relic",
+          "equipment",
+          "mend",
+          "blood",
+          "survival"
+        ],
+        "text": "Depois de atacar ou usar habilidade, cure 1 de vida do aliado equipado e do líder.",
+        "flavor": "Cinza morna costurada em lã de um inverno antigo."
+      },
+      {
+        "id": "thornring",
+        "name": "Anel de Espinhos Jurados",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 1,
+        "rarity": "common",
+        "gearEffect": "bleed",
+        "tags": [
+          "relic",
+          "equipment",
+          "bleed",
+          "court",
+          "bleed"
+        ],
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas.",
+        "flavor": "O corte aparece no dedo de quem tenta removê-lo."
+      },
+      {
+        "id": "oldmoontalisman",
+        "name": "Talismã da Lua Morta",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 2,
+        "rarity": "common",
+        "gearEffect": "fury",
+        "tags": [
+          "relic",
+          "equipment",
+          "fury",
+          "moon",
+          "pack"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional.",
+        "flavor": "O disco de osso vira sozinho para a face escura."
+      },
+      {
+        "id": "gravekey",
+        "name": "Chave do Ossuário Sul",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 0,
+        "rarity": "common",
+        "gearEffect": "focus",
+        "tags": [
+          "relic",
+          "equipment",
+          "focus",
+          "grave",
+          "court"
+        ],
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano.",
+        "flavor": "Nenhuma porta admite que ainda está trancada."
+      },
+      {
+        "id": "ironrootbracer",
+        "name": "Braçadeira de Raiz de Ferro",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 0,
+        "health": 3,
+        "rarity": "common",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "pack",
+          "guard"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "A raiz floresceu dentro da armadura e continuou crescendo."
+      },
+      {
+        "id": "bloodcoin",
+        "name": "Moeda do Dízimo Rubro",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 1,
+        "rarity": "common",
+        "gearEffect": "lifesteal",
+        "tags": [
+          "relic",
+          "equipment",
+          "lifesteal",
+          "blood",
+          "sacrifice"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado.",
+        "flavor": "Duas faces iguais; ambas cobram o mesmo preço."
+      }
+    ]
+  },
+  {
+    "id": "collection-08",
+    "cards": [
+      {
+        "id": "seraphpins",
+        "name": "Alfinetes do Coro Mudo",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 1,
+        "rarity": "common",
+        "gearEffect": "focus",
+        "tags": [
+          "relic",
+          "equipment",
+          "focus",
+          "ritual",
+          "court"
+        ],
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano.",
+        "flavor": "Prendem o manto e os segredos que vieram com ele."
+      },
+      {
+        "id": "tallowcrown",
+        "name": "Coroa de Sebo Negro",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 2,
+        "rarity": "common",
+        "gearEffect": "rally",
+        "tags": [
+          "relic",
+          "equipment",
+          "rally",
+          "court",
+          "coven"
+        ],
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista.",
+        "flavor": "Derrete apenas quando alguém diz o nome do antigo rei."
+      },
+      {
+        "id": "hollowshield",
+        "name": "Escudo do Nicho Vazio",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 0,
+        "rarity": "common",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "grave",
+          "guard"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "O brasão apagado ainda reconhece seu portador."
+      },
+      {
+        "id": "briarhook",
+        "name": "Gancho da Urze",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 1,
+        "health": 0,
+        "rarity": "common",
+        "gearEffect": "bleed",
+        "tags": [
+          "relic",
+          "equipment",
+          "bleed",
+          "pack",
+          "hunt"
+        ],
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas.",
+        "flavor": "A presa percebe tarde demais que foi fisgada."
+      },
+      {
+        "id": "bonesash",
+        "name": "Faixa de Ossos Alvos",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 0,
+        "health": 3,
+        "rarity": "common",
+        "gearEffect": "mend",
+        "tags": [
+          "relic",
+          "equipment",
+          "mend",
+          "grave",
+          "survival"
+        ],
+        "text": "Depois de atacar ou usar habilidade, cure 1 de vida do aliado equipado e do líder.",
+        "flavor": "Cada nó é uma lembrança que se recusou a partir."
+      },
+      {
+        "id": "wolfhoundlocket",
+        "name": "Relicário do Cão-Lobo",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 1,
+        "attack": 0,
+        "health": 1,
+        "rarity": "common",
+        "gearEffect": "fury",
+        "tags": [
+          "relic",
+          "equipment",
+          "fury",
+          "pack",
+          "moon"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional.",
+        "flavor": "No interior, um retrato muda a cada lua."
+      },
+      {
+        "id": "redwidowneedle",
+        "name": "Agulha da Viúva Rubra",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 2,
+        "health": 0,
+        "rarity": "uncommon",
+        "gearEffect": "bleed",
+        "tags": [
+          "relic",
+          "equipment",
+          "bleed",
+          "blood",
+          "blade"
+        ],
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas.",
+        "flavor": "Foi usada uma vez; ainda procura a segunda costura."
+      },
+      {
+        "id": "ebonparry",
+        "name": "Manopla de Aparar Ébano",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 0,
+        "health": 3,
+        "rarity": "uncommon",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "court",
+          "guard"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "A defesa perfeita deixa espaço para um único erro."
+      },
+      {
+        "id": "feastchalice",
+        "name": "Cálice do Banquete Velado",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 2,
+        "rarity": "uncommon",
+        "gearEffect": "lifesteal",
+        "tags": [
+          "relic",
+          "equipment",
+          "lifesteal",
+          "blood",
+          "court"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado.",
+        "flavor": "O vinho foi derramado antes que alguém pudesse brindar."
+      },
+      {
+        "id": "kingsbane",
+        "name": "Lâmina Mata-Reis",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 2,
+        "health": 0,
+        "rarity": "uncommon",
+        "gearEffect": "pierce",
+        "tags": [
+          "relic",
+          "equipment",
+          "pierce",
+          "blade",
+          "court"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano.",
+        "flavor": "O trono conserva a marca da primeira tentativa."
+      },
+      {
+        "id": "moonshotbow",
+        "name": "Arco de Chifre Lunar",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 2,
+        "rarity": "uncommon",
+        "gearEffect": "fury",
+        "tags": [
+          "relic",
+          "equipment",
+          "fury",
+          "moon",
+          "hunt"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional.",
+        "flavor": "A corda vibra mesmo quando ninguém a puxa."
+      },
+      {
+        "id": "ashenchasuble",
+        "name": "Sobrepeliz das Cinzas",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 0,
+        "health": 3,
+        "rarity": "uncommon",
+        "gearEffect": "mend",
+        "tags": [
+          "relic",
+          "equipment",
+          "mend",
+          "ritual",
+          "survival"
+        ],
+        "text": "Depois de atacar ou usar habilidade, cure 1 de vida do aliado equipado e do líder.",
+        "flavor": "Reparada com cinza de uma capela que ainda está de pé."
+      },
+      {
+        "id": "duskcompass",
+        "name": "Bússola do Ocaso",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 2,
+        "rarity": "uncommon",
+        "gearEffect": "focus",
+        "tags": [
+          "relic",
+          "equipment",
+          "focus",
+          "court",
+          "hunt"
+        ],
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano.",
+        "flavor": "A agulha aponta para aquilo que o dono deseja."
+      },
+      {
+        "id": "packhowlhorn",
+        "name": "Berrante da Alcateia Velada",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 2,
+        "rarity": "uncommon",
+        "gearEffect": "rally",
+        "tags": [
+          "relic",
+          "equipment",
+          "rally",
+          "pack",
+          "moon"
+        ],
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista.",
+        "flavor": "Seu sopro reúne até os nomes apagados da matilha."
+      },
+      {
+        "id": "thornmail",
+        "name": "Cota de Espinhos Profundos",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 3,
+        "rarity": "uncommon",
+        "gearEffect": "bleed",
+        "tags": [
+          "relic",
+          "equipment",
+          "bleed",
+          "guard",
+          "bleed"
+        ],
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas.",
+        "flavor": "Cada golpe recebido abre outro caminho de saída."
+      },
+      {
+        "id": "barrowboots",
+        "name": "Botas da Colina Tumular",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 2,
+        "health": 0,
+        "rarity": "uncommon",
+        "gearEffect": "fury",
+        "tags": [
+          "relic",
+          "equipment",
+          "fury",
+          "grave",
+          "hunt"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional.",
+        "flavor": "A lama das covas nunca seca sob as solas."
+      }
+    ]
+  },
+  {
+    "id": "collection-09",
+    "cards": [
+      {
+        "id": "rivenmirror",
+        "name": "Espelho Partido de Véspera",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 0,
+        "health": 3,
+        "rarity": "uncommon",
+        "gearEffect": "focus",
+        "tags": [
+          "relic",
+          "equipment",
+          "focus",
+          "ritual",
+          "court"
+        ],
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano.",
+        "flavor": "Os cacos refletem futuros que não chegaram a acontecer."
+      },
+      {
+        "id": "wraiththread",
+        "name": "Fio da Donzela Espectral",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 0,
+        "health": 4,
+        "rarity": "uncommon",
+        "gearEffect": "lifesteal",
+        "tags": [
+          "relic",
+          "equipment",
+          "lifesteal",
+          "grave",
+          "blood"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado.",
+        "flavor": "O tecido se fecha sozinho ao redor de um pulso."
+      },
+      {
+        "id": "elderroot",
+        "name": "Broquel da Raiz Anciã",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 2,
+        "rarity": "uncommon",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "pack",
+          "moon"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "O bosque inteiro cabe numa nervura de madeira."
+      },
+      {
+        "id": "scarletseal",
+        "name": "Selo da Câmara Escarlate",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 2,
+        "attack": 1,
+        "health": 3,
+        "rarity": "uncommon",
+        "gearEffect": "pierce",
+        "tags": [
+          "relic",
+          "equipment",
+          "pierce",
+          "blood",
+          "court"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano.",
+        "flavor": "O lacre rompe por dentro quando ouve uma ordem."
+      },
+      {
+        "id": "sovereignfang",
+        "name": "Presa da Soberana Noturna",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 2,
+        "rarity": "rare",
+        "gearEffect": "lifesteal",
+        "tags": [
+          "relic",
+          "equipment",
+          "lifesteal",
+          "blood",
+          "blade"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado.",
+        "flavor": "A rainha a perdeu; a presa jamais aceitou outro dono."
+      },
+      {
+        "id": "moonsplitedge",
+        "name": "Fio da Lua Partida",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 2,
+        "rarity": "rare",
+        "gearEffect": "bleed",
+        "tags": [
+          "relic",
+          "equipment",
+          "bleed",
+          "moon",
+          "bleed"
+        ],
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas.",
+        "flavor": "A lâmina lança duas sombras mesmo sob uma luz."
+      },
+      {
+        "id": "mordrathheart",
+        "name": "Coração de Mordrath",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 1,
+        "health": 4,
+        "rarity": "rare",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "grave",
+          "boss"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "Ainda bate quando a dungeon fica em silêncio."
+      },
+      {
+        "id": "covenantlens",
+        "name": "Lente do Pacto Profundo",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 2,
+        "rarity": "rare",
+        "gearEffect": "focus",
+        "tags": [
+          "relic",
+          "equipment",
+          "focus",
+          "ritual",
+          "coven"
+        ],
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano.",
+        "flavor": "A lente mostra a cláusula que foi omitida."
+      },
+      {
+        "id": "ruptureglaive",
+        "name": "Glaive da Ruptura",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 3,
+        "health": 0,
+        "rarity": "rare",
+        "gearEffect": "pierce",
+        "tags": [
+          "relic",
+          "equipment",
+          "pierce",
+          "blade",
+          "hunt"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano.",
+        "flavor": "A ponta atravessa armadura e a certeza de quem a veste."
+      },
+      {
+        "id": "emberboundspurs",
+        "name": "Esporas Presas à Brasa",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 2,
+        "rarity": "rare",
+        "gearEffect": "fury",
+        "tags": [
+          "relic",
+          "equipment",
+          "fury",
+          "pack",
+          "fury"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional.",
+        "flavor": "As marcas no chão continuam queimando sob a neve."
+      },
+      {
+        "id": "vesperveil",
+        "name": "Véu de Vesper",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 1,
+        "health": 4,
+        "rarity": "rare",
+        "gearEffect": "mend",
+        "tags": [
+          "relic",
+          "equipment",
+          "mend",
+          "court",
+          "blood"
+        ],
+        "text": "Depois de atacar ou usar habilidade, cure 1 de vida do aliado equipado e do líder.",
+        "flavor": "A seda oculta a ferida; a sombra, quem a abriu."
+      },
+      {
+        "id": "packfirepennon",
+        "name": "Estandarte do Fogo da Matilha",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 2,
+        "rarity": "rare",
+        "gearEffect": "rally",
+        "tags": [
+          "relic",
+          "equipment",
+          "rally",
+          "pack",
+          "moon"
+        ],
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista.",
+        "flavor": "A chama azul arde contra o vento da montanha."
+      },
+      {
+        "id": "oathbreakerhook",
+        "name": "Gancho do Quebra-Juramentos",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 3,
+        "health": 0,
+        "rarity": "rare",
+        "gearEffect": "bleed",
+        "tags": [
+          "relic",
+          "equipment",
+          "bleed",
+          "blood",
+          "hunt"
+        ],
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas.",
+        "flavor": "A ponta curva sabe encontrar a promessa mais fraca."
+      },
+      {
+        "id": "dawnlessmace",
+        "name": "Maça da Aurora Negada",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 3,
+        "health": 0,
+        "rarity": "rare",
+        "gearEffect": "lifesteal",
+        "tags": [
+          "relic",
+          "equipment",
+          "lifesteal",
+          "grave",
+          "blade"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado.",
+        "flavor": "Foi erguida quando o último sino da manhã silenciou."
+      },
+      {
+        "id": "crownlessaegis",
+        "name": "Égide Sem Coroa",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 3,
+        "rarity": "epic",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "court",
+          "guard"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "O metal se curva diante de qualquer soberano; exceto de quem a usa."
+      },
+      {
+        "id": "eclipseduelists",
+        "name": "Par de Lâminas do Eclipse",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 3,
+        "rarity": "epic",
+        "gearEffect": "pierce",
+        "tags": [
+          "relic",
+          "equipment",
+          "pierce",
+          "blade",
+          "moon"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano.",
+        "flavor": "Uma lâmina encontra a abertura que a outra acabou de criar."
+      }
+    ]
+  },
+  {
+    "id": "collection-10",
+    "cards": [
+      {
+        "id": "silkwidowcloak",
+        "name": "Manto de Seda da Viúva",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 1,
+        "health": 5,
+        "rarity": "epic",
+        "gearEffect": "lifesteal",
+        "tags": [
+          "relic",
+          "equipment",
+          "lifesteal",
+          "blood",
+          "coven"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado.",
+        "flavor": "Cada fio foi fiado ao redor de uma promessa quebrada."
+      },
+      {
+        "id": "redhollowscripture",
+        "name": "Escritura do Vazio Rubro",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 4,
+        "rarity": "epic",
+        "gearEffect": "focus",
+        "tags": [
+          "relic",
+          "equipment",
+          "focus",
+          "ritual",
+          "court"
+        ],
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano.",
+        "flavor": "A última página ainda está quente ao toque."
+      },
+      {
+        "id": "heartoffirstpack",
+        "name": "Coração da Primeira Matilha",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 3,
+        "health": 2,
+        "rarity": "epic",
+        "gearEffect": "fury",
+        "tags": [
+          "relic",
+          "equipment",
+          "fury",
+          "pack",
+          "moon"
+        ],
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional.",
+        "flavor": "O órgão petrificado rosna quando a lua se oculta."
+      },
+      {
+        "id": "mawofgloam",
+        "name": "Mandíbula do Crepúsculo",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 3,
+        "attack": 2,
+        "health": 4,
+        "rarity": "epic",
+        "gearEffect": "bleed",
+        "tags": [
+          "relic",
+          "equipment",
+          "bleed",
+          "pack",
+          "grave"
+        ],
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas.",
+        "flavor": "A mandíbula continua fechando sobre a mão que a segura."
+      },
+      {
+        "id": "bloodmoontorque",
+        "name": "Torque do Sangue Lunar",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 4,
+        "attack": 3,
+        "health": 4,
+        "rarity": "legendary",
+        "gearEffect": "rally",
+        "tags": [
+          "relic",
+          "equipment",
+          "rally",
+          "blood",
+          "moon",
+          "coven"
+        ],
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista.",
+        "flavor": "O metal aquece quando duas linhagens se enfrentam."
+      },
+      {
+        "id": "gloamkingsplate",
+        "name": "Placa do Rei do Gloaming",
+        "faction": "neutral",
+        "type": "equipment",
+        "cost": 5,
+        "attack": 3,
+        "health": 5,
+        "rarity": "legendary",
+        "gearEffect": "guard",
+        "tags": [
+          "relic",
+          "equipment",
+          "guard",
+          "grave",
+          "court",
+          "pack"
+        ],
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada.",
+        "flavor": "A armadura sobreviveu ao rei; a coroa, não."
+      }
+    ]
+  }
+]

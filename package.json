@@ -1,0 +1,14 @@
+{
+  "name": "bloodmoon",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Protótipo autoral de TCG de aventura competitiva",
+  "scripts": {
+    "dev": "node --watch server/index.js",
+    "start": "node server/index.js",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check server/index.js && node --check shared/engine.js && node --check shared/realms.js && node --check shared/progression.js && node --check shared/art-manifest.js && node --check client/app.js && node --check client/realms-ui.js && node --check client/effects.js"
+  },
+  "engines": { "node": ">=22" }
+}

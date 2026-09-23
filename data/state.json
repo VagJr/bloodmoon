@@ -1,0 +1,3994 @@
+{
+  "schema": 2,
+  "profiles": [
+    {
+      "id": "8d011a68-ef75-494b-a843-ef8218547f21",
+      "name": "Viajante",
+      "xp": 200,
+      "level": 1,
+      "wins": 0,
+      "matches": 4,
+      "trophies": []
+    },
+    {
+      "id": "3bb29323-7eb4-4ea0-8b6c-c0cacac552a7",
+      "name": "Viajante",
+      "xp": 650,
+      "level": 3,
+      "wins": 2,
+      "matches": 11,
+      "trophies": []
+    },
+    {
+      "id": "f3d5b392-169b-428e-95a9-654a9537edf4",
+      "name": "Caçador",
+      "xp": 1650,
+      "level": 6,
+      "wins": 8,
+      "matches": 25,
+      "trophies": [],
+      "coins": 367,
+      "dust": 884,
+      "collection": {
+        "envoy": 2,
+        "duelist": 2,
+        "thrall": 2,
+        "bloodbat": 2,
+        "nightcourt": 2,
+        "bloodscribe": 2,
+        "reaver": 1,
+        "oracle": 2,
+        "blood": 2,
+        "pact": 2,
+        "execution": 2,
+        "duskwidow": 2,
+        "blade": 0,
+        "ward": 0,
+        "starmaw": 2,
+        "renewal": 2,
+        "moonfire": 2,
+        "howlcaller": 2,
+        "redvow": 2,
+        "frostalpha": 2,
+        "mooncaller": 2,
+        "howl": 2,
+        "elder": 2,
+        "bloodguard": 2,
+        "bloodshard": 0,
+        "mosskeeper": 2,
+        "fang": 1,
+        "relic": 0,
+        "bloodtrail": 2,
+        "ravager": 2,
+        "packrunner": 2,
+        "scarletmarshal": 2,
+        "scout": 1,
+        "gloamduelist": 1,
+        "ancestralclaim": 2,
+        "gnawinghex": 1,
+        "crimsonpage": 1,
+        "cruelvow": 1,
+        "rededict": 1,
+        "iceboundcharge": 1,
+        "duchess": 1,
+        "crimsonnotary": 2,
+        "howlmarker": 1,
+        "moonclawrunner": 1,
+        "ravensummons": 1
+      },
+      "decks": [
+        {
+          "name": "Corte Rubra · Juramento Inic",
+          "faction": "vampire",
+          "cards": [
+            "envoy",
+            "envoy",
+            "duelist",
+            "duelist",
+            "thrall",
+            "thrall",
+            "bloodbat",
+            "nightcourt",
+            "nightcourt",
+            "bloodscribe",
+            "reaver",
+            "oracle",
+            "blood",
+            "pact",
+            "execution",
+            "duskwidow",
+            "duskwidow",
+            "blade",
+            "ward",
+            "ward"
+          ],
+          "starter": true,
+          "id": "8ad91e66-1413-4103-bb69-5aa464082d10"
+        }
+      ],
+      "activeDecks": {
+        "vampire": "8ad91e66-1413-4103-bb69-5aa464082d10"
+      },
+      "contracts": {
+        "matches": 1,
+        "kills": 2,
+        "wins": 0
+      },
+      "starterFaction": "vampire",
+      "starterGranted": true,
+      "items": [
+        {
+          "id": "11a7dcec-69c0-44e0-aefb-59da460f07b5",
+          "cardId": "blade",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "legacy",
+          "createdAt": 1790113238399
+        },
+        {
+          "id": "d674815d-cce5-495d-88dc-441315862227",
+          "cardId": "blade",
+          "rarity": "common",
+          "durability": 1,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "legacy",
+          "createdAt": 1790113238399
+        },
+        {
+          "id": "4ba3a858-aaff-4c7b-88d1-e23fbe5aeab6",
+          "cardId": "ward",
+          "rarity": "common",
+          "durability": 1,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "legacy",
+          "createdAt": 1790113238399
+        },
+        {
+          "id": "4a791fe3-104f-449a-b5d6-0cef7a8b2c0c",
+          "cardId": "relic",
+          "rarity": "rare",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "legacy",
+          "createdAt": 1790113238399
+        },
+        {
+          "id": "7b231fb5-93f9-43ed-9c6f-91a51ce4b9dd",
+          "cardId": "bloodshard",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "legacy",
+          "createdAt": 1790113238399
+        },
+        {
+          "id": "7c530afe-f2ac-4901-9eb2-63577a4483c5",
+          "cardId": "bloodshard",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "legacy",
+          "createdAt": 1790113238399
+        },
+        {
+          "id": "2c7a5595-e0ae-47c3-a9fb-03fc0593edb7",
+          "cardId": "ivorychain",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790113273844
+        },
+        {
+          "id": "241e0af1-2c39-480a-9f23-b8c211277951",
+          "cardId": "blackcrown",
+          "rarity": "rare",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790113273844,
+          "listingId": "d58639a9-4d2c-4bab-a485-fc4c36d0ad0a",
+          "price": 60,
+          "listedAt": 1790114442627
+        },
+        {
+          "id": "56a15d9e-1e34-4fe9-8c5c-6f17495efcaa",
+          "cardId": "blade",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790113501104
+        },
+        {
+          "id": "5f5e5283-767e-487b-8f2e-b979fac93e78",
+          "cardId": "crimsonrelic",
+          "rarity": "epic",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790114266312
+        },
+        {
+          "id": "b74b10c5-9af4-4b0f-9e47-f89c62d8ef8b",
+          "cardId": "ward",
+          "rarity": "common",
+          "durability": 1,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790114659703
+        },
+        {
+          "id": "5300e76d-158e-4059-9fe9-eb7029806666",
+          "cardId": "fangofeclipse",
+          "rarity": "uncommon",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790115319543
+        },
+        {
+          "id": "82c069cf-1e57-49f3-9d22-683747daaf79",
+          "cardId": "ivorychain",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790115513513
+        },
+        {
+          "id": "edf1efef-8b5c-4733-b11e-b95dd9836622",
+          "cardId": "crimsonrelic",
+          "rarity": "epic",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790115513513
+        },
+        {
+          "id": "0c2c7355-c1e7-4a53-ac5f-8a79b16233c0",
+          "cardId": "tallowcrown",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "realm",
+          "createdAt": 1790122829443
+        },
+        {
+          "id": "d6d03b97-5e30-4535-8c9a-13fdf119d2d1",
+          "cardId": "ironrootbracer",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790122891542
+        },
+        {
+          "id": "dc33a61e-0ce8-44eb-a994-3dbe3a9b46a8",
+          "cardId": "blackglasskite",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790123748674
+        },
+        {
+          "id": "171b1cf1-28d7-446b-8c9a-37f2824cb885",
+          "cardId": "elderroot",
+          "rarity": "uncommon",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790124318195
+        },
+        {
+          "id": "c0cfcefd-4275-4880-87c4-f4357513a901",
+          "cardId": "moonsplitedge",
+          "rarity": "rare",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790124323637
+        },
+        {
+          "id": "6f0ae096-6cb8-408f-bfa6-eef99940ef5c",
+          "cardId": "ashwoodbuckler",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790124328151
+        },
+        {
+          "id": "45da7107-82f7-4131-a798-08e004c505b2",
+          "cardId": "seraphpins",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790124352504
+        }
+      ],
+      "scrap": 15,
+      "realm": {
+        "publicId": "c680a277-d902-44fc-948e-7500b248086d",
+        "version": 16,
+        "location": "quarry",
+        "avatar": "vesper",
+        "xp": 96,
+        "level": 1,
+        "provisions": 21,
+        "materials": {
+          "timber": 0,
+          "ore": 5,
+          "essence": 3
+        },
+        "holdings": {
+          "camp": 1,
+          "forge": 0,
+          "library": 0
+        },
+        "visited": [
+          "haven",
+          "quarry",
+          "marsh"
+        ],
+        "gathered": {
+          "quarry": 1790122835034,
+          "marsh": 1790122878762
+        },
+        "claims": {
+          "quarry:0": 1790122829443
+        },
+        "houseId": null,
+        "activeRoom": null,
+        "expedition": null,
+        "seenAt": 1790124629744
+      }
+    },
+    {
+      "id": "679f00e3-e8fd-44cd-9aa2-fc9e331d5d62",
+      "name": "Caçador",
+      "xp": 0,
+      "level": 1,
+      "wins": 0,
+      "matches": 0,
+      "trophies": [],
+      "collection": {
+        "envoy": 2,
+        "duelist": 2,
+        "thrall": 2,
+        "bloodbat": 2,
+        "nightcourt": 2,
+        "bloodscribe": 1,
+        "reaver": 1,
+        "oracle": 1,
+        "blood": 1,
+        "pact": 1,
+        "execution": 1,
+        "duskwidow": 2,
+        "scout": 1,
+        "redvow": 1,
+        "moonhowler": 1,
+        "howlcaller": 2,
+        "renewal": 2,
+        "mooncaller": 1,
+        "packrunner": 1,
+        "keepspeaker": 1,
+        "scarjaw": 1
+      },
+      "items": [
+        {
+          "id": "7db8b621-6c38-4b16-b134-aa290cfb5157",
+          "cardId": "blade",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": true,
+          "source": "starter",
+          "createdAt": 1790115385645
+        },
+        {
+          "id": "590fbb94-b822-4765-967c-6108c593ccd7",
+          "cardId": "ward",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": true,
+          "source": "starter",
+          "createdAt": 1790115385645
+        },
+        {
+          "id": "217a2273-5bdf-479b-bd18-0e3609d9c730",
+          "cardId": "bloodshard",
+          "rarity": "common",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790115430993
+        },
+        {
+          "id": "e52910d7-2df5-46a9-bd31-21225a765580",
+          "cardId": "moonshotbow",
+          "rarity": "uncommon",
+          "durability": 3,
+          "maxDurability": 3,
+          "bound": false,
+          "source": "booster",
+          "createdAt": 1790121880470
+        }
+      ],
+      "scrap": 0,
+      "coins": 0,
+      "dust": 24,
+      "decks": [
+        {
+          "name": "Corte Rubra · Juramento Inicial",
+          "faction": "vampire",
+          "cards": [
+            "envoy",
+            "envoy",
+            "duelist",
+            "duelist",
+            "thrall",
+            "thrall",
+            "bloodbat",
+            "bloodbat",
+            "nightcourt",
+            "nightcourt",
+            "bloodscribe",
+            "reaver",
+            "oracle",
+            "blood",
+            "pact",
+            "execution",
+            "duskwidow",
+            "duskwidow",
+            "blade",
+            "ward"
+          ],
+          "starter": true,
+          "id": "3f9f7002-4c49-4ee7-8f58-b224092754b2"
+        }
+      ],
+      "activeDecks": {
+        "vampire": "3f9f7002-4c49-4ee7-8f58-b224092754b2"
+      },
+      "contracts": {
+        "matches": 0,
+        "kills": 0,
+        "wins": 0
+      },
+      "starterFaction": "vampire",
+      "starterGranted": true,
+      "realm": {
+        "publicId": "c4e21ff5-fe8b-4c52-b5dd-2635dfc03384",
+        "version": 3,
+        "location": "quarry",
+        "avatar": "vesper",
+        "xp": 20,
+        "level": 1,
+        "provisions": 17,
+        "materials": {
+          "timber": 0,
+          "ore": 0,
+          "essence": 0
+        },
+        "holdings": {
+          "camp": 1,
+          "forge": 0,
+          "library": 0
+        },
+        "visited": [
+          "haven",
+          "quarry"
+        ],
+        "gathered": {},
+        "claims": {},
+        "houseId": null,
+        "activeRoom": "6B329709A1",
+        "expedition": null,
+        "seenAt": 1790124625553
+      }
+    }
+  ],
+  "rooms": [
+    {
+      "id": "6B329709A1",
+      "mode": "realm",
+      "encounter": {
+        "node": "quarry",
+        "stage": 0,
+        "stages": 1,
+        "board": "siege-board",
+        "title": "Disputa por Pedreira dos Juramentos",
+        "difficulty": 1,
+        "houseId": null
+      },
+      "battlefield": "siege-board",
+      "riskMode": "covenant",
+      "game": {
+        "round": 1,
+        "turn": 0,
+        "initiative": 0,
+        "phase": "playing",
+        "winner": null,
+        "nextId": 11,
+        "nextEvent": 1,
+        "version": 0,
+        "mode": "practice",
+        "riskMode": "covenant",
+        "events": [],
+        "log": [
+          "A caçada começou."
+        ],
+        "players": [
+          {
+            "faction": "vampire",
+            "health": 24,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 0,
+            "energy": 3,
+            "rage": 0,
+            "combo": 0,
+            "skillUsed": false,
+            "ultimateUsed": false,
+            "kills": 0,
+            "cardsPlayed": 0,
+            "claims": 0,
+            "deck": [
+              "duelist",
+              "blood",
+              "duelist",
+              "envoy",
+              {
+                "cardId": "blade",
+                "itemId": "7db8b621-6c38-4b16-b134-aa290cfb5157",
+                "itemBound": true
+              },
+              "pact",
+              "thrall",
+              "bloodscribe",
+              {
+                "cardId": "ward",
+                "itemId": "590fbb94-b822-4765-967c-6108c593ccd7",
+                "itemBound": true
+              },
+              "reaver",
+              "nightcourt",
+              "bloodbat",
+              "oracle",
+              "envoy",
+              "thrall"
+            ],
+            "hand": [
+              {
+                "uid": "c1",
+                "cardId": "bloodbat",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c2",
+                "cardId": "duskwidow",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c3",
+                "cardId": "execution",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c4",
+                "cardId": "duskwidow",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c5",
+                "cardId": "nightcourt",
+                "itemId": null,
+                "itemBound": false
+              }
+            ],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": false,
+            "fatigue": 0
+          },
+          {
+            "faction": "werewolf",
+            "health": 24,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 0,
+            "energy": 3,
+            "rage": 0,
+            "combo": 0,
+            "skillUsed": false,
+            "ultimateUsed": false,
+            "kills": 0,
+            "cardsPlayed": 0,
+            "claims": 0,
+            "deck": [
+              "blade",
+              "packrunner",
+              "howl",
+              "fang",
+              "elder",
+              "moonhowler",
+              "gravefang",
+              "ravager",
+              "moonhowler",
+              "elder",
+              "renewal",
+              "scout",
+              "fang",
+              "ward",
+              "alpha"
+            ],
+            "hand": [
+              {
+                "uid": "c6",
+                "cardId": "packrunner",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c7",
+                "cardId": "scout",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c8",
+                "cardId": "howl",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c9",
+                "cardId": "moonfire",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c10",
+                "cardId": "pounce",
+                "itemId": null,
+                "itemBound": false
+              }
+            ],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": false,
+            "fatigue": 0
+          }
+        ]
+      },
+      "seats": [
+        "679f00e3-e8fd-44cd-9aa2-fc9e331d5d62",
+        "bot"
+      ],
+      "rewarded": false,
+      "createdAt": 1790121204548,
+      "lockedItems": [
+        [
+          "7db8b621-6c38-4b16-b134-aa290cfb5157",
+          "590fbb94-b822-4765-967c-6108c593ccd7"
+        ]
+      ],
+      "gearEvents": []
+    },
+    {
+      "id": "9A7C9A3BD3",
+      "mode": "realm",
+      "encounter": {
+        "node": "quarry",
+        "stage": 0,
+        "stages": 1,
+        "board": "siege-board",
+        "title": "Disputa por Pedreira dos Juramentos",
+        "difficulty": 1,
+        "houseId": null
+      },
+      "battlefield": "siege-board",
+      "riskMode": "covenant",
+      "game": {
+        "round": 5,
+        "turn": 0,
+        "initiative": 0,
+        "phase": "finished",
+        "winner": 0,
+        "nextId": 31,
+        "nextEvent": 105,
+        "version": 42,
+        "mode": "practice",
+        "riskMode": "covenant",
+        "events": [
+          {
+            "id": 1,
+            "type": "summon",
+            "seat": 0,
+            "target": "u11",
+            "lane": "court",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 2,
+            "type": "summon",
+            "seat": 1,
+            "target": "u12",
+            "lane": "court",
+            "label": "Presa do Eclipse"
+          },
+          {
+            "id": 3,
+            "type": "equip",
+            "seat": 0,
+            "target": "u11",
+            "lane": "court",
+            "label": "EQUIPADO"
+          },
+          {
+            "id": 4,
+            "type": "attack",
+            "seat": 1,
+            "source": "u12",
+            "target": "u11",
+            "lane": "court",
+            "label": "Presa do Eclipse"
+          },
+          {
+            "id": 5,
+            "type": "damage",
+            "seat": 0,
+            "target": "u11",
+            "amount": 4,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 6,
+            "type": "damage",
+            "seat": 1,
+            "target": "u12",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 7,
+            "type": "attack",
+            "seat": 0,
+            "source": "u11",
+            "target": "u12",
+            "lane": "court",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 8,
+            "type": "damage",
+            "seat": 1,
+            "target": "u12",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 9,
+            "type": "damage",
+            "seat": 0,
+            "target": "u11",
+            "amount": 4,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 10,
+            "type": "death",
+            "seat": 0,
+            "target": "u11",
+            "lane": "court",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 11,
+            "type": "item-lost",
+            "seat": 0,
+            "target": "u11",
+            "lane": "court",
+            "itemId": "a011c681-6456-48d3-a1d8-74511c31e998",
+            "cardId": "ward",
+            "killerSeat": null,
+            "transfer": false,
+            "wear": 2,
+            "label": "EQUIPAMENTO DANIFICADO"
+          },
+          {
+            "id": 12,
+            "type": "death",
+            "seat": 1,
+            "target": "u12",
+            "lane": "court",
+            "label": "Presa do Eclipse"
+          },
+          {
+            "id": 13,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 14,
+            "type": "round",
+            "label": "RODADA 2",
+            "round": 2
+          },
+          {
+            "id": 15,
+            "type": "summon",
+            "seat": 1,
+            "target": "u15",
+            "lane": "court",
+            "label": "Corredor da Geada"
+          },
+          {
+            "id": 16,
+            "type": "summon",
+            "seat": 0,
+            "target": "u16",
+            "lane": "court",
+            "label": "Oráculo da Cinza"
+          },
+          {
+            "id": 17,
+            "type": "summon",
+            "seat": 1,
+            "target": "u17",
+            "lane": "court",
+            "label": "Anciã das Raízes"
+          },
+          {
+            "id": 18,
+            "type": "synergy",
+            "seat": 1,
+            "target": "u15",
+            "lane": "court",
+            "label": "SINERGIA · Corredor da Geada"
+          },
+          {
+            "id": 19,
+            "type": "attack",
+            "seat": 0,
+            "source": "u16",
+            "target": "u15",
+            "lane": "court",
+            "label": "Oráculo da Cinza"
+          },
+          {
+            "id": 20,
+            "type": "damage",
+            "seat": 1,
+            "target": "u15",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 21,
+            "type": "damage",
+            "seat": 0,
+            "target": "u16",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 22,
+            "type": "death",
+            "seat": 1,
+            "target": "u15",
+            "lane": "court",
+            "label": "Corredor da Geada"
+          },
+          {
+            "id": 23,
+            "type": "level",
+            "seat": 0,
+            "target": "u16",
+            "lane": "court",
+            "label": "NÍVEL 2"
+          },
+          {
+            "id": 24,
+            "type": "attack",
+            "seat": 1,
+            "source": "u17",
+            "target": "u16",
+            "lane": "court",
+            "label": "Anciã das Raízes"
+          },
+          {
+            "id": 25,
+            "type": "damage",
+            "seat": 0,
+            "target": "u16",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 26,
+            "type": "damage",
+            "seat": 1,
+            "target": "u17",
+            "amount": 4,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 27,
+            "type": "death",
+            "seat": 1,
+            "target": "u17",
+            "lane": "court",
+            "label": "Anciã das Raízes"
+          },
+          {
+            "id": 28,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 29,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 5,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 30,
+            "type": "ultimate",
+            "seat": 1,
+            "target": "hero",
+            "lane": "court",
+            "label": "Fúria Ancestral"
+          },
+          {
+            "id": 31,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 32,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 33,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 1
+          },
+          {
+            "id": 34,
+            "type": "claim",
+            "seat": 0,
+            "lane": "court",
+            "label": "+3 RENOME"
+          },
+          {
+            "id": 35,
+            "type": "round",
+            "label": "RODADA 3",
+            "round": 3
+          },
+          {
+            "id": 36,
+            "type": "skill",
+            "seat": 0,
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Beijo da Morte"
+          },
+          {
+            "id": 37,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 2,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 38,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2
+          },
+          {
+            "id": 39,
+            "type": "summon",
+            "seat": 1,
+            "target": "u20",
+            "lane": "crypt",
+            "label": "Colosso da Lua Partida"
+          },
+          {
+            "id": 40,
+            "type": "attack",
+            "seat": 0,
+            "source": "u16",
+            "target": "hero",
+            "lane": "court",
+            "label": "Oráculo da Cinza"
+          },
+          {
+            "id": 41,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 4,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 42,
+            "type": "attack",
+            "seat": 1,
+            "source": "u20",
+            "target": "hero",
+            "lane": "crypt",
+            "label": "Colosso da Lua Partida"
+          },
+          {
+            "id": 43,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 6,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 44,
+            "type": "summon",
+            "seat": 0,
+            "target": "u21",
+            "lane": "crypt",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 45,
+            "type": "attack",
+            "seat": 0,
+            "source": "u21",
+            "target": "u20",
+            "lane": "crypt",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 46,
+            "type": "damage",
+            "seat": 1,
+            "target": "u20",
+            "amount": 2,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 47,
+            "type": "damage",
+            "seat": 0,
+            "target": "u21",
+            "amount": 6,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 48,
+            "type": "death",
+            "seat": 0,
+            "target": "u21",
+            "lane": "crypt",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 49,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 50,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 1
+          },
+          {
+            "id": 51,
+            "type": "claim",
+            "seat": 0,
+            "lane": "court",
+            "label": "+2 RENOME"
+          },
+          {
+            "id": 52,
+            "type": "loot",
+            "seat": 1,
+            "lane": "crypt",
+            "label": "RELÍQUIA SAQUEADA"
+          },
+          {
+            "id": 53,
+            "type": "claim",
+            "seat": 1,
+            "lane": "crypt",
+            "label": "+2 RENOME"
+          },
+          {
+            "id": 54,
+            "type": "round",
+            "label": "RODADA 4",
+            "round": 4
+          },
+          {
+            "id": 55,
+            "type": "attack",
+            "seat": 1,
+            "source": "u20",
+            "target": "hero",
+            "lane": "crypt",
+            "label": "Colosso da Lua Partida"
+          },
+          {
+            "id": 56,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 6,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 57,
+            "type": "summon",
+            "seat": 0,
+            "target": "u25",
+            "lane": "crypt",
+            "label": "Morcego do Banquete"
+          },
+          {
+            "id": 58,
+            "type": "summon",
+            "seat": 1,
+            "target": "u26",
+            "lane": "hunt",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 59,
+            "type": "claim",
+            "seat": 0,
+            "lane": "crypt",
+            "label": "+4 PODER"
+          },
+          {
+            "id": 60,
+            "type": "attack",
+            "seat": 1,
+            "source": "u26",
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 61,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 62,
+            "type": "summon",
+            "seat": 0,
+            "target": "u27",
+            "lane": "hunt",
+            "label": "Emissária do Véu"
+          },
+          {
+            "id": 63,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 2,
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 64,
+            "type": "combo",
+            "seat": 0,
+            "label": "COMBO · SEDE DE SANGUE"
+          },
+          {
+            "id": 65,
+            "type": "equip",
+            "seat": 1,
+            "target": "u26",
+            "lane": "hunt",
+            "label": "EQUIPADO"
+          },
+          {
+            "id": 66,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "u20",
+            "lane": "crypt",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 67,
+            "type": "damage",
+            "seat": 1,
+            "target": "u20",
+            "amount": 5,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 68,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 69,
+            "type": "death",
+            "seat": 1,
+            "target": "u20",
+            "lane": "crypt",
+            "label": "Colosso da Lua Partida"
+          },
+          {
+            "id": 70,
+            "type": "ultimate",
+            "seat": 1,
+            "target": "hero",
+            "lane": "court",
+            "label": "Fúria Ancestral"
+          },
+          {
+            "id": 71,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 72,
+            "type": "attack",
+            "seat": 0,
+            "source": "u27",
+            "target": "u26",
+            "lane": "hunt",
+            "label": "Emissária do Véu"
+          },
+          {
+            "id": 73,
+            "type": "damage",
+            "seat": 1,
+            "target": "u26",
+            "amount": 1,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 74,
+            "type": "damage",
+            "seat": 0,
+            "target": "u27",
+            "amount": 5,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 75,
+            "type": "death",
+            "seat": 0,
+            "target": "u27",
+            "lane": "hunt",
+            "label": "Emissária do Véu"
+          },
+          {
+            "id": 76,
+            "type": "equip",
+            "seat": 1,
+            "target": "u26",
+            "lane": "hunt",
+            "label": "EQUIPADO"
+          },
+          {
+            "id": 77,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2,
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 78,
+            "type": "combo",
+            "seat": 1,
+            "label": "COMBO · SEDE DE SANGUE"
+          },
+          {
+            "id": 79,
+            "type": "attack",
+            "seat": 0,
+            "source": "u25",
+            "target": "hero",
+            "lane": "crypt",
+            "label": "Morcego do Banquete"
+          },
+          {
+            "id": 80,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 2,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 81,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2
+          },
+          {
+            "id": 82,
+            "type": "attack",
+            "seat": 0,
+            "source": "u16",
+            "target": "hero",
+            "lane": "court",
+            "label": "Oráculo da Cinza"
+          },
+          {
+            "id": 83,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 4,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 84,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 85,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 1
+          },
+          {
+            "id": 86,
+            "type": "claim",
+            "seat": 0,
+            "lane": "court",
+            "label": "+2 RENOME"
+          },
+          {
+            "id": 87,
+            "type": "loot",
+            "seat": 0,
+            "lane": "crypt",
+            "label": "RELÍQUIA SAQUEADA"
+          },
+          {
+            "id": 88,
+            "type": "claim",
+            "seat": 0,
+            "lane": "crypt",
+            "label": "+1 RENOME"
+          },
+          {
+            "id": 89,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 90,
+            "type": "claim",
+            "seat": 1,
+            "lane": "hunt",
+            "label": "+2 RENOME"
+          },
+          {
+            "id": 91,
+            "type": "round",
+            "label": "RODADA 5",
+            "round": 5
+          },
+          {
+            "id": 92,
+            "type": "skill",
+            "seat": 0,
+            "target": "u26",
+            "lane": "hunt",
+            "label": "Execução Rubra"
+          },
+          {
+            "id": 93,
+            "type": "damage",
+            "seat": 1,
+            "target": "u26",
+            "amount": 4,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 94,
+            "type": "death",
+            "seat": 1,
+            "target": "u26",
+            "lane": "hunt",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 95,
+            "type": "item-lost",
+            "seat": 1,
+            "target": "u26",
+            "lane": "hunt",
+            "itemId": null,
+            "cardId": "blade",
+            "killerSeat": null,
+            "transfer": false,
+            "wear": 2,
+            "label": "EQUIPAMENTO DANIFICADO"
+          },
+          {
+            "id": 96,
+            "type": "item-lost",
+            "seat": 1,
+            "target": "u26",
+            "lane": "hunt",
+            "cardId": "relic",
+            "killerSeat": null,
+            "transfer": false,
+            "wear": 2,
+            "label": "EQUIPAMENTO DANIFICADO"
+          },
+          {
+            "id": 97,
+            "type": "skill",
+            "seat": 1,
+            "target": "u16",
+            "lane": "court",
+            "label": "Uivo de Ruptura"
+          },
+          {
+            "id": 98,
+            "type": "damage",
+            "seat": 0,
+            "target": "u16",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 99,
+            "type": "death",
+            "seat": 0,
+            "target": "u16",
+            "lane": "court",
+            "label": "Oráculo da Cinza"
+          },
+          {
+            "id": 100,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 101,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 5,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 102,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 103,
+            "type": "finish",
+            "seat": 0,
+            "label": "A CAÇADA TERMINOU"
+          },
+          {
+            "id": 104,
+            "type": "item-break",
+            "seat": 0,
+            "target": "hero",
+            "amount": 4,
+            "label": "Manto de Ossos · QUEBRADO · +4 SUCATA"
+          }
+        ],
+        "log": [
+          "A caçada começou.",
+          "Viúva do Crepúsculo → Corte.",
+          "Presa do Eclipse → Corte.",
+          "Manto de Ossos → Corte.",
+          "Presa do Eclipse ataca: 4 de dano.",
+          "Viúva do Crepúsculo ataca: 2 de dano.",
+          "Combatente 2 encerrou a rodada.",
+          "Combatente 1 encerrou a rodada.",
+          "— Confronto 1 —",
+          "Corredor da Geada → Corte.",
+          "Oráculo da Cinza → Corte.",
+          "Anciã das Raízes → Corte.",
+          "Oráculo da Cinza ataca: 4 de dano.",
+          "Anciã das Raízes ataca: 2 de dano.",
+          "Vesper: Eclipse de Sangue.",
+          "Kael: Fúria Ancestral.",
+          "Combatente 1 encerrou a rodada.",
+          "Combatente 2 encerrou a rodada.",
+          "— Confronto 2 —",
+          "Corte: combatente 1 ganha 3 Renome.",
+          "Vesper: Beijo da Morte.",
+          "Colosso da Lua Partida → Catacumbas.",
+          "Oráculo da Cinza ataca: 4 de dano.",
+          "Colosso da Lua Partida ataca: 6 de dano.",
+          "Viúva do Crepúsculo → Catacumbas.",
+          "Combatente 2 encerrou a rodada.",
+          "Viúva do Crepúsculo ataca: 2 de dano.",
+          "Combatente 1 encerrou a rodada.",
+          "— Confronto 3 —",
+          "Corte: combatente 1 ganha 2 Renome.",
+          "Catacumbas: combatente 2 ganha 2 Renome.",
+          "Colosso da Lua Partida ataca: 6 de dano.",
+          "Morcego do Banquete → Catacumbas.",
+          "Uivadora das Feridas → Caçada.",
+          "Pacto dos Ausentes → Catacumbas.",
+          "Uivadora das Feridas ataca: 3 de dano.",
+          "Emissária do Véu → Caçada.",
+          "Lâmina de Obsidiana → Caçada.",
+          "Vesper: Eclipse de Sangue.",
+          "Kael: Fúria Ancestral.",
+          "Emissária do Véu ataca: 1 de dano.",
+          "Fragmento da Primeira Noite → Caçada.",
+          "Morcego do Banquete ataca: 1 de dano.",
+          "Combatente 2 encerrou a rodada.",
+          "Oráculo da Cinza ataca: 4 de dano.",
+          "Combatente 1 encerrou a rodada.",
+          "— Confronto 4 —",
+          "Corte: combatente 1 ganha 2 Renome.",
+          "Catacumbas: combatente 1 ganha 1 Renome.",
+          "Caçada: combatente 2 ganha 2 Renome.",
+          "Execução Rubra → Caçada.",
+          "Uivo de Ruptura → Corte.",
+          "Vesper: Eclipse de Sangue.",
+          "Combatente 1 venceu."
+        ],
+        "players": [
+          {
+            "faction": "vampire",
+            "health": 7,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 8,
+            "energy": 4,
+            "rage": 0,
+            "combo": 1,
+            "skillUsed": false,
+            "ultimateUsed": true,
+            "kills": 5,
+            "cardsPlayed": 8,
+            "claims": 4,
+            "deck": [
+              "bloodscribe",
+              "envoy",
+              "reaver",
+              "duelist",
+              "blood",
+              "duelist",
+              "nightcourt",
+              {
+                "cardId": "blade",
+                "itemId": "11a7dcec-69c0-44e0-aefb-59da460f07b5",
+                "itemBound": false
+              },
+              "thrall",
+              "thrall",
+              "bloodbat"
+            ],
+            "hand": [
+              {
+                "uid": "c13",
+                "cardId": "nightcourt",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c28",
+                "cardId": "relic"
+              }
+            ],
+            "lanes": {
+              "court": [],
+              "crypt": [
+                {
+                  "uid": "u25",
+                  "cardId": "bloodbat",
+                  "attack": 1,
+                  "health": 2,
+                  "maxHealth": 2,
+                  "influence": 1,
+                  "tempAttack": 0,
+                  "tempInfluence": 0,
+                  "ready": true,
+                  "level": 1,
+                  "kills": 0,
+                  "bleed": 0,
+                  "equipment": 0,
+                  "gearItems": [],
+                  "guard": false,
+                  "synergyRound": 0
+                }
+              ],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": false,
+            "fatigue": 0
+          },
+          {
+            "faction": "werewolf",
+            "health": 0,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 4,
+            "energy": 5,
+            "rage": 6,
+            "combo": 1,
+            "skillUsed": false,
+            "ultimateUsed": false,
+            "kills": 4,
+            "cardsPlayed": 8,
+            "claims": 2,
+            "deck": [
+              "howl",
+              "scout",
+              "moonhowler",
+              "ravager",
+              "gravefang",
+              "elder",
+              "packrunner",
+              "renewal",
+              "ward",
+              "fang",
+              "scout"
+            ],
+            "hand": [
+              {
+                "uid": "c24",
+                "cardId": "moonfire",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c30",
+                "cardId": "pounce",
+                "itemId": null,
+                "itemBound": false
+              }
+            ],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": false,
+            "fatigue": 0
+          }
+        ]
+      },
+      "seats": [
+        "f3d5b392-169b-428e-95a9-654a9537edf4",
+        "bot"
+      ],
+      "rewarded": true,
+      "createdAt": 1790121772347,
+      "lockedItems": [
+        [
+          "11a7dcec-69c0-44e0-aefb-59da460f07b5",
+          "a011c681-6456-48d3-a1d8-74511c31e998"
+        ]
+      ],
+      "gearEvents": [
+        {
+          "id": 11,
+          "type": "item-lost",
+          "seat": 0,
+          "target": "u11",
+          "lane": "court",
+          "itemId": "a011c681-6456-48d3-a1d8-74511c31e998",
+          "cardId": "ward",
+          "killerSeat": null,
+          "transfer": false,
+          "wear": 2,
+          "label": "EQUIPAMENTO DANIFICADO"
+        },
+        {
+          "id": 95,
+          "type": "item-lost",
+          "seat": 1,
+          "target": "u26",
+          "lane": "hunt",
+          "itemId": null,
+          "cardId": "blade",
+          "killerSeat": null,
+          "transfer": false,
+          "wear": 2,
+          "label": "EQUIPAMENTO DANIFICADO"
+        },
+        {
+          "id": 96,
+          "type": "item-lost",
+          "seat": 1,
+          "target": "u26",
+          "lane": "hunt",
+          "cardId": "relic",
+          "killerSeat": null,
+          "transfer": false,
+          "wear": 2,
+          "label": "EQUIPAMENTO DANIFICADO"
+        }
+      ],
+      "rewards": {
+        "0": {
+          "xp": 100,
+          "coins": 160,
+          "dust": 25,
+          "scrap": 6,
+          "items": [
+            "0c2c7355-c1e7-4a53-ac5f-8a79b16233c0"
+          ],
+          "broken": [
+            "Manto de Ossos · QUEBRADO · +4 SUCATA"
+          ],
+          "looted": [],
+          "realm": {
+            "xp": 40,
+            "coins": 10,
+            "materials": 2,
+            "loot": true,
+            "message": "Expedição concluída."
+          }
+        }
+      }
+    },
+    {
+      "id": "083B12EE01",
+      "mode": "practice",
+      "riskMode": "covenant",
+      "battlefield": "court-board",
+      "game": {
+        "round": 1,
+        "turn": 0,
+        "initiative": 0,
+        "phase": "playing",
+        "winner": null,
+        "nextId": 11,
+        "nextEvent": 1,
+        "version": 0,
+        "mode": "practice",
+        "riskMode": "covenant",
+        "events": [],
+        "log": [
+          "A caçada começou."
+        ],
+        "players": [
+          {
+            "faction": "vampire",
+            "health": 24,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 0,
+            "energy": 3,
+            "rage": 0,
+            "combo": 0,
+            "skillUsed": false,
+            "ultimateUsed": false,
+            "kills": 0,
+            "cardsPlayed": 0,
+            "claims": 0,
+            "deck": [
+              {
+                "cardId": "blade",
+                "itemId": "d674815d-cce5-495d-88dc-441315862227",
+                "itemBound": false
+              },
+              "envoy",
+              "duelist",
+              {
+                "cardId": "ward",
+                "itemId": "4ba3a858-aaff-4c7b-88d1-e23fbe5aeab6",
+                "itemBound": false
+              },
+              "thrall",
+              "oracle",
+              "duskwidow",
+              "execution",
+              "envoy",
+              "bloodbat",
+              "nightcourt",
+              "thrall",
+              "bloodbat",
+              "pact",
+              "bloodscribe"
+            ],
+            "hand": [
+              {
+                "uid": "c1",
+                "cardId": "nightcourt",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c2",
+                "cardId": "duskwidow",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c3",
+                "cardId": "duelist",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c4",
+                "cardId": "blood",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c5",
+                "cardId": "reaver",
+                "itemId": null,
+                "itemBound": false
+              }
+            ],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": false,
+            "fatigue": 0
+          },
+          {
+            "faction": "werewolf",
+            "health": 24,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 0,
+            "energy": 3,
+            "rage": 0,
+            "combo": 0,
+            "skillUsed": false,
+            "ultimateUsed": false,
+            "kills": 0,
+            "cardsPlayed": 0,
+            "claims": 0,
+            "deck": [
+              "packrunner",
+              "howl",
+              "alpha",
+              "gravefang",
+              "ravager",
+              "pounce",
+              "moonfire",
+              "elder",
+              "packrunner",
+              "fang",
+              "fang",
+              "howl",
+              "blade",
+              "scout",
+              "renewal"
+            ],
+            "hand": [
+              {
+                "uid": "c6",
+                "cardId": "elder",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c7",
+                "cardId": "scout",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c8",
+                "cardId": "ward",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c9",
+                "cardId": "moonhowler",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c10",
+                "cardId": "moonhowler",
+                "itemId": null,
+                "itemBound": false
+              }
+            ],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": false,
+            "fatigue": 0
+          }
+        ]
+      },
+      "seats": [
+        "f3d5b392-169b-428e-95a9-654a9537edf4",
+        "bot"
+      ],
+      "rewarded": false,
+      "createdAt": 1790121809607,
+      "lockedItems": [
+        [
+          "d674815d-cce5-495d-88dc-441315862227",
+          "4ba3a858-aaff-4c7b-88d1-e23fbe5aeab6"
+        ]
+      ],
+      "gearEvents": []
+    },
+    {
+      "id": "1AA4C44C36",
+      "mode": "practice",
+      "riskMode": "covenant",
+      "battlefield": "court-board",
+      "game": {
+        "round": 8,
+        "turn": 0,
+        "initiative": 1,
+        "phase": "finished",
+        "winner": 0,
+        "nextId": 47,
+        "nextEvent": 175,
+        "version": 79,
+        "mode": "practice",
+        "riskMode": "covenant",
+        "events": [
+          {
+            "id": 1,
+            "type": "summon",
+            "seat": 0,
+            "target": "u11",
+            "lane": "court",
+            "label": "Guardião do Limiar"
+          },
+          {
+            "id": 2,
+            "type": "summon",
+            "seat": 1,
+            "target": "u12",
+            "lane": "court",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 3,
+            "type": "attack",
+            "seat": 0,
+            "source": "u11",
+            "target": "u12",
+            "lane": "court",
+            "label": "Guardião do Limiar"
+          },
+          {
+            "id": 4,
+            "type": "damage",
+            "seat": 1,
+            "target": "u12",
+            "amount": 1,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 5,
+            "type": "damage",
+            "seat": 0,
+            "target": "u11",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 6,
+            "type": "death",
+            "seat": 0,
+            "target": "u11",
+            "lane": "court",
+            "label": "Guardião do Limiar"
+          },
+          {
+            "id": 7,
+            "type": "attack",
+            "seat": 1,
+            "source": "u12",
+            "target": "hero",
+            "lane": "court",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 8,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 9,
+            "type": "skill",
+            "seat": 0,
+            "target": "u12",
+            "lane": "court",
+            "label": "Beijo da Morte"
+          },
+          {
+            "id": 10,
+            "type": "damage",
+            "seat": 1,
+            "target": "u12",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 11,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2
+          },
+          {
+            "id": 12,
+            "type": "death",
+            "seat": 1,
+            "target": "u12",
+            "lane": "court",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 13,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 14,
+            "type": "round",
+            "label": "RODADA 2",
+            "round": 2
+          },
+          {
+            "id": 15,
+            "type": "summon",
+            "seat": 1,
+            "target": "u15",
+            "lane": "court",
+            "label": "Rasga-Carne"
+          },
+          {
+            "id": 16,
+            "type": "summon",
+            "seat": 0,
+            "target": "u16",
+            "lane": "court",
+            "label": "Morcego do Banquete"
+          },
+          {
+            "id": 17,
+            "type": "summon",
+            "seat": 1,
+            "target": "u17",
+            "lane": "court",
+            "label": "Batedora da Geada"
+          },
+          {
+            "id": 18,
+            "type": "summon",
+            "seat": 0,
+            "target": "u18",
+            "lane": "court",
+            "label": "Duelista Carmesim"
+          },
+          {
+            "id": 19,
+            "type": "attack",
+            "seat": 1,
+            "source": "u15",
+            "target": "u18",
+            "lane": "court",
+            "label": "Rasga-Carne"
+          },
+          {
+            "id": 20,
+            "type": "damage",
+            "seat": 0,
+            "target": "u18",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 21,
+            "type": "damage",
+            "seat": 1,
+            "target": "u15",
+            "amount": 4,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 22,
+            "type": "death",
+            "seat": 0,
+            "target": "u18",
+            "lane": "court",
+            "label": "Duelista Carmesim"
+          },
+          {
+            "id": 23,
+            "type": "level",
+            "seat": 1,
+            "target": "u15",
+            "lane": "court",
+            "label": "NÍVEL 2"
+          },
+          {
+            "id": 24,
+            "type": "attack",
+            "seat": 0,
+            "source": "u16",
+            "target": "u17",
+            "lane": "court",
+            "label": "Morcego do Banquete"
+          },
+          {
+            "id": 25,
+            "type": "damage",
+            "seat": 1,
+            "target": "u17",
+            "amount": 1,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 26,
+            "type": "damage",
+            "seat": 0,
+            "target": "u16",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 27,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 1
+          },
+          {
+            "id": 28,
+            "type": "death",
+            "seat": 0,
+            "target": "u16",
+            "lane": "court",
+            "label": "Morcego do Banquete"
+          },
+          {
+            "id": 29,
+            "type": "ultimate",
+            "seat": 1,
+            "target": "hero",
+            "lane": "court",
+            "label": "Fúria Ancestral"
+          },
+          {
+            "id": 30,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 31,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "u15",
+            "lane": "court",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 32,
+            "type": "damage",
+            "seat": 1,
+            "target": "u15",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 33,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 34,
+            "type": "death",
+            "seat": 1,
+            "target": "u15",
+            "lane": "court",
+            "label": "Rasga-Carne"
+          },
+          {
+            "id": 35,
+            "type": "attack",
+            "seat": 1,
+            "source": "u17",
+            "target": "hero",
+            "lane": "court",
+            "label": "Batedora da Geada"
+          },
+          {
+            "id": 36,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 37,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 38,
+            "type": "claim",
+            "seat": 1,
+            "lane": "court",
+            "label": "+3 RENOME"
+          },
+          {
+            "id": 39,
+            "type": "round",
+            "label": "RODADA 3",
+            "round": 3
+          },
+          {
+            "id": 40,
+            "type": "summon",
+            "seat": 0,
+            "target": "u21",
+            "lane": "court",
+            "label": "Emissária do Véu"
+          },
+          {
+            "id": 41,
+            "type": "summon",
+            "seat": 1,
+            "target": "u22",
+            "lane": "crypt",
+            "label": "Anciã das Raízes"
+          },
+          {
+            "id": 42,
+            "type": "summon",
+            "seat": 0,
+            "target": "u23",
+            "lane": "crypt",
+            "label": "Ceifadora Escarlate"
+          },
+          {
+            "id": 43,
+            "type": "equip",
+            "seat": 1,
+            "target": "u22",
+            "lane": "crypt",
+            "label": "EQUIPADO"
+          },
+          {
+            "id": 44,
+            "type": "attack",
+            "seat": 0,
+            "source": "u23",
+            "target": "u22",
+            "lane": "crypt",
+            "label": "Ceifadora Escarlate"
+          },
+          {
+            "id": 45,
+            "type": "damage",
+            "seat": 1,
+            "target": "u22",
+            "amount": 3,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 46,
+            "type": "damage",
+            "seat": 0,
+            "target": "u23",
+            "amount": 4,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 47,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 48,
+            "type": "death",
+            "seat": 0,
+            "target": "u23",
+            "lane": "crypt",
+            "label": "Ceifadora Escarlate"
+          },
+          {
+            "id": 49,
+            "type": "attack",
+            "seat": 1,
+            "source": "u22",
+            "target": "hero",
+            "lane": "crypt",
+            "label": "Anciã das Raízes"
+          },
+          {
+            "id": 50,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 4,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 51,
+            "type": "attack",
+            "seat": 0,
+            "source": "u21",
+            "target": "u17",
+            "lane": "court",
+            "label": "Emissária do Véu"
+          },
+          {
+            "id": 52,
+            "type": "damage",
+            "seat": 1,
+            "target": "u17",
+            "amount": 1,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 53,
+            "type": "damage",
+            "seat": 0,
+            "target": "u21",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 54,
+            "type": "death",
+            "seat": 1,
+            "target": "u17",
+            "lane": "court",
+            "label": "Batedora da Geada"
+          },
+          {
+            "id": 55,
+            "type": "level",
+            "seat": 0,
+            "target": "u21",
+            "lane": "court",
+            "label": "NÍVEL 2"
+          },
+          {
+            "id": 56,
+            "type": "ultimate",
+            "seat": 1,
+            "target": "hero",
+            "lane": "court",
+            "label": "Fúria Ancestral"
+          },
+          {
+            "id": 57,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 58,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "u22",
+            "lane": "crypt",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 59,
+            "type": "damage",
+            "seat": 1,
+            "target": "u22",
+            "amount": 5,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 60,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 61,
+            "type": "death",
+            "seat": 1,
+            "target": "u22",
+            "lane": "crypt",
+            "label": "Anciã das Raízes"
+          },
+          {
+            "id": 62,
+            "type": "item-lost",
+            "seat": 1,
+            "target": "u22",
+            "lane": "crypt",
+            "itemId": null,
+            "cardId": "blade",
+            "killerSeat": null,
+            "transfer": false,
+            "wear": 2,
+            "label": "EQUIPAMENTO DANIFICADO"
+          },
+          {
+            "id": 63,
+            "type": "skill",
+            "seat": 1,
+            "target": "u21",
+            "lane": "court",
+            "label": "Dilacerar"
+          },
+          {
+            "id": 64,
+            "type": "damage",
+            "seat": 0,
+            "target": "u21",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 65,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 66,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 1
+          },
+          {
+            "id": 67,
+            "type": "claim",
+            "seat": 0,
+            "lane": "court",
+            "label": "+2 RENOME"
+          },
+          {
+            "id": 68,
+            "type": "round",
+            "label": "RODADA 4",
+            "round": 4
+          },
+          {
+            "id": 69,
+            "type": "summon",
+            "seat": 1,
+            "target": "u26",
+            "lane": "hunt",
+            "label": "Batedora da Geada"
+          },
+          {
+            "id": 70,
+            "type": "summon",
+            "seat": 0,
+            "target": "u27",
+            "lane": "hunt",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 71,
+            "type": "skill",
+            "seat": 1,
+            "target": "u27",
+            "lane": "hunt",
+            "label": "Chama da Alcateia"
+          },
+          {
+            "id": 72,
+            "type": "damage",
+            "seat": 0,
+            "target": "u27",
+            "amount": 2,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 73,
+            "type": "attack",
+            "seat": 0,
+            "source": "u27",
+            "target": "u26",
+            "lane": "hunt",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 74,
+            "type": "damage",
+            "seat": 1,
+            "target": "u26",
+            "amount": 2,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 75,
+            "type": "damage",
+            "seat": 0,
+            "target": "u27",
+            "amount": 2,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 76,
+            "type": "death",
+            "seat": 0,
+            "target": "u27",
+            "lane": "hunt",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 77,
+            "type": "death",
+            "seat": 1,
+            "target": "u26",
+            "lane": "hunt",
+            "label": "Batedora da Geada"
+          },
+          {
+            "id": 78,
+            "type": "skill",
+            "seat": 1,
+            "target": "u21",
+            "lane": "court",
+            "label": "Dilacerar"
+          },
+          {
+            "id": 79,
+            "type": "damage",
+            "seat": 0,
+            "target": "u21",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 80,
+            "type": "death",
+            "seat": 0,
+            "target": "u21",
+            "lane": "court",
+            "label": "Emissária do Véu"
+          },
+          {
+            "id": 81,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 82,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 5,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 83,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 84,
+            "type": "ultimate",
+            "seat": 1,
+            "target": "hero",
+            "lane": "court",
+            "label": "Fúria Ancestral"
+          },
+          {
+            "id": 85,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 86,
+            "type": "skill",
+            "seat": 0,
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Beijo da Morte"
+          },
+          {
+            "id": 87,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 2,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 88,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2
+          },
+          {
+            "id": 89,
+            "type": "heal",
+            "seat": 1,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 90,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2,
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 91,
+            "type": "combo",
+            "seat": 1,
+            "label": "COMBO · SEDE DE SANGUE"
+          },
+          {
+            "id": 92,
+            "type": "equip",
+            "seat": 0,
+            "target": "hero",
+            "lane": "court",
+            "label": "EQUIPADO"
+          },
+          {
+            "id": 93,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2,
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 94,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 2,
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 95,
+            "type": "combo",
+            "seat": 0,
+            "label": "COMBO · SEDE DE SANGUE"
+          },
+          {
+            "id": 96,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 97,
+            "type": "round",
+            "label": "RODADA 5",
+            "round": 5
+          },
+          {
+            "id": 98,
+            "type": "summon",
+            "seat": 0,
+            "target": "u32",
+            "lane": "crypt",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 99,
+            "type": "summon",
+            "seat": 1,
+            "target": "u33",
+            "lane": "court",
+            "label": "Presalva Tumular"
+          },
+          {
+            "id": 100,
+            "type": "summon",
+            "seat": 0,
+            "target": "u34",
+            "lane": "court",
+            "label": "Guardião do Limiar"
+          },
+          {
+            "id": 101,
+            "type": "attack",
+            "seat": 1,
+            "source": "u33",
+            "target": "u34",
+            "lane": "court",
+            "label": "Presalva Tumular"
+          },
+          {
+            "id": 102,
+            "type": "damage",
+            "seat": 0,
+            "target": "u34",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 103,
+            "type": "damage",
+            "seat": 1,
+            "target": "u33",
+            "amount": 1,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 104,
+            "type": "death",
+            "seat": 0,
+            "target": "u34",
+            "lane": "court",
+            "label": "Guardião do Limiar"
+          },
+          {
+            "id": 105,
+            "type": "level",
+            "seat": 1,
+            "target": "u33",
+            "lane": "court",
+            "label": "NÍVEL 2"
+          },
+          {
+            "id": 106,
+            "type": "skill",
+            "seat": 0,
+            "target": "u33",
+            "lane": "court",
+            "label": "Beijo da Morte"
+          },
+          {
+            "id": 107,
+            "type": "damage",
+            "seat": 1,
+            "target": "u33",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 108,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2
+          },
+          {
+            "id": 109,
+            "type": "skill",
+            "seat": 1,
+            "target": "u32",
+            "lane": "crypt",
+            "label": "Dilacerar"
+          },
+          {
+            "id": 110,
+            "type": "damage",
+            "seat": 0,
+            "target": "u32",
+            "amount": 3,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 111,
+            "type": "death",
+            "seat": 0,
+            "target": "u32",
+            "lane": "crypt",
+            "label": "Viúva do Crepúsculo"
+          },
+          {
+            "id": 112,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "u33",
+            "lane": "court",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 113,
+            "type": "damage",
+            "seat": 1,
+            "target": "u33",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 114,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 115,
+            "type": "death",
+            "seat": 1,
+            "target": "u33",
+            "lane": "court",
+            "label": "Presalva Tumular"
+          },
+          {
+            "id": 116,
+            "type": "ultimate",
+            "seat": 1,
+            "target": "hero",
+            "lane": "court",
+            "label": "Fúria Ancestral"
+          },
+          {
+            "id": 117,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 118,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 119,
+            "type": "round",
+            "label": "RODADA 6",
+            "round": 6
+          },
+          {
+            "id": 120,
+            "type": "summon",
+            "seat": 1,
+            "target": "u37",
+            "lane": "crypt",
+            "label": "Corredor da Geada"
+          },
+          {
+            "id": 121,
+            "type": "skill",
+            "seat": 0,
+            "target": "u37",
+            "lane": "crypt",
+            "label": "Execução Rubra"
+          },
+          {
+            "id": 122,
+            "type": "damage",
+            "seat": 1,
+            "target": "u37",
+            "amount": 4,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 123,
+            "type": "death",
+            "seat": 1,
+            "target": "u37",
+            "lane": "crypt",
+            "label": "Corredor da Geada"
+          },
+          {
+            "id": 124,
+            "type": "skill",
+            "seat": 1,
+            "target": "hero",
+            "lane": "court",
+            "label": "Dilacerar"
+          },
+          {
+            "id": 125,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 126,
+            "type": "skill",
+            "seat": 0,
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Beijo da Morte"
+          },
+          {
+            "id": 127,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 2,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 128,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2
+          },
+          {
+            "id": 129,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 130,
+            "type": "round",
+            "label": "RODADA 7",
+            "round": 7
+          },
+          {
+            "id": 131,
+            "type": "summon",
+            "seat": 0,
+            "target": "u40",
+            "lane": "crypt",
+            "label": "Duelista Carmesim"
+          },
+          {
+            "id": 132,
+            "type": "skill",
+            "seat": 1,
+            "target": "u40",
+            "lane": "crypt",
+            "label": "Dilacerar"
+          },
+          {
+            "id": 133,
+            "type": "damage",
+            "seat": 0,
+            "target": "u40",
+            "amount": 3,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 134,
+            "type": "death",
+            "seat": 0,
+            "target": "u40",
+            "lane": "crypt",
+            "label": "Duelista Carmesim"
+          },
+          {
+            "id": 135,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 136,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 5,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 137,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 138,
+            "type": "skill",
+            "seat": 0,
+            "target": "hero",
+            "lane": "hunt",
+            "label": "Beijo da Morte"
+          },
+          {
+            "id": 139,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 2,
+            "lane": "hunt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 140,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2
+          },
+          {
+            "id": 141,
+            "type": "summon",
+            "seat": 0,
+            "target": "u41",
+            "lane": "crypt",
+            "label": "Sanguinista da Corte"
+          },
+          {
+            "id": 142,
+            "type": "attack",
+            "seat": 0,
+            "source": "u41",
+            "target": "hero",
+            "lane": "crypt",
+            "label": "Sanguinista da Corte"
+          },
+          {
+            "id": 143,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 1,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 144,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 145,
+            "type": "loot",
+            "seat": 0,
+            "lane": "crypt",
+            "label": "RELÍQUIA SAQUEADA"
+          },
+          {
+            "id": 146,
+            "type": "claim",
+            "seat": 0,
+            "lane": "crypt",
+            "label": "+1 RENOME"
+          },
+          {
+            "id": 147,
+            "type": "round",
+            "label": "RODADA 8",
+            "round": 8
+          },
+          {
+            "id": 148,
+            "type": "summon",
+            "seat": 1,
+            "target": "u45",
+            "lane": "court",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 149,
+            "type": "summon",
+            "seat": 0,
+            "target": "u46",
+            "lane": "court",
+            "label": "Sanguinista da Corte"
+          },
+          {
+            "id": 150,
+            "type": "attack",
+            "seat": 1,
+            "source": "u45",
+            "target": "u46",
+            "lane": "court",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 151,
+            "type": "damage",
+            "seat": 0,
+            "target": "u46",
+            "amount": 3,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 152,
+            "type": "damage",
+            "seat": 1,
+            "target": "u45",
+            "amount": 1,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 153,
+            "type": "death",
+            "seat": 0,
+            "target": "u46",
+            "lane": "court",
+            "label": "Sanguinista da Corte"
+          },
+          {
+            "id": 154,
+            "type": "level",
+            "seat": 1,
+            "target": "u45",
+            "lane": "court",
+            "label": "NÍVEL 2"
+          },
+          {
+            "id": 155,
+            "type": "equip",
+            "seat": 0,
+            "target": "u41",
+            "lane": "crypt",
+            "label": "EQUIPADO"
+          },
+          {
+            "id": 156,
+            "type": "ultimate",
+            "seat": 1,
+            "target": "hero",
+            "lane": "court",
+            "label": "Fúria Ancestral"
+          },
+          {
+            "id": 157,
+            "type": "damage",
+            "seat": 0,
+            "target": "hero",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 158,
+            "type": "skill",
+            "seat": 0,
+            "target": "u45",
+            "lane": "court",
+            "label": "Beijo da Morte"
+          },
+          {
+            "id": 159,
+            "type": "damage",
+            "seat": 1,
+            "target": "u45",
+            "amount": 2,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 160,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 2
+          },
+          {
+            "id": 161,
+            "type": "skill",
+            "seat": 1,
+            "target": "u41",
+            "lane": "crypt",
+            "label": "Dilacerar"
+          },
+          {
+            "id": 162,
+            "type": "damage",
+            "seat": 0,
+            "target": "u41",
+            "amount": 3,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 163,
+            "type": "attack",
+            "seat": 0,
+            "source": "u41",
+            "target": "hero",
+            "lane": "crypt",
+            "label": "Sanguinista da Corte"
+          },
+          {
+            "id": 164,
+            "type": "damage",
+            "seat": 1,
+            "target": "hero",
+            "amount": 2,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 165,
+            "type": "skill",
+            "seat": 1,
+            "target": "u41",
+            "lane": "crypt",
+            "label": "Uivo de Ruptura"
+          },
+          {
+            "id": 166,
+            "type": "damage",
+            "seat": 0,
+            "target": "u41",
+            "amount": 2,
+            "lane": "crypt",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 167,
+            "type": "death",
+            "seat": 0,
+            "target": "u41",
+            "lane": "crypt",
+            "label": "Sanguinista da Corte"
+          },
+          {
+            "id": 168,
+            "type": "item-lost",
+            "seat": 0,
+            "target": "u41",
+            "lane": "crypt",
+            "cardId": "relic",
+            "killerSeat": null,
+            "transfer": false,
+            "wear": 2,
+            "label": "EQUIPAMENTO DANIFICADO"
+          },
+          {
+            "id": 169,
+            "type": "ultimate",
+            "seat": 0,
+            "target": "u45",
+            "lane": "court",
+            "label": "Eclipse de Sangue"
+          },
+          {
+            "id": 170,
+            "type": "damage",
+            "seat": 1,
+            "target": "u45",
+            "amount": 5,
+            "lane": "court",
+            "blocked": 0,
+            "label": "DANO"
+          },
+          {
+            "id": 171,
+            "type": "heal",
+            "seat": 0,
+            "target": "hero",
+            "amount": 3
+          },
+          {
+            "id": 172,
+            "type": "death",
+            "seat": 1,
+            "target": "u45",
+            "lane": "court",
+            "label": "Uivadora das Feridas"
+          },
+          {
+            "id": 173,
+            "type": "clash",
+            "label": "COLISÃO DE SANGUE"
+          },
+          {
+            "id": 174,
+            "type": "finish",
+            "seat": 0,
+            "label": "A CAÇADA TERMINOU"
+          }
+        ],
+        "log": [
+          "Combatente 1 encerrou a rodada.",
+          "Combatente 2 encerrou a rodada.",
+          "— Confronto 3 —",
+          "Corte: combatente 1 ganha 2 Renome.",
+          "Batedora da Geada → Caçada.",
+          "Viúva do Crepúsculo → Caçada.",
+          "Chama da Alcateia → Caçada.",
+          "Viúva do Crepúsculo ataca: 2 de dano.",
+          "Kael: Dilacerar.",
+          "Vesper: Eclipse de Sangue.",
+          "Kael: Fúria Ancestral.",
+          "Vesper: Beijo da Morte.",
+          "Memória Selvagem → Caçada.",
+          "Manto de Ossos → Corte.",
+          "Combatente 2 encerrou a rodada.",
+          "Dízimo de Sangue → Catacumbas.",
+          "Combatente 1 encerrou a rodada.",
+          "— Confronto 4 —",
+          "Viúva do Crepúsculo → Catacumbas.",
+          "Presalva Tumular → Corte.",
+          "Guardião do Limiar → Corte.",
+          "Presalva Tumular ataca: 6 de dano.",
+          "Vesper: Beijo da Morte.",
+          "Kael: Dilacerar.",
+          "Vesper: Eclipse de Sangue.",
+          "Kael: Fúria Ancestral.",
+          "Combatente 1 encerrou a rodada.",
+          "Combatente 2 encerrou a rodada.",
+          "— Confronto 5 —",
+          "Corredor da Geada → Catacumbas.",
+          "Execução Rubra → Catacumbas.",
+          "Kael: Dilacerar.",
+          "Vesper: Beijo da Morte.",
+          "Combatente 2 encerrou a rodada.",
+          "Combatente 1 encerrou a rodada.",
+          "— Confronto 6 —",
+          "Duelista Carmesim → Catacumbas.",
+          "Kael: Dilacerar.",
+          "Vesper: Eclipse de Sangue.",
+          "Combatente 2 encerrou a rodada.",
+          "Vesper: Beijo da Morte.",
+          "Sanguinista da Corte → Catacumbas.",
+          "Sanguinista da Corte ataca: 1 de dano.",
+          "Combatente 1 encerrou a rodada.",
+          "— Confronto 7 —",
+          "Catacumbas: combatente 1 ganha 1 Renome.",
+          "Uivadora das Feridas → Corte.",
+          "Sanguinista da Corte → Corte.",
+          "Uivadora das Feridas ataca: 4 de dano.",
+          "Fragmento da Primeira Noite → Catacumbas.",
+          "Kael: Fúria Ancestral.",
+          "Vesper: Beijo da Morte.",
+          "Kael: Dilacerar.",
+          "Sanguinista da Corte ataca: 2 de dano.",
+          "Uivo de Ruptura → Catacumbas.",
+          "Vesper: Eclipse de Sangue.",
+          "Combatente 2 encerrou a rodada.",
+          "Combatente 1 encerrou a rodada.",
+          "— Confronto 8 —",
+          "Combatente 1 venceu."
+        ],
+        "players": [
+          {
+            "faction": "vampire",
+            "health": 20,
+            "maxHealth": 27,
+            "heroGear": [
+              {
+                "itemId": "b74b10c5-9af4-4b0f-9e47-f89c62d8ef8b",
+                "cardId": "ward"
+              }
+            ],
+            "heroAttackBonus": 0,
+            "renown": 3,
+            "energy": 2,
+            "rage": 2,
+            "combo": 2,
+            "skillUsed": true,
+            "ultimateUsed": true,
+            "kills": 8,
+            "cardsPlayed": 15,
+            "claims": 2,
+            "deck": [
+              "bloodscribe",
+              "envoy",
+              {
+                "cardId": "blade",
+                "itemId": "56a15d9e-1e34-4fe9-8c5c-6f17495efcaa",
+                "itemBound": false
+              },
+              "pact",
+              "oracle",
+              "bloodbat"
+            ],
+            "hand": [],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": true,
+            "fatigue": 0
+          },
+          {
+            "faction": "werewolf",
+            "health": 6,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 3,
+            "energy": 0,
+            "rage": 4,
+            "combo": 2,
+            "skillUsed": true,
+            "ultimateUsed": true,
+            "kills": 11,
+            "cardsPlayed": 12,
+            "claims": 1,
+            "deck": [
+              "fang",
+              "ward",
+              "elder",
+              "pounce",
+              "alpha",
+              "packrunner",
+              "fang",
+              "howl"
+            ],
+            "hand": [],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": true,
+            "fatigue": 0
+          }
+        ]
+      },
+      "seats": [
+        "f3d5b392-169b-428e-95a9-654a9537edf4",
+        "bot"
+      ],
+      "rewarded": true,
+      "createdAt": 1790122084640,
+      "lockedItems": [
+        [
+          "56a15d9e-1e34-4fe9-8c5c-6f17495efcaa",
+          "b74b10c5-9af4-4b0f-9e47-f89c62d8ef8b"
+        ]
+      ],
+      "gearEvents": [
+        {
+          "id": 62,
+          "type": "item-lost",
+          "seat": 1,
+          "target": "u22",
+          "lane": "crypt",
+          "itemId": null,
+          "cardId": "blade",
+          "killerSeat": null,
+          "transfer": false,
+          "wear": 2,
+          "label": "EQUIPAMENTO DANIFICADO"
+        },
+        {
+          "id": 168,
+          "type": "item-lost",
+          "seat": 0,
+          "target": "u41",
+          "lane": "crypt",
+          "cardId": "relic",
+          "killerSeat": null,
+          "transfer": false,
+          "wear": 2,
+          "label": "EQUIPAMENTO DANIFICADO"
+        }
+      ],
+      "rewards": {
+        "0": {
+          "xp": 100,
+          "coins": 240,
+          "dust": 30,
+          "scrap": 2,
+          "items": [],
+          "broken": [],
+          "looted": []
+        }
+      }
+    },
+    {
+      "id": "2AD719C29D",
+      "mode": "practice",
+      "riskMode": "covenant",
+      "battlefield": "court-board",
+      "game": {
+        "round": 1,
+        "turn": 0,
+        "initiative": 0,
+        "phase": "playing",
+        "winner": null,
+        "nextId": 11,
+        "nextEvent": 1,
+        "version": 0,
+        "mode": "practice",
+        "riskMode": "covenant",
+        "events": [],
+        "log": [
+          "A caçada começou."
+        ],
+        "players": [
+          {
+            "faction": "vampire",
+            "health": 24,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 0,
+            "energy": 3,
+            "rage": 0,
+            "combo": 0,
+            "skillUsed": false,
+            "ultimateUsed": false,
+            "kills": 0,
+            "cardsPlayed": 0,
+            "claims": 0,
+            "deck": [
+              "duskwidow",
+              "bloodbat",
+              "envoy",
+              "thrall",
+              "execution",
+              "pact",
+              "oracle",
+              "nightcourt",
+              "duelist",
+              {
+                "cardId": "ward",
+                "itemId": "b74b10c5-9af4-4b0f-9e47-f89c62d8ef8b",
+                "itemBound": false
+              },
+              "bloodbat",
+              "duskwidow",
+              "blood",
+              {
+                "cardId": "blade",
+                "itemId": "56a15d9e-1e34-4fe9-8c5c-6f17495efcaa",
+                "itemBound": false
+              },
+              "nightcourt"
+            ],
+            "hand": [
+              {
+                "uid": "c1",
+                "cardId": "bloodscribe",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c2",
+                "cardId": "thrall",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c3",
+                "cardId": "duelist",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c4",
+                "cardId": "envoy",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c5",
+                "cardId": "reaver",
+                "itemId": null,
+                "itemBound": false
+              }
+            ],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": false,
+            "fatigue": 0
+          },
+          {
+            "faction": "werewolf",
+            "health": 24,
+            "maxHealth": 24,
+            "heroGear": [],
+            "heroAttackBonus": 0,
+            "renown": 0,
+            "energy": 3,
+            "rage": 0,
+            "combo": 0,
+            "skillUsed": false,
+            "ultimateUsed": false,
+            "kills": 0,
+            "cardsPlayed": 0,
+            "claims": 0,
+            "deck": [
+              "howl",
+              "ward",
+              "ravager",
+              "blade",
+              "moonhowler",
+              "howl",
+              "moonhowler",
+              "elder",
+              "gravefang",
+              "scout",
+              "scout",
+              "fang",
+              "packrunner",
+              "alpha",
+              "pounce"
+            ],
+            "hand": [
+              {
+                "uid": "c6",
+                "cardId": "packrunner",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c7",
+                "cardId": "elder",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c8",
+                "cardId": "moonfire",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c9",
+                "cardId": "fang",
+                "itemId": null,
+                "itemBound": false
+              },
+              {
+                "uid": "c10",
+                "cardId": "renewal",
+                "itemId": null,
+                "itemBound": false
+              }
+            ],
+            "lanes": {
+              "court": [],
+              "crypt": [],
+              "hunt": []
+            },
+            "boosts": {
+              "court": 0,
+              "crypt": 0,
+              "hunt": 0
+            },
+            "passed": false,
+            "fatigue": 0
+          }
+        ]
+      },
+      "seats": [
+        "f3d5b392-169b-428e-95a9-654a9537edf4",
+        "bot"
+      ],
+      "rewarded": false,
+      "createdAt": 1790122741464,
+      "lockedItems": [
+        [
+          "56a15d9e-1e34-4fe9-8c5c-6f17495efcaa",
+          "b74b10c5-9af4-4b0f-9e47-f89c62d8ef8b"
+        ]
+      ],
+      "gearEvents": []
+    }
+  ],
+  "world": {
+    "version": 16,
+    "houses": [],
+    "territories": {
+      "rosekeep": {
+        "owner": null,
+        "influence": {},
+        "protectedUntil": 0
+      },
+      "crown": {
+        "owner": null,
+        "influence": {},
+        "protectedUntil": 0
+      },
+      "peak": {
+        "owner": null,
+        "influence": {},
+        "protectedUntil": 0
+      },
+      "bridge": {
+        "owner": null,
+        "influence": {},
+        "protectedUntil": 0
+      },
+      "citadel": {
+        "owner": null,
+        "influence": {},
+        "protectedUntil": 0
+      }
+    },
+    "wars": [],
+    "events": [
+      {
+        "text": "Caçador venceu em Pedreira dos Juramentos.",
+        "at": 1790122829443
+      }
+    ]
+  }
+}
