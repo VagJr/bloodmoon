@@ -29,13 +29,20 @@ function houseOf(world,profile){return world.houses.find(h=>h.id===profile.realm
 function debit(profile,coins,materials={}){check(profile.coins>=coins,`São necessárias ${coins} Marcas.`);for(const [k,v]of Object.entries(materials))check(profile.realm.materials[k]>=v,`Faltam ${MATERIALS[k]}: são necessários ${v}.`);profile.coins-=coins;for(const [k,v]of Object.entries(materials))profile.realm.materials[k]-=v;}
 function gainXP(r,amount){r.xp+=amount;r.level=1+Math.floor(r.xp/120);}
 export function expirePolitics(world,now=Date.now()){
-  for(const war of world.wars)if(war.status==='active'&&war.endsAt<=now){war.status='ended';journal(world,'O prazo de uma guerra terminou. As fronteiras conquistadas permanecem.',now);}
-  for(const h of world.houses)if(h.proposal&&h.proposal.endsAt<=now){h.proposal=null;journal(world,`A votação de ${h.name} encerrou sem quórum.`,now);}
+  let changed=false;
+  for(const war of world.wars)if(war.status==='active'&&war.endsAt<=now){war.status='ended';journal(world,'O prazo de uma guerra terminou. As fronteiras conquistadas permanecem.',now);changed=true;}
+  for(const h of world.houses)if(h.proposal&&h.proposal.endsAt<=now){h.proposal=null;journal(world,`A votação de ${h.name} encerrou sem quórum.`,now);changed=true;}
+  return changed;
 }
-export function realmView(world,profile,profiles,now=Date.now()){
-  const r=profile.realm;r.seenAt=now;expirePolitics(world,now);
-  const people=[...profiles.values()].filter(p=>p.realm&&now-p.realm.seenAt<45000).map(p=>({id:p.realm.publicId,name:p.name,avatar:p.realm.avatar,location:p.realm.location,level:p.realm.level,faction:p.starterFaction,houseId:p.realm.houseId,busy:!!p.realm.activeRoom}));
-  return {version:world.version,serverTime:now,player:structuredClone(r),regions:REGIONS,territories:world.territories,houses:world.houses.map(h=>({...h,members:h.members.map(id=>({id,name:[...profiles.values()].find(p=>p.realm?.publicId===id)?.name||'Viajante'}))})),wars:world.wars.slice(-30),events:world.events.slice(0,12),online:people,profile};
+export function realmView(world,profile,profiles,now=Date.now(),includeProfile=true){
+  const r=profile.realm;r.seenAt=now;
+  const people=[],byPublicId=new Map();
+  for(const p of profiles.values())if(p.realm){
+    byPublicId.set(p.realm.publicId,p);
+    if(now-p.realm.seenAt<45000)people.push({id:p.realm.publicId,name:p.name,avatar:p.realm.avatar,location:p.realm.location,level:p.realm.level,faction:p.starterFaction,houseId:p.realm.houseId,busy:!!p.realm.activeRoom});
+  }
+  const profileView=includeProfile?profile:{id:profile.id,name:profile.name,starterFaction:profile.starterFaction};
+  return {version:world.version,serverTime:now,player:structuredClone(r),regions:REGIONS,territories:world.territories,houses:world.houses.map(h=>({...h,members:h.members.map(id=>({id,name:byPublicId.get(id)?.name||'Viajante'}))})),wars:world.wars.slice(-30),events:world.events.slice(0,12),online:people,profile:profileView};
 }
 export function realmAction(world,profile,input,createId,now=Date.now()){
   expirePolitics(world,now);
@@ -61,18 +68,18 @@ export function realmAction(world,profile,input,createId,now=Date.now()){
     const h={id:createId(),name,faction:profile.starterFaction,leader:r.publicId,members:[r.publicId],treasury:0,policy:'expedition',proposal:null,createdAt:now};world.houses.push(h);r.houseId=h.id;journal(world,`${profile.name} fundou ${name}.`,now);
   }else if(action==='join'){
     check(!house,'Você já pertence a uma Casa.');const h=world.houses.find(h=>h.id===input.houseId);check(h&&h.faction===profile.starterFaction,'Escolha uma Casa da sua linhagem.');check(h.members.length<20,'Esta Casa já tem vinte membros.');h.members.push(r.publicId);r.houseId=h.id;journal(world,`${profile.name} jurou lealdade a ${h.name}.`,now);
-  }else if(action==='donate'){check(house,'Entre em uma Casa.');const amount=Number(input.amount);check(Number.isInteger(amount)&&amount>=1&&amount<=1000,'Doe entre 1 e 1.000 Marcas.');debit(profile,amount);house.treasury+=amount;}
+  }else if(action==='donate'){check(house,'Entre em uma Casa.');const amount=Number(input.amount);check(Number.isInteger(amount)&&amount>=1&&amount<=1000,'Doe entre 1 e 1.000 Marcas.');debit(profile,amount);house.treasury+=amount;world.version++;}
   else if(action==='propose'){
     check(house&&house.leader===r.publicId,'Somente o fundador pode propor uma política.');check(!house.proposal,'Já existe uma proposta aberta.');check(Object.hasOwn(POLICIES,input.policy)&&input.policy!==house.policy,'Escolha outra política.');
-    house.proposal={policy:input.policy,eligible:[...house.members],votes:[r.publicId],endsAt:now+600000};resolveVote(house,world,now);
+    house.proposal={policy:input.policy,eligible:[...house.members],votes:[r.publicId],endsAt:now+600000};world.version++;resolveVote(house,world,now);
   }else if(action==='vote'){
-    check(house?.proposal,'Não há uma proposta aberta.');check(house.proposal.eligible.includes(r.publicId),'Você entrou após o início desta votação.');check(!house.proposal.votes.includes(r.publicId),'Seu voto já foi contado.');house.proposal.votes.push(r.publicId);resolveVote(house,world,now);
+    check(house?.proposal,'Não há uma proposta aberta.');check(house.proposal.eligible.includes(r.publicId),'Você entrou após o início desta votação.');check(!house.proposal.votes.includes(r.publicId),'Seu voto já foi contado.');house.proposal.votes.push(r.publicId);world.version++;resolveVote(house,world,now);
   }else if(action==='war'){
     check(house?.leader===r.publicId,'Somente o fundador pode declarar guerra.');const rival=world.houses.find(h=>h.id===input.houseId);check(rival&&rival.id!==house.id,'Escolha uma Casa rival.');check(Object.values(world.territories).some(t=>t.owner===rival.id),'O rival ainda não possui territórios.');
     check(!world.wars.some(w=>w.status==='active'&&[w.attacker,w.defender].includes(house.id)),'Sua Casa já participa de uma guerra.');check(!world.wars.some(w=>w.status==='active'&&[w.attacker,w.defender].includes(rival.id)),'Essa Casa já participa de uma guerra.');check(house.treasury>=50,'A guerra exige 50 Marcas do tesouro.');house.treasury-=50;
     world.wars.push({id:createId(),attacker:house.id,defender:rival.id,status:'active',startsAt:now,endsAt:now+1800000});journal(world,`${house.name} declarou guerra a ${rival.name}. Trinta minutos de disputa.`,now);
   }else throw new RuleError('Ação de reino desconhecida.');
-  r.version++;world.version++;r.seenAt=now;return r;
+  r.version++;r.seenAt=now;return r;
 }
 function resolveVote(house,world,now){const p=house.proposal;if(p.votes.length>=Math.floor(p.eligible.length/2)+1){house.policy=p.policy;house.proposal=null;journal(world,`${house.name} aprovou a política ${POLICIES[p.policy].name}.`,now);}}
 export function prepareEncounter(world,profile,now=Date.now()){

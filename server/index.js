@@ -1,13 +1,14 @@
 import http from 'node:http';
+import { createReadStream } from 'node:fs';
 import { randomBytes, randomUUID, randomInt } from 'node:crypto';
-import { readFile, mkdir, writeFile, rename } from 'node:fs/promises';
+import { readFile, stat, mkdir, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { connectMongoStore } from './mongo-store.js';
 import { createGame, replaceOpeningDeck, applyAction, botAction, publicView, RuleError } from '../shared/engine.js';
 import { CARDS, DECKS } from '../shared/cards.js';
 import { ECONOMY, CONTRACTS, grantStarter, validateDeck, countCards, cardLimit, makeItem } from '../shared/progression.js';
-import { createWorld, enterRealms, realmView, realmAction, prepareEncounter, settleEncounter, REGIONS } from '../shared/realms.js';
+import { createWorld, enterRealms, realmView, realmAction, prepareEncounter, settleEncounter, expirePolitics, REGIONS } from '../shared/realms.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rooms = new Map();
@@ -16,6 +17,7 @@ const itemLocks = new Map();
 const dataDir=process.env.DATA_DIR || path.join(root,'data');
 const profileFile = path.join(dataDir, 'state.json');
 let world=createWorld();
+let worldInitialized = false;
 if(process.env.NODE_ENV==='production'&&!process.env.MONGO_URI)throw new Error('MONGO_URI é obrigatória em produção; configure o segredo no provedor de hospedagem.');
 const mongoStore=process.env.MONGO_URI?await connectMongoStore():null;
 if(mongoStore){
@@ -23,6 +25,7 @@ if(mongoStore){
   for(const p of saved.profiles)profiles.set(p.id,p);
   for(const r of saved.rooms)rooms.set(r.id,r);
   world=saved.world||world;
+  worldInitialized=!!saved.world;
 }else{
   try {
     const saved=JSON.parse(await readFile(profileFile,'utf8'));
@@ -33,10 +36,10 @@ if(mongoStore){
 }
 for(const r of rooms.values())if(r.game.phase!=='finished')for(const ids of r.lockedItems||[])for(const id of ids)itemLocks.set(id,r.id);
 let saving = Promise.resolve();
-function persist() {
+function persist({ profiles: changedProfiles = [], rooms: changedRooms = [], deleteRooms = [], world: saveWorld = false } = {}) {
   saving = saving.catch(() => {}).then(async () => {
     if(mongoStore){
-      await mongoStore.save({profiles:[...profiles.values()],rooms:[...rooms.values()],world});
+      await mongoStore.save({profiles:changedProfiles,rooms:changedRooms,deleteRooms,world:saveWorld?world:undefined});
       return;
     }
     const snapshot = JSON.stringify({schema:2,profiles:[...profiles.values()],rooms:[...rooms.values()],world}, null, 2);
@@ -46,7 +49,7 @@ function persist() {
   });
   return saving;
 }
-if(mongoStore)await persist();
+if(mongoStore&&!worldInitialized)await persist({world:true});
 function json(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); }
 async function body(req) {
   let data = '';
@@ -61,7 +64,7 @@ function view(room, id) {
 async function prepareProfile(profile,faction='vampire') {
   let changed=grantStarter(profile,faction,randomUUID);
   const now=Date.now();for(const item of profile.items||[])if(item.listingId&&item.listedAt+ECONOMY.marketListingHours*3600000<=now){item.listingId=null;item.price=null;item.listedAt=null;changed=true;}
-  if(changed)await persist();
+  if(changed)await persist({profiles:[profile]});
   return profile;
 }
 function activeDeck(profile,faction) {
@@ -86,11 +89,24 @@ function reserveDeck(profile,cards,roomId) {
 }
 function unlockRoom(room) { for(const ids of room.lockedItems||[])for(const id of ids)itemLocks.delete(id); }
 function pruneRooms(now=Date.now()) {
+  const deleteRooms=[],expiredIds=new Set();
   for(const [id,room] of rooms){
     const age=now-room.createdAt,expired=room.game.phase==='finished'?age>24*60*60*1000:room.seats.length<2?age>30*60*1000:age>12*60*60*1000;
-    if(expired){unlockRoom(room);for(const profile of profiles.values())if(profile.realm?.activeRoom===id){profile.realm.activeRoom=null;profile.realm.expedition=null;profile.realm.version++;}rooms.delete(id);}
+    if(expired){unlockRoom(room);rooms.delete(id);deleteRooms.push(id);expiredIds.add(id);}
   }
+  const changedProfiles=[];
+  if(expiredIds.size)for(const profile of profiles.values())if(expiredIds.has(profile.realm?.activeRoom)){profile.realm.activeRoom=null;profile.realm.expedition=null;profile.realm.version++;changedProfiles.push(profile);}
+  return {profiles:changedProfiles,deleteRooms};
 }
+
+const maintenanceTimer=setInterval(async()=>{
+  try{
+    const pruned=pruneRooms();
+    const worldChanged=expirePolitics(world);
+    if(pruned.profiles.length||pruned.deleteRooms.length||worldChanged)await persist({...pruned,world:worldChanged});
+  }catch(error){console.error('Falha na manutenção periódica do jogo.',error);}
+},60000);
+maintenanceTimer.unref();
 function gearFor(profile,id) { return profile?.items?.find(i=>i.id===id); }
 function breakItem(profile,item) {
   profile.items=profile.items.filter(i=>i.id!==item.id);
@@ -164,7 +180,6 @@ async function reward(room) {
     p.trophies ||= [];
     if(room.mode === 'dungeon' && won && !p.trophies.includes('crown-of-the-buried')) p.trophies.push('crown-of-the-buried');
   });
-  await persist();
 }
 function runBot(room) {
   let actions = 0;
@@ -177,28 +192,27 @@ const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
 let requestQueue=Promise.resolve();
 const server = http.createServer(async (req,res) => {
   let release;
-  if(req.url.startsWith('/api/')){const previous=requestQueue;requestQueue=new Promise(resolve=>{release=resolve;});await previous;}
+  if(req.url.startsWith('/api/')&&req.method!=='GET'&&!req.url.startsWith('/api/health')){const previous=requestQueue;requestQueue=new Promise(resolve=>{release=resolve;});await previous;}
   try {
       const url = new URL(req.url, 'http://localhost');
-      pruneRooms();
     if (req.method === 'GET' && url.pathname === '/api/health') return json(res,200,{ ok: true, version: '0.4.0', edition:'edition-one', storage:mongoStore?'mongodb-atlas':'local-file' });
     if (req.method === 'POST' && url.pathname === '/api/profile') {
       const input = await body(req);
       const name = typeof input.name === 'string' ? input.name.trim().slice(0,24) : 'Viajante';
       const profile = { id: randomUUID(), name: name || 'Viajante', xp: 0, level: 1, wins: 0, matches: 0, trophies:[] };
       grantStarter(profile,input.faction==='werewolf'?'werewolf':'vampire',randomUUID);
-      profiles.set(profile.id,profile); await persist(); return json(res,201,profile);
+      profiles.set(profile.id,profile); await persist({profiles:[profile]}); return json(res,201,profile);
     }
     if (url.pathname.startsWith('/api/')) {
       const profile = identity(req);
       if (!profile) return json(res,401,{ error: 'Crie um perfil local para entrar.' });
       await prepareProfile(profile,profile.starterFaction||'vampire');
       if(url.pathname==='/api/realms'&&req.method==='GET'){
-        if(enterRealms(profile,randomUUID))await persist();
-        return json(res,200,realmView(world,profile,profiles));
+        if(enterRealms(profile,randomUUID))await persist({profiles:[profile]});
+        return json(res,200,realmView(world,profile,profiles,Date.now(),false));
       }
       if(url.pathname==='/api/realms/actions'&&req.method==='POST'){
-        const input=await body(req);enterRealms(profile,randomUUID);realmAction(world,profile,input,randomUUID);await persist();return json(res,200,realmView(world,profile,profiles));
+        const input=await body(req),worldVersion=world.version;enterRealms(profile,randomUUID);realmAction(world,profile,input,randomUUID);await persist({profiles:[profile],world:world.version!==worldVersion});return json(res,200,realmView(world,profile,profiles));
       }
       if(url.pathname==='/api/realms/encounter'&&req.method==='POST'){
         const input=await body(req);enterRealms(profile,randomUUID);
@@ -211,7 +225,7 @@ const server = http.createServer(async (req,res) => {
         const game=createGame(faction,Math.random,boss?'dungeon':'practice',{[faction]:reserved.cards});
         game.players[1].health=game.players[1].maxHealth=boss?36:22+encounter.difficulty*2+encounter.stage*2;
         const room={id,mode:'realm',encounter,battlefield:encounter.board,riskMode:'covenant',game,seats:[profile.id,'bot'],rewarded:false,createdAt:Date.now(),lockedItems:[reserved.itemIds],gearEvents:[]};
-        rooms.set(id,room);profile.realm.activeRoom=id;profile.realm.provisions-=2;profile.realm.version++;await persist();return json(res,201,view(room,profile.id));
+        rooms.set(id,room);profile.realm.activeRoom=id;profile.realm.provisions-=2;profile.realm.version++;await persist({profiles:[profile],rooms:[room]});return json(res,201,view(room,profile.id));
       }
       if (req.method === 'GET' && url.pathname === '/api/profile') return json(res,200,profile);
       if (req.method === 'POST' && url.pathname === '/api/boosters/open') {
@@ -229,7 +243,7 @@ const server = http.createServer(async (req,res) => {
           if(card.type==='equipment'){const item=makeItem(card.id,randomUUID,'booster');profile.items.push(item);pulls.push({id:card.id,rarity:card.rarity,duplicate:false,item:true});}
           else{const owned=profile.collection[card.id]||0,limit=cardLimit(card);if(owned<limit)profile.collection[card.id]=owned+1;else profile.dust+=ECONOMY.duplicateDust[card.rarity]||0;pulls.push({id:card.id,rarity:card.rarity,duplicate:owned>=limit});}
         }
-        await persist();return json(res,200,{profile,pulls,set:'Crônicas de Véspera'});
+        await persist({profiles:[profile]});return json(res,200,{profile,pulls,set:'Crônicas de Véspera'});
       }
       if (req.method === 'POST' && url.pathname === '/api/cards/craft') {
         const input=await body(req),card=CARDS[input.cardId],amount=Number(input.amount||1);
@@ -238,28 +252,28 @@ const server = http.createServer(async (req,res) => {
           const unitCost=ECONOMY.craftGear[card.rarity];if(!unitCost)throw new RuleError('Este equipamento não pode ser criado.');
           const cost={coins:unitCost.coins*amount,scrap:unitCost.scrap*amount};if(profile.coins<cost.coins||profile.scrap<cost.scrap)throw new RuleError(`Criar ${amount} × ${card.name} custa ${cost.coins} Marcas e ${cost.scrap} Sucata.`);
           profile.coins-=cost.coins;profile.scrap-=cost.scrap;const items=[];for(let i=0;i<amount;i++){const item=makeItem(card.id,randomUUID,'crafted');profile.items.push(item);items.push(item);}
-          await persist();return json(res,200,{profile,crafted:{id:card.id,amount,items,cost}});
+          await persist({profiles:[profile]});return json(res,200,{profile,crafted:{id:card.id,amount,items,cost}});
         }
         const cost=ECONOMY.craftDust[card.rarity]*amount,owned=profile.collection[card.id]||0;
         if(owned+amount>cardLimit(card))throw new RuleError(`Limite de ${cardLimit(card)} cópia(s) desta carta.`);
         if(profile.dust<cost)throw new RuleError(`São necessários ${cost} fragmentos para criar esta carta.`);
-        profile.dust-=cost;profile.collection[card.id]=owned+amount;await persist();return json(res,200,{profile,crafted:{id:card.id,amount,cost}});
+        profile.dust-=cost;profile.collection[card.id]=owned+amount;await persist({profiles:[profile]});return json(res,200,{profile,crafted:{id:card.id,amount,cost}});
       }
       if (req.method === 'POST' && url.pathname === '/api/decks') {
         const input=await body(req);validateOwnedDeck(input.cards,input.faction,profile);
         const deck={id:randomUUID(),name:String(input.name||'Meu deck').trim().slice(0,28)||'Meu deck',faction:input.faction,cards:[...input.cards],starter:false};
-        profile.decks.push(deck);await persist();return json(res,201,{profile,deck});
+        profile.decks.push(deck);await persist({profiles:[profile]});return json(res,201,{profile,deck});
       }
       const deckRoute=url.pathname.match(/^\/api\/decks\/([\da-f-]+)(?:\/(activate))?$/i);
       if(deckRoute){
         const deck=profile.decks.find(d=>d.id===deckRoute[1]);if(!deck)throw new RuleError('Deck não encontrado.');
-        if(req.method==='POST'&&deckRoute[2]==='activate'){validateOwnedDeck(deck.cards,deck.faction,profile);profile.activeDecks[deck.faction]=deck.id;await persist();return json(res,200,{profile,deck});}
-        if(req.method==='PUT'&&!deckRoute[2]){const input=await body(req);validateOwnedDeck(input.cards,deck.faction,profile);deck.cards=[...input.cards];if(input.name)deck.name=String(input.name).trim().slice(0,28);await persist();return json(res,200,{profile,deck});}
+        if(req.method==='POST'&&deckRoute[2]==='activate'){validateOwnedDeck(deck.cards,deck.faction,profile);profile.activeDecks[deck.faction]=deck.id;await persist({profiles:[profile]});return json(res,200,{profile,deck});}
+        if(req.method==='PUT'&&!deckRoute[2]){const input=await body(req);validateOwnedDeck(input.cards,deck.faction,profile);deck.cards=[...input.cards];if(input.name)deck.name=String(input.name).trim().slice(0,28);await persist({profiles:[profile]});return json(res,200,{profile,deck});}
       }
       if(req.method==='POST'&&url.pathname==='/api/items/repair'){
         const input=await body(req),item=gearFor(profile,input.itemId);if(!item||item.listingId||itemLocks.has(item.id))throw new RuleError('Este item não pode ser reparado agora.');
         const missing=item.maxDurability-item.durability,cost=(ECONOMY.repairCost[item.rarity]||12)*missing;if(missing<=0)throw new RuleError('Este equipamento já está íntegro.');
-        if(profile.coins<cost)throw new RuleError(`O reparo custa ${cost} Marcas.`);profile.coins-=cost;item.durability=item.maxDurability;await persist();return json(res,200,{profile,repaired:item.id,cost});
+        if(profile.coins<cost)throw new RuleError(`O reparo custa ${cost} Marcas.`);profile.coins-=cost;item.durability=item.maxDurability;await persist({profiles:[profile]});return json(res,200,{profile,repaired:item.id,cost});
       }
       if(req.method==='GET'&&url.pathname==='/api/market'){
         const now=Date.now(),offers=[];
@@ -271,7 +285,7 @@ const server = http.createServer(async (req,res) => {
         if(!item||item.bound||item.listingId||itemLocks.has(item.id))throw new RuleError('Este item está vinculado, reservado ou já anunciado.');
         if(!Number.isInteger(price)||price<ECONOMY.marketMinPrice||price>ECONOMY.marketMaxPrice)throw new RuleError(`O preço precisa ficar entre ${ECONOMY.marketMinPrice} e ${ECONOMY.marketMaxPrice} Marcas.`);
         const fee=Math.max(1,Math.floor(price*ECONOMY.marketListingFeePercent/100));if(profile.coins<fee)throw new RuleError(`A taxa de anúncio é ${fee} Marcas.`);
-        profile.coins-=fee;item.listingId=randomUUID();item.price=price;item.listedAt=Date.now();await persist();return json(res,201,{profile,item,fee});
+        profile.coins-=fee;item.listingId=randomUUID();item.price=price;item.listedAt=Date.now();await persist({profiles:[profile]});return json(res,201,{profile,item,fee});
       }
       const marketAction=url.pathname.match(/^\/api\/market\/([\da-f-]+)\/(buy|cancel)$/i);
       if(marketAction){
@@ -279,13 +293,13 @@ const server = http.createServer(async (req,res) => {
         for(const candidate of profiles.values()){const found=(candidate.items||[]).find(i=>i.listingId===listingId);if(found){seller=candidate;item=found;break;}}
         if(!seller||!item)throw new RuleError('Anúncio não encontrado.');
         if(action==='cancel'&&req.method==='POST'){
-          if(seller.id!==profile.id)throw new RuleError('Só o vendedor pode retirar este anúncio.');item.listingId=null;item.price=null;item.listedAt=null;await persist();return json(res,200,{profile,item});
+          if(seller.id!==profile.id)throw new RuleError('Só o vendedor pode retirar este anúncio.');item.listingId=null;item.price=null;item.listedAt=null;await persist({profiles:[profile]});return json(res,200,{profile,item});
         }
         if(action==='buy'&&req.method==='POST'){
           if(seller.id===profile.id)throw new RuleError('Você não pode comprar seu próprio anúncio.');if(item.listedAt+ECONOMY.marketListingHours*3600000<=Date.now())throw new RuleError('Este anúncio expirou.');
           if(profile.coins<item.price)throw new RuleError('Marcas insuficientes para esta compra.');
           const price=item.price,tax=Math.floor(price*ECONOMY.marketTaxPercent/100);profile.coins-=price;seller.coins=(seller.coins||0)+price-tax;seller.items=seller.items.filter(i=>i.id!==item.id);profile.items.push({...item,listingId:null,price:null,listedAt:null});
-            await persist();return json(res,200,{profile,item:{...item,listingId:null,price:null,listedAt:null},tax});
+            await persist({profiles:[profile,seller]});return json(res,200,{profile,item:{...item,listingId:null,price:null,listedAt:null},tax});
         }
       }
       if (req.method === 'POST' && url.pathname === '/api/rooms') {
@@ -301,7 +315,7 @@ const server = http.createServer(async (req,res) => {
         const game=createGame(input.faction,Math.random,input.mode,deckLists),riskMode=input.mode==='duel'&&input.riskMode==='blood-oath'?'blood-oath':'covenant';game.riskMode=riskMode;
         const room = { id, mode: input.mode, riskMode, battlefield:['court-board','forest-board','crypt-board','siege-board'].includes(input.battlefield)?input.battlefield:input.mode==='dungeon'?'crypt-board':input.faction==='werewolf'?'forest-board':'court-board', game, seats: [profile.id], rewarded: false, createdAt:Date.now(),lockedItems:[reserved.itemIds],gearEvents:[] };
         if (input.mode !== 'duel') room.seats.push('bot');
-        rooms.set(room.id,room); await persist();return json(res,201,view(room,profile.id));
+        rooms.set(room.id,room); await persist({rooms:[room]});return json(res,201,view(room,profile.id));
       }
       const match = url.pathname.match(/^\/api\/rooms\/([A-F0-9]{10})(?:\/(join|actions))?$/);
       if (match) {
@@ -316,7 +330,7 @@ const server = http.createServer(async (req,res) => {
             validateOwnedDeck(deck.cards,faction,profile);
             const reserved=reserveDeck(profile,deck.cards,room.id);room.game=replaceOpeningDeck(room.game,seat,reserved.cards);room.lockedItems[seat]=reserved.itemIds;
             room.seats.push(profile.id);
-            await persist();
+            await persist({rooms:[room]});
           }
           return json(res,200,view(room,profile.id));
         }
@@ -327,7 +341,10 @@ const server = http.createServer(async (req,res) => {
           const input = await body(req);
           if (room.seats.length < 2) throw new RuleError('Aguarde o segundo jogador.');
           if (input.version !== room.game.version) return json(res,409,{ error: 'O estado mudou. Atualize antes de jogar.' });
-          const firstEvent=room.game.nextEvent;room.game = applyAction(room.game,seat,input.action); runBot(room);room.gearEvents.push(...room.game.events.filter(e=>e.id>=firstEvent&&e.type==='item-lost'));await reward(room);await persist();
+          const firstEvent=room.game.nextEvent;room.game = applyAction(room.game,seat,input.action); runBot(room);room.gearEvents.push(...room.game.events.filter(e=>e.id>=firstEvent&&e.type==='item-lost'));
+          const rewarding=room.game.phase==='finished'&&!room.rewarded;await reward(room);
+          const changedProfiles=rewarding?room.seats.map(id=>profiles.get(id)).filter(Boolean):[];
+          await persist({rooms:[room],profiles:changedProfiles,world:rewarding&&!!room.encounter});
           return json(res,200,view(room,profile.id));
         }
       }
@@ -339,8 +356,16 @@ const server = http.createServer(async (req,res) => {
     const allowed = ['client','shared'].some(dir => target.startsWith(path.join(root,dir) + path.sep));
     if (!allowed || !mime[path.extname(target)]) return json(res,404,{ error: 'Arquivo não encontrado.' });
     try {
-      const data = await readFile(target);
-      res.writeHead(200,{ 'Content-Type': mime[path.extname(target)], 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'" }); res.end(data);
+      const info=await stat(target),ext=path.extname(target),etag=`W/"${info.size.toString(16)}-${Math.trunc(info.mtimeMs).toString(16)}"`;
+      const cacheControl=ext==='.png'||ext==='.webp'?'public, max-age=86400':'no-cache';
+      const headers={ 'Content-Type': mime[ext], 'Content-Length': info.size, 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'", 'Cache-Control':cacheControl, 'ETag':etag, 'Last-Modified':info.mtime.toUTCString() };
+      const since=req.headers['if-modified-since'];
+      const matchTag=req.headers['if-none-match']?.split(',').some(value=>value.trim()==='*'||value.trim()===etag);
+      if(matchTag||(!req.headers['if-none-match']&&since&&Math.floor(info.mtimeMs/1000)<=Math.floor(Date.parse(since)/1000))){res.writeHead(304,headers);return res.end();}
+      res.writeHead(200,headers);
+      const stream=createReadStream(target);
+      stream.on('error',error=>{if(!res.headersSent)json(res,500,{error:'Falha ao carregar o arquivo.'});else res.destroy(error);});
+      stream.pipe(res);
     } catch (e) { if (e.code !== 'ENOENT') throw e; json(res,404,{ error: 'Arquivo não encontrado.' }); }
   } catch (e) { if (!(e instanceof RuleError)) console.error(e); json(res,e instanceof RuleError ? 400 : 500,{ error: e instanceof RuleError ? e.message : 'Falha interna do servidor.' }); }
   finally { release?.(); }

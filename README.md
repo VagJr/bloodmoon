@@ -15,9 +15,11 @@ Abra http://127.0.0.1:4173. No primeiro acesso, escolha vampiros ou lobisomens p
 
 ## MongoDB Atlas e Render
 
-O servidor usa o banco `bloodmoon` no Atlas quando `MONGO_URI` está configurada. O driver cria as coleções `profiles`, `rooms` e `world`, com índices para consulta de perfis, participantes, modo e fase das partidas. O painel Atlas pode editar esses documentos diretamente. Cada gravação do estado é aplicada em transação. Em produção, o servidor exige `MONGO_URI`; sem essa variável ele não inicia usando armazenamento temporário.
+O servidor usa o banco `bloodmoon` no Atlas quando `MONGO_URI` está configurada. O driver cria as coleções `profiles`, `rooms` e `world`, com índices para consulta de perfis, participantes, modo e fase das partidas. O painel Atlas pode editar esses documentos diretamente. Ações comuns atualizam somente o perfil ou a sala alterada; transações ficam para operações que mudam vários documentos, como compras entre jogadores e conclusão de partidas. Em produção, o servidor exige `MONGO_URI`; sem essa variável ele não inicia usando armazenamento temporário.
 
 Nunca envie `.env` para o Git. No Render, crie um Web Service usando o `render.yaml` deste projeto, informe `MONGO_URI` como variável secreta e mantenha `MONGO_DB=bloodmoon`. O servidor escuta `process.env.PORT` e usa `0.0.0.0` em produção; localmente usa `127.0.0.1`. O endpoint de health check é `/api/health`. O Atlas exige a faixa de saída do serviço na IP Access List: veja `Connect → Outbound` do serviço Render e adicione os CIDRs correspondentes no projeto Atlas.
+
+As consultas de partida e de Reinos não esperam a fila de gravações; salas expiradas e prazos políticos são tratados uma vez por minuto. Arquivos de arte são transmitidos em fluxo e imagens recebem cache de navegador com validação por ETag. Isso reduz processamento repetido sem alterar artes, animações ou regras. O plano gratuito do Render ainda pode suspender o serviço após inatividade e levar cerca de um minuto para acordá-lo.
 
 `npm run db:check` confere conexão e quantidades sem alterar os dados. Para apagar os dados do jogo no Atlas e reiniciar o antigo save JSON local, rode `npm run db:wipe:confirm`. Esse comando destrutivo exige confirmação explícita e limpa somente `profiles`, `rooms` e `world` dentro do banco `bloodmoon`; não remove outras bases nem coleções do cluster. Ao iniciar novamente, o servidor grava um mundo novo, sem perfis ou partidas antigos.
 
