@@ -68,7 +68,7 @@ export function ownedCardCount(cardId,collection={},items=[]) {
 
 export function deckCollection(collection={},autoRefills=[]) {
   const owned={...collection};
-  for(const refill of autoRefills||[])if(refill?.replacementId)owned[refill.replacementId]=(owned[refill.replacementId]||0)+1;
+  for(const refill of autoRefills||[])if(refill?.replacementId&&refill.borrowed!==false)owned[refill.replacementId]=(owned[refill.replacementId]||0)+1;
   return owned;
 }
 
@@ -85,10 +85,12 @@ export function restoreReplacedGear(profile,cardId) {
     deck.autoRefills||=[];
     for(let index=0;index<deck.autoRefills.length;){
       const refill=deck.autoRefills[index];
-      if(refill.equipmentId!==cardId||countCards(deck.cards)[cardId]>=ownedCardCount(cardId,profile.collection||{},profile.items||[])){index++;continue;}
+      if(refill.equipmentId!==cardId||(countCards(deck.cards)[cardId]||0)>=ownedCardCount(cardId,profile.collection||{},profile.items||[])){index++;continue;}
       const replacementIndex=deck.cards.lastIndexOf(refill.replacementId);
       if(replacementIndex<0){deck.autoRefills.splice(index,1);changed=true;continue;}
-      deck.cards[replacementIndex]=cardId;deck.autoRefills.splice(index,1);changed=true;
+      const trial=[...deck.cards],refills=deck.autoRefills.filter((_,i)=>i!==index);trial[replacementIndex]=cardId;
+      try{validateDeck(trial,deck.faction,deckCollection(profile.collection,refills),profile.items);}catch{index++;continue;}
+      deck.cards=trial;deck.autoRefills.splice(index,1);changed=true;
     }
   }
   return changed;
@@ -112,9 +114,11 @@ export function reconcileDepletedGear(profile) {
       if(current>=usable)continue;
       const replaceIndex=deck.cards.lastIndexOf(refill.replacementId);
       if(replaceIndex<0)continue;
-      deck.cards[replaceIndex]=cardId;
+      const trial=[...deck.cards],remaining=deck.autoRefills.filter(r=>r!==refill);trial[replaceIndex]=cardId;
+      try{validateDeck(trial,deck.faction,deckCollection(profile.collection,remaining),profile.items);}catch{continue;}
+      deck.cards=trial;
       deck.autoRefills.splice(deck.autoRefills.indexOf(refill),1);
-      effectiveOwned[refill.replacementId]=Math.max(0,(effectiveOwned[refill.replacementId]||0)-1);
+      if(refill.borrowed!==false)effectiveOwned[refill.replacementId]=Math.max(0,(effectiveOwned[refill.replacementId]||0)-1);
       changed=true;
     }
     const gearIds=Object.keys(countCards(deck.cards)).filter(id=>CARDS[id]?.type==='equipment');
@@ -126,14 +130,14 @@ export function reconcileDepletedGear(profile) {
           .sort((a,b)=>a.cost-b.cost||b.health-a.health||a.name.localeCompare(b.name));
         const replacement=candidates.find(card=>{
           const copies=countCards(deck.cards)[card.id]||0;
-          return card.cost<=CARDS[cardId].cost&&copies<cardLimit(card)&&(copies<(effectiveOwned[card.id]||0)||copies+(deck.autoRefills.filter(refill=>refill.replacementId===card.id).length)<cardLimit(card));
+          return copies<cardLimit(card)&&(deck.cards.reduce((n,id)=>n+CARDS[id].cost,0)-CARDS[cardId].cost+card.cost)/deck.cards.length<=DECK_RULES.maxAverageCost;
         });
         if(!replacement)break;
         const replaceIndex=deck.cards.lastIndexOf(cardId);if(replaceIndex<0)break;
         const copies=countCards(deck.cards)[replacement.id]||0;
         const hasSpare=copies<(profile.collection[replacement.id]||0);
         deck.cards[replaceIndex]=replacement.id;
-        if(!hasSpare){deck.autoRefills.push({equipmentId:cardId,replacementId:replacement.id});effectiveOwned[replacement.id]=(effectiveOwned[replacement.id]||0)+1;}
+        deck.autoRefills.push({equipmentId:cardId,replacementId:replacement.id,borrowed:!hasSpare});if(!hasSpare)effectiveOwned[replacement.id]=(effectiveOwned[replacement.id]||0)+1;
         missing--;changed=true;
       }
     }

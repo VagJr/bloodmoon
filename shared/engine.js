@@ -1,13 +1,14 @@
+import {ORDERS,BATTLE_LEVELS} from './battle-design.js';
 import { CARDS, DECKS, LANES, EVENTS, HEROES } from './cards.js';
 
 export class RuleError extends Error {}
 const check = (condition, message) => { if (!condition) throw new RuleError(message); };
 const emptyLanes = () => Object.fromEntries(LANES.map(l => [l.id, []]));
 const refId = value => typeof value==='string'?value:value.cardId;
-const visualTraces=new WeakMap();
-function visualState(g){return {round:g.round,turn:g.turn,players:g.players.map(p=>({health:p.health,maxHealth:p.maxHealth,energy:p.energy,rage:p.rage,renown:p.renown,combo:p.combo,passed:p.passed,skillUsed:p.skillUsed,ultimateUsed:p.ultimateUsed,kills:p.kills,favors:p.favors||0,siege:p.siege||0,supplies:p.supplies||0,tributeActive:!!p.tributeActive,boosts:structuredClone(p.boosts),heroGear:(p.heroGear||[]).map(x=>({cardId:x.cardId})),handCount:p.hand.length,deckCount:p.deck.length,lanes:Object.fromEntries(Object.entries(p.lanes).map(([lane,units])=>[lane,units.map(u=>({...structuredClone(u),gearItems:(u.gearItems||[]).map(x=>({cardId:x.cardId}))}))]))}))};}
+const visualTraces=new WeakMap(),effectSources=new WeakMap();
+function visualState(g){return {round:g.round,turn:g.turn,players:g.players.map(p=>({health:p.health,maxHealth:p.maxHealth,energy:p.energy,rage:p.rage,renown:p.renown,combo:p.combo,passed:p.passed,skillUsed:p.skillUsed,ultimateUsed:p.ultimateUsed,kills:p.kills,battleXP:p.battleXP||0,battleLevel:p.battleLevel||1,ordersUsed:p.ordersUsed||{},laneClaims:p.laneClaims||{},favors:p.favors||0,siege:p.siege||0,supplies:p.supplies||0,tributeActive:!!p.tributeActive,boosts:structuredClone(p.boosts),heroGear:(p.heroGear||[]).map(x=>({cardId:x.cardId})),handCount:p.hand.length,deckCount:p.deck.length,lanes:Object.fromEntries(Object.entries(p.lanes).map(([lane,units])=>[lane,units.map(u=>({...structuredClone(u),gearItems:(u.gearItems||[]).map(x=>({cardId:x.cardId}))}))]))}))};}
 function emit(g, type, details = {}) {
-  const event={id:g.nextEvent++,type,...details},previous=visualTraces.get(g);
+  const event={id:g.nextEvent++,type,...(effectSources.get(g)?{cardId:effectSources.get(g)}:{}),...details},previous=visualTraces.get(g);
   if(previous){const current=visualState(g),patch={players:[{},{}]};for(const key of ['round','turn'])if(current[key]!==previous[key])patch[key]=current[key];current.players.forEach((p,i)=>{for(const [key,value]of Object.entries(p))if(JSON.stringify(value)!==JSON.stringify(previous.players[i][key]))patch.players[i][key]=value;});event.visual=patch;visualTraces.set(g,current);}
   g.events.push(event);
 }
@@ -27,7 +28,7 @@ function draw(g,p,count=1) {
 export function createGame(faction='vampire',random=Math.random,mode='practice',deckLists={},rival=null) {
   check(Object.hasOwn(DECKS,faction),'Facção inválida.');
   const factions=[faction,rival?.faction||(faction==='vampire'?'werewolf':'vampire')];
-  const g={round:1,turn:0,initiative:0,phase:'playing',winner:null,nextId:1,nextEvent:1,version:0,mode,riskMode:'covenant',events:[],log:['A caçada começou.'],players:factions.map((f,index)=>{const p={faction:f,health:24,maxHealth:24,heroGear:[],heroAttackBonus:0,renown:0,energy:3,rage:0,combo:0,skillUsed:false,ultimateUsed:false,kills:0,cardsPlayed:0,claims:0,favors:0,siege:0,supplies:0,tributeActive:false,deck:shuffle(index===1&&rival?.deck?rival.deck:deckLists[f]||DECKS[f],random),hand:[],lanes:emptyLanes(),boosts:{court:0,crypt:0,hunt:0},passed:false,fatigue:0};if(index===1&&rival){const {deck,...identity}=rival;p.rival=identity;}return p;})};
+  const g={round:1,turn:0,initiative:0,phase:'playing',winner:null,nextId:1,nextEvent:1,version:0,mode,riskMode:'covenant',events:[],log:['A caçada começou.'],players:factions.map((f,index)=>{const p={faction:f,health:24,maxHealth:24,heroGear:[],heroAttackBonus:0,renown:0,energy:3,rage:0,combo:0,skillUsed:false,ultimateUsed:false,kills:0,cardsPlayed:0,claims:0,battleXP:0,battleLevel:1,ordersUsed:{},laneClaims:{court:0,crypt:0,hunt:0},favors:0,siege:0,supplies:0,tributeActive:false,deck:shuffle(index===1&&rival?.deck?rival.deck:deckLists[f]||DECKS[f],random),hand:[],lanes:emptyLanes(),boosts:{court:0,crypt:0,hunt:0},passed:false,fatigue:0};if(index===1&&rival){const {deck,...identity}=rival;p.rival=identity;}return p;})};
   g.players.forEach(p=>draw(g,p,5));
   if(mode==='dungeon') {const boss=g.players[1];boss.boss=true;boss.health=36;boss.maxHealth=36;boss.lanes.crypt.push(unit(g,'warden'));g.log.push('O Rei Sepultado desperta. A cada rodada, sua maldição causa 1 de dano.');}
   return g;
@@ -39,7 +40,24 @@ export function replaceOpeningDeck(original,seat,cards,random=Math.random) {
 }
 export const combatAttack=u=>u.attack+(u.tempAttack||0);
 export function power(p,lane) {return p.lanes[lane].reduce((n,u)=>n+(lane==='court'?u.influence+(u.tempInfluence||0):combatAttack(u)),0)+p.boosts[lane];}
-function heal(g,seat,amount,source=null) {const p=g.players[seat],actual=Math.min(amount,(p.maxHealth||24)-p.health);if(actual>0){p.health+=actual;emit(g,'heal',{seat,target:'hero',amount:actual,...(source?{drain:true,source:source.target,sourceSeat:source.seat,lane:source.lane}:{})});}}
+export const cardCost=(p,card)=>card.cost+(p.tributeActive?1:0);
+function battleExperience(g,seat,amount){
+ const p=g.players[seat];p.battleXP=(p.battleXP||0)+amount;
+ const next=1+BATTLE_LEVELS.slice(1).filter(x=>p.battleXP>=x).length;
+ while((p.battleLevel||1)<next){p.battleLevel=(p.battleLevel||1)+1;
+  if(p.battleLevel===2){p.maxHealth+=2;if(p.health>0)p.health+=2;}
+  if(p.battleLevel===3)p.supplies=Math.min(6,(p.supplies||0)+2);
+  if(p.battleLevel===4){p.favors=Math.min(5,(p.favors||0)+1);p.siege=Math.min(3,(p.siege||0)+1);}
+  emit(g,'level',{seat,target:'hero',label:`LÍDER · NÍVEL ${p.battleLevel}`,amount:p.battleLevel});
+ }
+}
+function veteran(g,seat,lane,u,xp){
+ if(u.health<=0)return;u.battleXP=(u.battleXP??((u.kills||0)*2))+xp;
+ const next=u.battleXP>=6?3:u.battleXP>=2?2:1;
+ while((u.level||1)<next){u.level=(u.level||1)+1;u.attack++;u.maxHealth=(u.maxHealth||CARDS[u.cardId].health)+2;u.health+=2;
+  emit(g,'level',{seat,target:u.uid,lane,label:`VETERANO · NÍVEL ${u.level}`});}
+}
+function heal(g,seat,amount,source=null) {const p=g.players[seat];if(p.health<=0)return;const actual=Math.min(amount,(p.maxHealth||24)-p.health);if(actual>0){p.health+=actual;emit(g,'heal',{seat,target:'hero',amount:actual,...(source?{drain:true,source:source.target,sourceSeat:source.seat,lane:source.lane}:{})});}}
 function damage(g,seat,target,amount,lane,sourceSeat=null) {
   const p=g.players[seat],isHero=target==='hero',u=isHero?p:p.lanes[lane]?.find(x=>x.uid===target);check(u,'Alvo não encontrado.');
   const guarded=isHero?gearHas(p.heroGear,'guard')&&p.guardRound!==g.round:!!(u.guard||CARDS[u.cardId]?.keyword==='guard'||u.guardUntilRound===g.round)&&u.guardRound!==g.round;
@@ -74,9 +92,9 @@ function clearDead(g,lane,killerSeat=null,killer=null) {
         emit(g,'item-lost',{seat,target:dead.uid,lane,itemId:gear.itemId,cardId:gear.cardId,killerSeat:transfer?killerSeat:null,transfer,wear:transfer?1:2,label:transfer?'RELÍQUIA SAQUEADA':'EQUIPAMENTO DANIFICADO'});
       }
       triggerSynergies(g,seat,lane,'ally-dies',{exclude:dead.uid});
-      const slayer=g.players[1-seat];slayer.kills++;gainRage(slayer,2);gainRage(p,1);
+      const slayer=g.players[1-seat];slayer.kills++;gainRage(slayer,2);gainRage(p,1);battleExperience(g,1-seat,1);
       if(dead.lastHitBySeat===1-seat)triggerSynergies(g,1-seat,lane,'enemy-dies',{faction:CARDS[dead.cardId].faction});
-      if(killer&&killerSeat===1-seat&&killer.health>0){killer.kills=(killer.kills||0)+1;const next=killer.kills>=3?3:2;if(next>(killer.level||1)){killer.level=next;killer.attack++;killer.health+=2;killer.maxHealth=(killer.maxHealth||CARDS[killer.cardId].health)+2;emit(g,'level',{seat:killerSeat,target:killer.uid,lane,label:`NÍVEL ${next}`});}}
+      if(killer&&killerSeat===1-seat&&killer.health>0){veteran(g,killerSeat,lane,killer,2);killer.kills=(killer.kills||0)+1;}
     }
     p.lanes[lane]=p.lanes[lane].filter(u=>u.health>0);
   }
@@ -93,7 +111,7 @@ function strike(g,seat,action) {
   const foe=enemy.lanes[action.lane];
   check(action.target==='hero'?foe.length===0:foe.some(x=>x.uid===action.target),'Ataque um inimigo desta frente antes de atingir o líder.');
   const target=action.target==='hero'?null:foe.find(x=>x.uid===action.target);
-  emit(g,'attack',{seat,source:u.uid,target:action.target,lane:action.lane,label:CARDS[u.cardId].name});
+  emit(g,'attack',{seat,cardId:u.cardId,source:u.uid,target:action.target,lane:action.lane,label:CARDS[u.cardId].name});
   u.ready=false;gainRage(p);
   const attackValue=combatAttack(u)+(gearHas(u.gearItems,'pierce')?1:0),healthBefore=target?.health||0;
   const dealt=damage(g,1-seat,action.target,attackValue,action.lane,seat);
@@ -108,6 +126,7 @@ function strike(g,seat,action) {
   g.log.push(`${CARDS[u.cardId].name} ataca: ${u.attack} de dano.`);
 }
 function resolve(g) {
+  effectSources.delete(g);
   emit(g,'clash',{label:'COLISÃO DE SANGUE'});g.log.push(`— Confronto ${g.round} —`);
   for(const lane of LANES) {
     const [a,b]=g.players.map(p=>p.lanes[lane.id]);
@@ -120,7 +139,7 @@ function resolve(g) {
     const strengths=g.players.map(p=>power(p,lane.id));
     if(strengths[0]===strengths[1])continue;
     const winner=strengths[0]>strengths[1]?0:1,p=g.players[winner];
-    const renown=(lane.id==='court'?2:1)+(EVENTS[g.round-1].lane===lane.id?1:0);p.renown+=renown;p.claims++;
+    const renown=(lane.id==='court'?2:1)+(EVENTS[g.round-1].lane===lane.id?1:0);p.renown+=renown;p.claims++;p.laneClaims||={court:0,crypt:0,hunt:0};p.laneClaims[lane.id]++;battleExperience(g,winner,2);for(const survivor of p.lanes[lane.id])veteran(g,winner,lane.id,survivor,1);
     if(lane.id==='court'){
       heal(g,winner,1);
       const diff=Math.abs(strengths[0]-strengths[1]);
@@ -143,7 +162,7 @@ function resolve(g) {
   }
   finish(g,true);if(g.phase==='finished')return;
   g.round++;g.initiative=1-g.initiative;g.turn=g.initiative;
-  g.players.forEach(p=>{p.passed=false;p.combo=0;p.skillUsed=false;p.ultimateUsed=false;p.tributeActive=false;p.boosts={court:0,crypt:0,hunt:0};p.energy=Math.min(7,g.round+2);Object.values(p.lanes).flat().forEach(u=>{u.ready=true;u.tempAttack=0;u.tempInfluence=0;});draw(g,p);});
+  g.players.forEach(p=>{p.passed=false;p.combo=0;p.skillUsed=false;p.ultimateUsed=false;p.tributeActive=false;p.ordersUsed={};p.boosts={court:0,crypt:0,hunt:0};p.energy=Math.min(7,g.round+2);Object.values(p.lanes).flat().forEach(u=>{u.ready=true;u.tempAttack=0;u.tempInfluence=0;});draw(g,p);});
   if(g.mode==='dungeon'){damage(g,0,'hero',1);emit(g,'curse',{seat:1,label:'MALDIÇÃO DO SEPULCRO'});const boss=g.players[1];if(boss.health<=18&&!boss.enraged){boss.enraged=true;Object.values(boss.lanes).flat().forEach(u=>u.attack++);emit(g,'ultimate',{seat:1,label:'O REI DESPERTA'});}}
   finish(g);if(g.phase==='playing')emit(g,'round',{label:`RODADA ${g.round}`,round:g.round});
 }
@@ -151,26 +170,28 @@ export function applyAction(original,actor,action,{visuals=false}={}) {
   check(original.phase==='playing','Esta aventura já terminou.');check(actor===original.turn,'Aguarde seu turno.');
   check(action&&['play','pass','attack','skill','ultimate','campaign','concede'].includes(action.type),'Ação inválida.');
   const g=structuredClone(original),p=g.players[actor];
+  const sourceCard=action.type==='play'?p.hand.find(x=>x.uid===action.uid)?.cardId:action.type==='attack'?p.lanes[action.lane]?.find(x=>x.uid===action.uid)?.cardId:null;if(sourceCard)effectSources.set(g,sourceCard);
   if(visuals)visualTraces.set(g,visualState(g));
   check(!p.passed,'Você já encerrou sua rodada.');
   if(action.type==='concede'){p.health=0;p.conceded=true;finish(g);g.version++;return g;}
   if(action.type==='pass'){p.passed=true;g.log.push(`Combatente ${actor+1} encerrou a rodada.`);}
   else if(action.type==='campaign'){
-    const {category,tactic}=action;
+    const {category,tactic}=action,order=ORDERS[tactic];
+    check(order&&order.category===category,'Ordem de campanha inválida.');p.ordersUsed||={};check(!p.ordersUsed[category],'Você já emitiu uma ordem desta frente nesta rodada.');check((p[order.resource]||0)>=order.cost,'Recursos de campanha insuficientes.');p.ordersUsed[category]=true;
     check(['court','hunt','crypt'].includes(category),'Categoria de campanha inválida.');
     if(category==='court'){
       if(tactic==='tribute'){
-        check((p.favors||0)>=1,'Favores políticos insuficientes.');
-        p.favors-=1;
+        check(!g.players[1-actor].tributeActive&&!g.players[1-actor].passed,'O rival já está tributado ou encerrou a rodada.');
+        p.favors-=2;
         g.players[1-actor].tributeActive=true;
         emit(g,'campaign-action',{seat:actor,category:'court',tactic:'tribute',label:'EDITO DE TRIBUTO'});
-        g.log.push(`Combatente ${actor+1} aprova Edito de Tributo: todas as cartas do rival custam +1 nesta rodada.`);
+        g.log.push(`Combatente ${actor+1} aprova Edito de Tributo: a próxima carta do rival custa +1 nesta rodada.`);
       }else if(tactic==='bribe'){
         check((p.favors||0)>=1,'Favores políticos insuficientes.');
         check(LANES.some(l=>l.id===action.lane),'Frente inválida.');
         p.favors-=1;
         p.boosts[action.lane]=(p.boosts[action.lane]||0)+2;
-        emit(g,'campaign-action',{seat:actor,category:'court',tactic:'bribe',lane:action.lane,label:'SUBORNO DE FRONTEIRA'});
+        emit(g,'campaign-action',{seat:actor,category:'court',tactic:'bribe',lane:action.lane,label:'PACTO DE FRONTEIRA'});
         g.log.push(`Combatente ${actor+1} suborna a frente ${LANES.find(l=>l.id===action.lane)?.name}: +2 poder nesta rodada.`);
       }else if(tactic==='immunity'){
         check((p.favors||0)>=2,'São necessários 2 Favores para Salva-Guarda.');
@@ -178,7 +199,7 @@ export function applyAction(original,actor,action,{visuals=false}={}) {
         const ally=p.lanes[action.lane]?.find(u=>u.uid===action.target);
         check(ally,'Escolha um aliado desta frente para proteger.');
         p.favors-=2;
-        ally.guard=true;ally.guardUntilRound=g.round;
+        check(!ally.guard&&CARDS[ally.cardId].keyword!=='guard'&&ally.guardUntilRound!==g.round,'Este aliado já possui Guarda.');ally.guardUntilRound=g.round;
         emit(g,'campaign-action',{seat:actor,category:'court',tactic:'immunity',target:ally.uid,lane:action.lane,label:'SALVA-GUARDA DIPLOMÁTICA'});
         g.log.push(`Combatente ${actor+1} concede Salva-Guarda a ${CARDS[ally.cardId].name}.`);
       }else throw new RuleError('Tática política desconhecida.');
@@ -187,18 +208,18 @@ export function applyAction(original,actor,action,{visuals=false}={}) {
         check((p.siege||0)>=1,'Pressão de Cerco insuficiente.');
         check(LANES.some(l=>l.id===action.lane),'Frente inválida.');
         const foe=g.players[1-actor].lanes[action.lane]?.find(u=>u.uid===action.target);
-        check(foe||action.target==='hero','Escolha um alvo inimigo para a ruptura.');
+        check(foe,'Escolha um combatente inimigo para a ruptura.');
         p.siege-=1;
+        emit(g,'campaign-action',{seat:actor,category:'hunt',tactic:'breach',target:action.target,lane:action.lane,label:'RUPTURA DE TRINCHEIRA'});
         damage(g,1-actor,action.target,2,action.lane,actor);
         clearDead(g,action.lane);
-        emit(g,'campaign-action',{seat:actor,category:'hunt',tactic:'breach',target:action.target,lane:action.lane,label:'RUPTURA DE TRINCHEIRA'});
         g.log.push(`Combatente ${actor+1} rompe a linha na ${LANES.find(l=>l.id===action.lane)?.name}: 2 de dano tático.`);
       }else if(tactic==='plunder'){
         check((p.siege||0)>=2,'São necessários 2 pontos de Cerco para saquear.');
         p.siege-=2;
-        p.energy=Math.min(10,p.energy+1);
+        p.energy=Math.min(7,p.energy+1);
+        emit(g,'campaign-action',{seat:actor,category:'hunt',tactic:'plunder',label:'INCURSÃO'});
         damage(g,1-actor,'hero',2,'hunt',actor);
-        emit(g,'campaign-action',{seat:actor,category:'hunt',tactic:'plunder',label:'SAQUE DE SUPRIMENTOS'});
         g.log.push(`Combatente ${actor+1} saqueia suprimentos inimigos: +1 energia e 2 de dano ao líder.`);
       }else throw new RuleError('Tática militar desconhecida.');
     }else if(category==='crypt'){
@@ -215,18 +236,18 @@ export function applyAction(original,actor,action,{visuals=false}={}) {
         g.log.push(`Combatente ${actor+1} desloca ${CARDS[moved.cardId].name} de ${LANES.find(l=>l.id===action.from).name} para ${LANES.find(l=>l.id===action.to).name}.`);
       }else if(tactic==='rations'){
         check((p.supplies||0)>=2,'São necessários 2 Suprimentos para rações.');
-        p.supplies-=2;
+        check(p.hand.length<10&&p.deck.length>0,'Requisição exige espaço na mão e cartas no baralho.');p.supplies-=2;
+        emit(g,'campaign-action',{seat:actor,category:'crypt',tactic:'rations',label:'REQUISIÇÃO'});
         draw(g,p,1);
-        emit(g,'campaign-action',{seat:actor,category:'crypt',tactic:'rations',label:'RAÇÕES DE GUERRA'});
         g.log.push(`Combatente ${actor+1} distribui rações de guerra: compra 1 carta.`);
       }else if(tactic==='field_repair'){
         check((p.supplies||0)>=2,'Suprimentos insuficientes para reparo.');
         check(LANES.some(l=>l.id===action.lane),'Frente inválida.');
         const ally=p.lanes[action.lane]?.find(u=>u.uid===action.target);
-        check(ally,'Escolha um aliado ferido para reparar.');
+        check(ally&&ally.health<ally.maxHealth,'Escolha um aliado ferido para socorrer.');
         p.supplies-=2;
+        emit(g,'campaign-action',{seat:actor,category:'crypt',tactic:'field_repair',target:ally.uid,lane:action.lane,label:'SOCORRO DE CAMPO'});
         healUnit(g,actor,action.lane,ally,3);
-        emit(g,'campaign-action',{seat:actor,category:'crypt',tactic:'field_repair',target:ally.uid,lane:action.lane,label:'FORJA DE EMERGÊNCIA'});
         g.log.push(`Combatente ${actor+1} repara ${CARDS[ally.cardId].name}: +3 vida.`);
       }else throw new RuleError('Tática logística desconhecida.');
     }
@@ -253,14 +274,14 @@ export function applyAction(original,actor,action,{visuals=false}={}) {
       const cardInstance=p.hand[index],c=CARDS[cardInstance.cardId],units=p.lanes[action.lane];
       const extraCost=p.tributeActive?1:0;
       check(p.energy>=(c.cost+extraCost),'Recursos insuficientes.');
-      p.energy-=(c.cost+extraCost);
+      p.energy-=(c.cost+extraCost);p.tributeActive=false;
       p.hand.splice(index,1);p.cardsPlayed++;
       emit(g,'play',{seat:actor,source:action.uid,cardId:c.id,lane:action.lane,target:action.target,label:c.name});
-      if(c.type==='unit'){check(units.length<3,'Esta frente já possui três unidades.');const u=unit(g,c.id);units.push(u);emit(g,'summon',{seat:actor,target:u.uid,lane:action.lane,label:c.name});triggerSynergies(g,actor,action.lane,'ally-summoned',{faction:c.faction,exclude:u.uid});}
+      if(c.type==='unit'){check(units.length<3,'Esta frente já possui três unidades.');const u=unit(g,c.id);units.push(u);emit(g,'summon',{seat:actor,cardId:c.id,target:u.uid,lane:action.lane,label:c.name});triggerSynergies(g,actor,action.lane,'ally-summoned',{faction:c.faction,exclude:u.uid});}
       else if(c.type==='equipment'||['pounce','rally','guard'].includes(c.effect)){
         let equippedTarget='hero';
         if(c.type==='equipment'&&action.target==='hero'){
-          check((p.heroGear||[]).length<1,'Seu líder já está usando um item.');p.heroGear.push({itemId:cardInstance.itemId,cardId:c.id});p.heroAttackBonus=(p.heroAttackBonus||0)+Math.ceil(c.attack/2)+(c.gearEffect==='focus'||c.gearEffect==='pierce'?1:0);p.maxHealth+=c.health;p.health+=c.health;
+          check((p.heroGear||[]).length<1,'Seu líder já está usando um item.');p.heroGear.push({itemId:cardInstance.itemId,cardId:c.id,bound:cardInstance.itemBound});p.heroAttackBonus=(p.heroAttackBonus||0)+Math.ceil(c.attack/2)+(c.gearEffect==='focus'||c.gearEffect==='pierce'?1:0);p.maxHealth+=c.health;p.health+=c.health;
           if(c.gearEffect==='mend')heal(g,actor,1);
           if(c.gearEffect==='fury')gainRage(p);
           if(c.gearEffect==='rally')p.boosts[action.lane]++;
@@ -273,12 +294,12 @@ export function applyAction(original,actor,action,{visuals=false}={}) {
           else u.guardUntilRound=g.round;
           equippedTarget=u.uid;
         }
-        emit(g,'equip',{seat:actor,target:equippedTarget,lane:action.lane,label:c.effect==='pounce'?'CAÇADA RENOVADA':c.type==='equipment'?'EQUIPADO':c.effect==='rally'?'ALIADO FORTALECIDO':'GUARDA ERGUIDA'});
+        emit(g,'equip',{seat:actor,cardId:c.id,target:equippedTarget,lane:action.lane,label:c.effect==='pounce'?'CAÇADA RENOVADA':c.type==='equipment'?'EQUIPADO':c.effect==='rally'?'ALIADO FORTALECIDO':'GUARDA ERGUIDA'});
         if(c.type==='equipment')triggerSynergies(g,actor,action.lane,'equipment-played',{faction:c.faction,target:equippedTarget});
       }else if(c.effect==='damage'||c.effect==='execute'||c.effect==='rend'||c.effect==='drain'){
         const enemies=g.players[1-actor].lanes[action.lane];check(enemies.length>0,'Escolha uma frente com inimigos.');
         const target=action.target||enemies[0].uid;check(enemies.some(x=>x.uid===target),'Escolha um alvo desta frente.');
-        emit(g,'skill',{seat:actor,target,lane:action.lane,label:c.name});const marked=enemies.find(x=>x.uid===target),dealt=damage(g,1-actor,target,c.effect==='execute'?(c.effectAmount||4):c.effect==='rend'?(c.effectAmount||1):(c.effectAmount||2),action.lane,actor);
+        emit(g,'skill',{seat:actor,cardId:c.id,target,lane:action.lane,label:c.name});const marked=enemies.find(x=>x.uid===target),dealt=damage(g,1-actor,target,c.effect==='execute'?(c.effectAmount||4):c.effect==='rend'?(c.effectAmount||1):(c.effectAmount||2),action.lane,actor);
         if(c.effect==='drain')heal(g,actor,dealt,{target,seat:1-actor,lane:action.lane});
         if((c.effect==='rend'||c.effect==='drain')&&marked?.health>0){marked.bleed=(marked.bleed||0)+1;emit(g,'status',{seat:1-actor,target,lane:action.lane,label:'SANGRAMENTO'});triggerSynergies(g,actor,action.lane,'bleed-applied');}
         clearDead(g,action.lane);
@@ -313,10 +334,11 @@ export function botAction(g) {
       if(['damage','execute','rend','drain'].includes(card.effect)&&!foes.some(unit=>unit.uid===action.target))return;
     }
     if(action.type==='campaign'){
+      const order=ORDERS[action.tactic];if(!order||p.ordersUsed?.[action.category]||(p[order.resource]||0)<order.cost)return;
       if(action.category==='court'){
-        if(action.tactic==='tribute'&&((p.favors||0)<1||enemy.tributeActive))return;
+        if(action.tactic==='tribute'&&((p.favors||0)<2||enemy.tributeActive||enemy.passed))return;
         if(action.tactic==='bribe'&&(p.favors||0)<1)return;
-        if(action.tactic==='immunity'&&((p.favors||0)<2||!p.lanes[action.lane]?.some(u=>u.uid===action.target)))return;
+        if(action.tactic==='immunity'&&((p.favors||0)<2||!p.lanes[action.lane]?.some(u=>u.uid===action.target&&!u.guard&&u.guardUntilRound!==g.round)))return;
       }
       if(action.category==='hunt'){
         if(action.tactic==='breach'&&((p.siege||0)<1||(!enemy.lanes[action.lane]?.some(u=>u.uid===action.target)&&action.target!=='hero')))return;
@@ -373,8 +395,8 @@ export function botAction(g) {
       }
     }
   }
-  if((p.supplies||0)>=2&&p.hand.length<=2)consider({type:'campaign',category:'crypt',tactic:'rations'},4.2);
-  if((p.favors||0)>=1&&!enemy.tributeActive&&enemy.energy>=3)consider({type:'campaign',category:'court',tactic:'tribute'},3.5);
+  if((p.supplies||0)>=2&&p.hand.length<=2&&p.deck.length)consider({type:'campaign',category:'crypt',tactic:'rations'},4.2);
+  if((p.favors||0)>=2&&!enemy.tributeActive&&!enemy.passed&&enemy.energy>=3)consider({type:'campaign',category:'court',tactic:'tribute'},3.5);
   if((p.favors||0)>=1)consider({type:'campaign',category:'court',tactic:'bribe',lane:'court'},2.5+laneBias('court'));
   if((p.siege||0)>=1){
     for(const bl of LANES){const bfoes=enemy.lanes[bl.id]||[];const btarget=bfoes.find(u=>u.health<=2);if(btarget){consider({type:'campaign',category:'hunt',tactic:'breach',lane:bl.id,target:btarget.uid},4.4);break;}}

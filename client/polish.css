@@ -31,6 +31,12 @@
 .touch-preview-copy>p{display:-webkit-box;margin:5px 0 8px;overflow:hidden;color:#ddd1bc;font:clamp(10px,2.8vw,12px)/1.45 Arial,sans-serif;-webkit-box-orient:vertical;-webkit-line-clamp:4}
 .touch-preview-copy>span{display:block;color:#e1c589;font:9px/1.4 Arial,sans-serif}
 .hand-fan>.game-card.touch-scrub-focus{z-index:90!important;transform:translateY(-22px) scale(1.07)!important;border-color:#ffdf99;box-shadow:0 0 0 2px #f4ce83,0 0 22px #edb85e99,0 18px 32px #000d!important;filter:brightness(1.2) saturate(1.25)}
+@media(max-width:760px){
+  .hand-fan>.game-card:not(.selected):not(.touch-scrub-focus){
+    transform:translateY(var(--lift)) rotate(calc(var(--angle)*.6)) !important;
+    z-index:var(--order) !important;
+  }
+}
 
 /* Clearer deck-building stations on desktop and a compact touch-first editor. */
 .menu-decks .deck-list{grid-template-columns:repeat(auto-fit,minmax(min(100%,370px),1fr));gap:16px}

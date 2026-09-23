@@ -1,3 +1,4 @@
+import {legacyClaim} from './legacy.js';
 import { RuleError } from './engine.js';
 import { CARDS } from './cards.js';
 import { makeItem } from './progression.js';
@@ -29,7 +30,7 @@ const region=id=>REGIONS.find(n=>n.id===id);
 export function createWorld(){return {version:1,houses:[],territories:Object.fromEntries(REGIONS.filter(n=>['capital','fortress'].includes(n.kind)).map(n=>[n.id,{owner:null,influence:{},protectedUntil:0}])),wars:[],events:[]};}
 export function enterRealms(profile,createId,now=Date.now()){
   if(profile.realm)return ensureAdventure(profile.realm);
-  profile.realm={publicId:createId(),version:1,location:'haven',avatar:profile.starterFaction==='werewolf'?'kael':'vesper',xp:0,level:1,provisions:20,materials:{timber:0,ore:0,essence:0},holdings:{camp:1,forge:0,library:0},visited:['haven'],gathered:{},claims:{},houseId:null,activeRoom:null,expedition:null,seenAt:now};
+  profile.realm={publicId:createId(),version:1,location:'haven',avatar:profile.character?.avatar||(profile.starterFaction==='werewolf'?'kael':'vesper'),xp:0,level:1,provisions:20,materials:{timber:0,ore:0,essence:0},holdings:{camp:1,forge:0,library:0},visited:['haven'],gathered:{},claims:{},houseId:null,activeRoom:null,expedition:null,seenAt:now};
   ensureAdventure(profile.realm);return true;
 }
 function journal(world,text,now){world.events.unshift({text,at:now});world.events=world.events.slice(0,60);world.version++;}
@@ -58,7 +59,8 @@ export function realmAction(world,profile,input,createId,now=Date.now()){
   const here=region(r.location),house=houseOf(world,profile),action=input.type;
   ensureAdventure(r);const adventure=r.adventure;
   check(!r.activeRoom||action==='avatar','Conclua ou abandone o combate antes de agir no mundo.');
-  if(action==='travel'){
+  if(action==='legacy-claim'){const reward=legacyClaim(r,input.id);profile.coins+=reward.coins;profile.scrap=(profile.scrap||0)+reward.scrap;adventureJournal(r,reward.name+' · +'+reward.coins+' marcas e +'+reward.scrap+' sucatas.',now);}
+  else if(action==='travel'){
     const destination=region(input.destination);check(destination&&here.links.includes(destination.id),'Viaje por uma rota conectada.');check(r.level>=destination.level,`Esta região exige nível de exploração ${destination.level}.`);check(r.provisions>0,'Reabasteça suas provisões no acampamento.');
     r.provisions--;r.location=destination.id;r.expedition=null;if(!r.visited.includes(destination.id)){r.visited.push(destination.id);gainXP(r,20);}
   }else if(action==='retreat'){r.location='haven';r.expedition=null;}
@@ -117,7 +119,7 @@ export function settleEncounter(world,profile,encounter,won,conceded,now=Date.no
   r.expedition=final?null:{node:n.id,stage:encounter.stage+1};
   reward.message=final?'Expedição concluída.':'Mesa vencida. A próxima instância está aberta.';
   const key=`${n.id}:${encounter.stage}`,eligible=now-(r.claims[key]||0)>=300000;
-  if(eligible){r.claims[key]=now;reward.xp=30+encounter.difficulty*10;gainXP(r,reward.xp);reward.coins=10+(house?.policy==='commerce'?5:0);profile.coins+=reward.coins;reward.materials=2+(house?.policy==='expedition'?1:0);r.materials[n.resource]+=reward.materials;reward.loot=final;r.adventure.stats.wins++;dailyState(r,now).wins++;if(final&&encounter.stages>1)r.adventure.stats.dungeons++;adventureJournal(r,`Vitória em ${n.name} · ${encounter.stage+1}/${encounter.stages}. +${reward.xp} XP de exploração.`,now);
+  if(eligible){for(const lane of claims)r.adventure.stats.fronts[lane]=(r.adventure.stats.fronts[lane]||0)+1;r.claims[key]=now;reward.xp=30+encounter.difficulty*10;gainXP(r,reward.xp);reward.coins=10+(house?.policy==='commerce'?5:0);profile.coins+=reward.coins;reward.materials=2+(house?.policy==='expedition'?1:0);r.materials[n.resource]+=reward.materials;reward.loot=final;r.adventure.stats.wins++;dailyState(r,now).wins++;if(final&&encounter.stages>1)r.adventure.stats.dungeons++;adventureJournal(r,`Vitória em ${n.name} · ${encounter.stage+1}/${encounter.stages}. +${reward.xp} XP de exploração.`,now);
     if(claims.has('crypt')){reward.materials+=2;r.materials[n.resource]+=2;reward.message+=` Catacumbas: +2 ${MATERIALS[n.resource]} para sua reserva.`;}
     if(claims.has('hunt')){reward.coins+=10;profile.coins+=10;reward.message+=' Caçada: +10 Marcas de recompensa para financiar a Casa ou a guerra.';}
     if(claims.has('court')){if(house&&house.id===encounter.houseId){house.treasury+=5;reward.treasury=5;reward.message+=' Corte: +5 Marcas ao tesouro da Casa.';}else{reward.coins+=5;profile.coins+=5;reward.message+=' Corte: +5 Marcas em favores políticos.';}}

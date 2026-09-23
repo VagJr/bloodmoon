@@ -1,3 +1,4 @@
+import {cardEffect,cardSignature} from '/card-fx.js';
 import {savageImpact} from '/visceral.js';
 import {richSound,unlockSoundscape} from '/soundscape.js';
 let enabled=localStorage.getItem('bloodmoon.sound')!=='false',context;
@@ -212,7 +213,7 @@ export async function animateEvents(events,seat,frame,{speed=1}={}){
       const ghost=frame?.sourceFlight?.cloneNode?.(true)||cloneForFlight(source,'fighter',sourceR);
       if(ghost)ghost.classList.add('attack-flight');
       if(!reduce&&ghost&&sourceR&&targetR){playSound('attack');await fly(ghost,sourceR,targetR,root,arenaRect,{duration:330,scale:.82,arc:e.seat===seat?-26:26});}
-      if(targetR){const p=overlayPoint(targetR,arenaRect);savageImpact(root,p,{heavy:e.target==='hero',wolf:source?.classList.contains('werewolf')||e.seat!==seat});const trail=document.createElement('i');trail.className='strike-flash';trail.style.left=`${p.x}px`;trail.style.top=`${p.y}px`;root.append(trail);setTimeout(()=>trail.remove(),320);}
+      if(targetR){const p=overlayPoint(targetR,arenaRect);cardEffect(root,p,e.cardId||source?.dataset.preview,'impact');const trail=document.createElement('i');trail.className='strike-flash';trail.style.left=`${p.x}px`;trail.style.top=`${p.y}px`;root.append(trail);setTimeout(()=>trail.remove(),320);}
     }
     if(e.type==='heal'&&e.drain){
       playSound('drain');
@@ -225,7 +226,7 @@ export async function animateEvents(events,seat,frame,{speed=1}={}){
       const r=rect(target)||eventTargetRect(e,seat,frame),point=overlayPoint(r,arenaRect);
       if(e.amount>0){const amount=document.createElement('span');amount.className=`floating ${e.type} ${e.target==='hero'?'hero-number':'unit-number'}`;amount.textContent=e.type==='damage'?`−${e.amount}`:`+${e.amount}`;amount.style.left=`${point.x}px`;amount.style.top=`${point.y}px`;root.append(amount);setTimeout(()=>amount.remove(),1250);appendImpact(root,point,e.type);}
       if(e.blocked){const block=document.createElement('span');block.className='floating guard-block';block.textContent=`✧ ${e.blocked} BLOQUEADO`;block.style.left=`${point.x}px`;block.style.top=`${point.y-24}px`;root.append(block);setTimeout(()=>block.remove(),1050);const shield=document.createElement('i');shield.className='guard-impact';shield.style.left=`${point.x}px`;shield.style.top=`${point.y}px`;root.append(shield);setTimeout(()=>shield.remove(),520);}
-      if(e.amount>0&&e.type==='damage'){savageImpact(root,point,{heavy:e.amount>=4||e.target==='hero',wolf:arena.classList.contains('werewolf')});}
+      if(e.amount>0&&e.type==='damage'){if(e.cardId)cardEffect(root,point,e.cardId,'impact');else if(e.amount>=4)savageImpact(root,point,{heavy:true,wolf:false});}
       if(e.amount>0)tweenTarget(target|| (e.target==='hero'?document.querySelector(`[data-hero="${e.seat}"]`):null),e.type);
       if(e.target==='hero'){
         const hero=document.querySelector(`[data-hero="${e.seat}"]`);
@@ -251,12 +252,12 @@ export async function animateEvents(events,seat,frame,{speed=1}={}){
       if(['ultimate','clash','curse'].includes(e.type)&&!reduce){try{arena.animate([{transform:'translate(0)'},{transform:'translate(-6px,3px)'},{transform:'translate(5px,-3px)'},{transform:'translate(-2px,1px)'},{transform:'translate(0)'}],{duration:e.type==='ultimate'?430:290,easing:'ease-out'});}catch{}}
       playSound(e.type==='campaign-action'?'start':e.type);
     }
-    if(['equip','skill','ultimate','synergy','summon'].includes(e.type)&&!reduce){const r=eventTargetRect(e,seat,frame);if(r){const point=overlayPoint(r,arenaRect),ring=document.createElement('i');ring.className='ritual-ring '+e.type;ring.style.left=point.x+'px';ring.style.top=point.y+'px';root.append(ring);setTimeout(()=>ring.remove(),800);}}
+    if(['equip','skill','ultimate','synergy','summon'].includes(e.type)&&!reduce){const r=eventTargetRect(e,seat,frame);if(r){const point=overlayPoint(r,arenaRect);cardEffect(root,point,e.cardId||findUnit(e.target)?.dataset.preview,e.type==='summon'?'summon':'cast');const ring=document.createElement('i');ring.className='ritual-ring '+e.type;ring.style.left=point.x+'px';ring.style.top=point.y+'px';root.append(ring);setTimeout(()=>ring.remove(),800);}}
     if(e.type==='summon'){
       const unit=findUnit(e.target);if(unit&&!reduce){try{unit.animate([{transform:'translateY(42px) scale(.48)',opacity:.15,filter:'brightness(2)'},{transform:'translateY(-8px) scale(1.12)',opacity:1,filter:'brightness(1.3)'},{transform:'translateY(0) scale(1)',opacity:1,filter:'brightness(1)'}],{duration:430,easing:'cubic-bezier(.2,.8,.22,1)'});}catch{}}
-      playSound('summon');
+      playSound(cardSignature(e.cardId).style);
     }
-    if(!reduce)await sleep((['damage','heal'].includes(e.type)?340:['ultimate','clash','round'].includes(e.type)?600:e.type==='summon'?450:120)/speed);
+    if(!reduce)await sleep((['damage','heal'].includes(e.type)?340:['ultimate','clash','round'].includes(e.type)?600:['summon','skill','equip','campaign-action','level'].includes(e.type)?650:120)/speed);
   }
   cardFlight?.remove();
   if(!reduce)await sleep(100);

@@ -1,3 +1,4 @@
+import {AVATAR_IDS,ORIGINS} from '../shared/battle-design.js';
 import http from 'node:http';
 import { createReadStream } from 'node:fs';
 import { randomBytes, randomUUID, randomInt } from 'node:crypto';
@@ -208,7 +209,7 @@ async function reward(room) {
     if(room.matchmade){const opponent=profiles.get(room.seats[1-seat]),expected=1/(1+10**(((room.startRatings?.[1-seat]||opponent?.rating||1000)-(room.startRatings?.[seat]||p.rating||1000))/400));p.rating=Math.max(100,Math.round((p.rating||1000)+24*((room.game.winner===-1?.5:won?1:0)-expected)));}
     const broken=room.game.events.filter(e=>e.type==='item-break'&&e.seat===seat),looted=room.game.events.filter(e=>e.type==='item-loot'&&e.seat===seat);
     room.rewards||={};room.rewards[seat]={xp:0,coins:0,dust:0,scrap:0,items:[],broken:broken.map(e=>e.label),looted:looted.map(e=>e.label),wornOut:gearOutcomes[seat]?.wornOut||[],substitutions:gearOutcomes[seat]?.substitutions||[]};
-    if(room.encounter&&seat===0){const expedition=settleEncounter(world,p,room.encounter,won,player.conceded);room.rewards[seat].realm=expedition;if(expedition.loot){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===(room.encounter.stages===3?'rare':'common')),card=pool[randomInt(pool.length)],item=makeItem(card.id,randomUUID,'realm');p.items.push(item);room.rewards[seat].items.push(item.id);}}
+    if(room.encounter&&seat===0){const expedition=settleEncounter(world,p,room.encounter,won,player.conceded,Date.now(),Object.keys(player.laneClaims||{}).filter(lane=>player.laneClaims[lane]>0));room.rewards[seat].realm=expedition;if(expedition.loot){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===(room.encounter.stages===3?'rare':'common')),card=pool[randomInt(pool.length)],item=makeItem(card.id,randomUUID,'realm');p.items.push(item);room.rewards[seat].items.push(item.id);}}
     if(player.conceded)return;
     p.matches++;if(won)p.wins++;
     p.xp += won ? 100 : 50;p.level = Math.max(oldLevel,accountLevelForXP(p.xp));
@@ -298,13 +299,36 @@ const server = http.createServer(async (req,res) => {
         if(!['vampire','werewolf'].includes(input.faction))throw new RuleError('Escolha seu primeiro deck.');
         if(profile.onboardingComplete===false){
           grantStarter(profile,input.faction,randomUUID);grantSecondLineage(profile,randomUUID);
-          profile.name=name;profile.selectedFaction=input.faction;profile.onboardingComplete=true;
+          profile.name=name;profile.character={avatar:AVATAR_IDS.includes(input.avatar)?input.avatar:'vesper',origin:Object.hasOwn(ORIGINS,input.origin)?input.origin:'exile'};profile.selectedFaction=input.faction;profile.onboardingComplete=true;
           await persist({profiles:[profile]});
         }
         return json(res,200,{profile});
       }
       if(profile.onboardingComplete===false)throw new RuleError('Conclua a apresentação do seu personagem para começar.');
       await prepareProfile(profile,profile.starterFaction||'vampire');
+      if(url.pathname==='/api/character'&&req.method==='POST'){
+        const input=await body(req),name=String(input.name||'').trim();
+        if(name.length<2||name.length>24||!AVATAR_IDS.includes(input.avatar)||!Object.hasOwn(ORIGINS,input.origin))throw new RuleError('Escolha nome, retrato e origem válidos.');
+        profile.name=name;profile.character={avatar:input.avatar,origin:input.origin};
+        if(profile.realm){profile.realm.avatar=input.avatar;profile.realm.version++;}
+        await persist({profiles:[profile]});return json(res,200,{profile});
+      }
+      if(url.pathname==='/api/decks/loadout'&&req.method==='POST'){
+        const input=await body(req),deck=profile.decks.find(d=>d.id===input.deckId);
+        if(!deck)throw new RuleError('Deck não encontrado.');
+        if([...rooms.values()].some(r=>r.game.phase==='playing'&&r.seats.includes(profile.id)))throw new RuleError('Conclua a partida antes de alterar equipamentos.');
+        const index=Number(input.index),card=CARDS[input.cardId];
+        if(!Number.isInteger(index)||index<0||index>=deck.cards.length||card?.type!=='equipment')throw new RuleError('Escolha uma posição e equipamento válidos.');
+        if(input.expectedCardId!==deck.cards[index])throw new RuleError('Seu deck foi atualizado. Reabra Equipamento Rápido e selecione a posição novamente.');
+        const available=profile.items.filter(i=>i.cardId===card.id&&i.durability>0&&!i.listingId&&!itemLocks.has(i.id)).length;
+        const draft=[...deck.cards],removed=draft[index];draft[index]=card.id;
+        if((countCards(draft)[card.id]||0)>available)throw new RuleError('Todas as peças desta relíquia estão em uso, anunciadas ou danificadas.');
+        const refills=structuredClone(deck.autoRefills||[]),replacement=refills.findIndex(r=>r.replacementId===removed);
+        if(replacement>=0)refills.splice(replacement,1);
+        validateOwnedDeck(draft,deck.faction,profile,refills);
+        deck.cards=draft;deck.autoRefills=refills;matchQueue.remove(profile.id);
+        await persist({profiles:[profile]});return json(res,200,{profile,deck});
+      }
       if(url.pathname==='/api/decks/select'&&req.method==='POST'){
         const input=await body(req);if(!activeDeck(profile,input.faction))throw new RuleError('Ative um deck válido no Arsenal.');
         if(profile.realm?.activeRoom||[...rooms.values()].some(r=>r.game.phase==='playing'&&r.seats.includes(profile.id)))throw new RuleError('Conclua sua partida antes de trocar o deck.');
