@@ -109,20 +109,24 @@ export function prepareEncounter(world,profile,now=Date.now()){
   const stage=n.kind==='dungeon'?(r.expedition?.node===n.id?r.expedition.stage:0):0;
   return {node:n.id,stage,stages:n.kind==='dungeon'?3:1,board:n.board,title:n.kind==='dungeon'?(n.id==='abbey'?['Claustro das Cinzas','Coro dos Condenados','Altar da Abadessa']:n.id==='abyss'?['Escadaria sem Lua','Coração da Fenda','Trono do Devorador']:['Portão dos Sepultados','Galeria dos Esquecidos','Trono de Mordrath'])[stage]:`Expedição em ${n.name}`,difficulty:n.level,houseId:house?.id||null};
 }
-export function settleEncounter(world,profile,encounter,won,conceded,now=Date.now()){
+export function settleEncounter(world,profile,encounter,won,conceded,now=Date.now(),capturedLanes=[]){
   ensureAdventure(profile.realm);
-  const r=profile.realm;r.activeRoom=null;r.version++;const n=region(encounter.node),house=houseOf(world,profile);const reward={xp:0,coins:0,materials:0,loot:false,message:''};
+  const r=profile.realm;r.activeRoom=null;r.version++;const n=region(encounter.node),house=houseOf(world,profile),claims=new Set((Array.isArray(capturedLanes)?capturedLanes:[]).filter(id=>['court','crypt','hunt'].includes(id)));const reward={xp:0,coins:0,materials:0,loot:false,message:''};
   if(!won||conceded){r.expedition=null;reward.message='A expedição recuou. Seus territórios e construções permanecem.';return reward;}
   const final=encounter.stage+1>=encounter.stages;
   r.expedition=final?null:{node:n.id,stage:encounter.stage+1};
-  const key=`${n.id}:${encounter.stage}`,eligible=now-(r.claims[key]||0)>=300000;
-  if(eligible){r.claims[key]=now;reward.xp=30+encounter.difficulty*10;gainXP(r,reward.xp);reward.coins=10+(house?.policy==='commerce'?5:0);profile.coins+=reward.coins;reward.materials=2+(house?.policy==='expedition'?1:0);r.materials[n.resource]+=reward.materials;reward.loot=final;r.adventure.stats.wins++;dailyState(r,now).wins++;if(final&&encounter.stages>1)r.adventure.stats.dungeons++;adventureJournal(r,`Vitória em ${n.name} · ${encounter.stage+1}/${encounter.stages}. +${reward.xp} XP de exploração.`,now);}
   reward.message=final?'Expedição concluída.':'Mesa vencida. A próxima instância está aberta.';
+  const key=`${n.id}:${encounter.stage}`,eligible=now-(r.claims[key]||0)>=300000;
+  if(eligible){r.claims[key]=now;reward.xp=30+encounter.difficulty*10;gainXP(r,reward.xp);reward.coins=10+(house?.policy==='commerce'?5:0);profile.coins+=reward.coins;reward.materials=2+(house?.policy==='expedition'?1:0);r.materials[n.resource]+=reward.materials;reward.loot=final;r.adventure.stats.wins++;dailyState(r,now).wins++;if(final&&encounter.stages>1)r.adventure.stats.dungeons++;adventureJournal(r,`Vitória em ${n.name} · ${encounter.stage+1}/${encounter.stages}. +${reward.xp} XP de exploração.`,now);
+    if(claims.has('crypt')){reward.materials+=2;r.materials[n.resource]+=2;reward.message+=` Catacumbas: +2 ${MATERIALS[n.resource]} para sua reserva.`;}
+    if(claims.has('hunt')){reward.coins+=10;profile.coins+=10;reward.message+=' Caçada: +10 Marcas de recompensa para financiar a Casa ou a guerra.';}
+    if(claims.has('court')){if(house&&house.id===encounter.houseId){house.treasury+=5;reward.treasury=5;reward.message+=' Corte: +5 Marcas ao tesouro da Casa.';}else{reward.coins+=5;profile.coins+=5;reward.message+=' Corte: +5 Marcas em favores políticos.';}}
+  }
   const t=world.territories[n.id];
   if(t&&house&&house.id===encounter.houseId&&eligible){
     if(t.owner!==house.id){
       const legal=!t.owner||world.wars.some(w=>w.status==='active'&&w.endsAt>now&&[w.attacker,w.defender].includes(t.owner)&&[w.attacker,w.defender].includes(house.id));
-      if(legal&&t.protectedUntil<=now){t.influence[house.id]=(t.influence[house.id]||0)+1;const defender=world.houses.find(h=>h.id===t.owner),needed=3+(defender?.policy==='bastion'?1:0);
+      if(legal&&t.protectedUntil<=now){t.influence[house.id]=(t.influence[house.id]||0)+1+(claims.has('court')?1:0);const defender=world.houses.find(h=>h.id===t.owner),needed=3+(defender?.policy==='bastion'?1:0);
         if(t.influence[house.id]>=needed){t.owner=house.id;t.influence={};t.protectedUntil=now+600000;journal(world,`${house.name} conquistou ${n.name}. Trégua territorial de dez minutos.`,now);reward.message+=` ${n.name} agora pertence à sua Casa!`;}
         else reward.message+=` Influência territorial: ${t.influence[house.id]}/${needed}.`;
       }

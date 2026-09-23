@@ -1,6 +1,6 @@
 import {savageImpact} from '/visceral.js';
-import {richSound} from '/soundscape.js';
-let enabled=localStorage.getItem('bloodmoon.sound')==='true',context;
+import {richSound,unlockSoundscape} from '/soundscape.js';
+let enabled=localStorage.getItem('bloodmoon.sound')!=='false',context;
 const musicTracks={
   title:'/music/song1.mp3',
   ambient:'/music/ambient_idle.mp3',
@@ -9,46 +9,72 @@ const musicTracks={
 };
 let musicAudio=null,musicScene=null,musicFade=null,musicTransition=0;
 export const soundEnabled=()=>enabled;
+function ensureMusicAudio(){
+  if(!musicAudio){
+    musicAudio=new Audio();
+    musicAudio.loop=true;
+    musicAudio.preload='auto';
+    musicAudio.playsInline=true;
+    musicAudio.setAttribute('playsinline','');
+    try{musicAudio.volume=0.32;}catch{}
+  }
+  return musicAudio;
+}
 export function setMusicScene(scene){
   if(!musicTracks[scene])return;
   musicScene=scene;
   if(!enabled){musicAudio?.pause();return;}
-  if(!musicAudio){musicAudio=new Audio();musicAudio.loop=true;musicAudio.preload='none';musicAudio.volume=0;}
+  const audio=ensureMusicAudio();
   const source=new URL(musicTracks[scene],location.href).href;
-  if(musicAudio.src===source){
-    if(musicAudio.paused)musicAudio.play().then(()=>fadeMusic(0.32,500)).catch(()=>{});
-    else if(musicAudio.volume<0.32)fadeMusic(0.32,500);
+  if(audio.src===source){
+    if(audio.paused)audio.play().then(()=>fadeMusic(0.32,500)).catch(()=>{});
+    else if(audio.volume<0.32)fadeMusic(0.32,500);
     return;
   }
   const transition=++musicTransition;
   clearInterval(musicFade);
   const fadeOut=()=>{
     if(transition!==musicTransition)return;
-    const next=Math.max(0,musicAudio.volume-0.06);
-    musicAudio.volume=next;
+    let next=0;
+    try{next=Math.max(0,(audio.volume||0.32)-0.06);audio.volume=next;}catch{}
     if(next>0){musicFade=setTimeout(fadeOut,35);return;}
-    musicAudio.pause();musicAudio.src=source;musicAudio.load();
-    musicAudio.play().then(()=>{if(transition===musicTransition)fadeMusic(0.32,900);}).catch(()=>{});
+    audio.pause();audio.src=source;try{audio.load();}catch{}
+    audio.play().then(()=>{if(transition===musicTransition)fadeMusic(0.32,900);}).catch(()=>{});
   };
-  if(musicAudio.paused||!musicAudio.src){musicAudio.src=source;musicAudio.play().then(()=>{if(transition===musicTransition)fadeMusic(0.32,900);}).catch(()=>{});}
+  if(audio.paused||!audio.src){audio.src=source;audio.play().then(()=>{if(transition===musicTransition)fadeMusic(0.32,900);}).catch(()=>{});}
   else fadeOut();
 }
 function fadeMusic(target,duration){
   clearInterval(musicFade);
-  const start=musicAudio?.volume||0,started=performance.now();
+  if(!musicAudio)return;
+  let start=0.32;try{start=musicAudio.volume;}catch{}
+  const started=performance.now();
   musicFade=setInterval(()=>{
     if(!musicAudio){clearInterval(musicFade);return;}
     const progress=Math.min(1,(performance.now()-started)/duration);
-    musicAudio.volume=Math.max(0,Math.min(1,start+(target-start)*progress));
+    try{musicAudio.volume=Math.max(0,Math.min(1,start+(target-start)*progress));}catch{}
     if(progress>=1)clearInterval(musicFade);
   },40);
 }
 export function toggleSound(){
   enabled=!enabled;localStorage.setItem('bloodmoon.sound',String(enabled));
-  if(enabled){playSound('start');if(musicScene)setMusicScene(musicScene);}
+  if(enabled){unlockSoundscape();if(musicScene)setMusicScene(musicScene);playSound('start');}
   else{musicTransition++;clearInterval(musicFade);if(musicAudio){fadeMusic(0,180);setTimeout(()=>{if(!enabled)musicAudio?.pause();},200);}}
 }
 export function playSound(type){if(enabled)richSound(type);}
+function unlockMobilePlayback(){
+  if(!enabled)return;
+  unlockSoundscape();
+  if(musicScene){
+    const audio=ensureMusicAudio();
+    const source=new URL(musicTracks[musicScene],location.href).href;
+    if(audio.src!==source){audio.src=source;try{audio.load();}catch{}}
+    if(audio.paused)audio.play().then(()=>fadeMusic(0.32,500)).catch(()=>{});
+  }
+}
+['touchstart','touchend','pointerdown','click','keydown'].forEach(evt=>{
+  window.addEventListener(evt,unlockMobilePlayback,{capture:true,passive:true});
+});
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const rect=el=>el?.getBoundingClientRect?.()||null;
 const center=r=>r?{x:r.left+r.width/2,y:r.top+r.height/2}:null;
@@ -211,19 +237,19 @@ export async function animateEvents(events,seat,frame,{speed=1}={}){
       }
       if(e.type==='damage')playSound('damage');
     }
-    if(['level','equip','loot','claim','death','synergy','status','item-loot','item-break'].includes(e.type)){
+    if(['level','equip','loot','claim','death','synergy','status','item-loot','item-break','campaign'].includes(e.type)){
       const r=eventTargetRect(e,seat,frame),point=overlayPoint(r,arenaRect),fx=document.createElement('span');
       fx.className=`floating ${e.type}`;fx.textContent=e.type==='death'?'☠':e.label;fx.style.left=`${point.x}px`;fx.style.top=`${point.y}px`;root.append(fx);setTimeout(()=>fx.remove(),1250);
       if(e.type==='death'&&r&&!reduce){const burst=document.createElement('i');burst.className='death-burst';burst.style.left=`${point.x}px`;burst.style.top=`${point.y}px`;root.append(burst);setTimeout(()=>burst.remove(),620);playSound('death');}
       if(['item-break','item-loot'].includes(e.type)&&r&&!reduce){const burst=document.createElement('i');burst.className=e.type==='item-break'?'gear-shatter':'gear-recovered';burst.style.left=`${point.x}px`;burst.style.top=`${point.y}px`;root.append(burst);setTimeout(()=>burst.remove(),720);playSound(e.type==='item-break'?'damage':'loot');}
-      if(e.type==='loot')playSound('loot');
+      if(e.type==='loot'||e.type==='campaign')playSound('loot');
       if(e.type==='synergy')playSound('synergy');
       const lane=e.lane&&document.querySelector(`[data-zone="${e.lane}"]`);if(e.type==='claim'&&lane){lane.classList.add('lane-claimed');setTimeout(()=>lane.classList.remove('lane-claimed'),900);}
     }
-    if(['ultimate','combo','round','clash','curse'].includes(e.type)){
+    if(['ultimate','combo','round','clash','curse','campaign-action'].includes(e.type)){
       const banner=document.createElement('div');banner.className=`combat-banner ${e.type}`;banner.textContent=e.label;root.append(banner);setTimeout(()=>banner.remove(),1300);
       if(['ultimate','clash','curse'].includes(e.type)&&!reduce){try{arena.animate([{transform:'translate(0)'},{transform:'translate(-6px,3px)'},{transform:'translate(5px,-3px)'},{transform:'translate(-2px,1px)'},{transform:'translate(0)'}],{duration:e.type==='ultimate'?430:290,easing:'ease-out'});}catch{}}
-      playSound(e.type);
+      playSound(e.type==='campaign-action'?'start':e.type);
     }
     if(['equip','skill','ultimate','synergy','summon'].includes(e.type)&&!reduce){const r=eventTargetRect(e,seat,frame);if(r){const point=overlayPoint(r,arenaRect),ring=document.createElement('i');ring.className='ritual-ring '+e.type;ring.style.left=point.x+'px';ring.style.top=point.y+'px';root.append(ring);setTimeout(()=>ring.remove(),800);}}
     if(e.type==='summon'){

@@ -5,7 +5,7 @@ const check = (condition, message) => { if (!condition) throw new RuleError(mess
 const emptyLanes = () => Object.fromEntries(LANES.map(l => [l.id, []]));
 const refId = value => typeof value==='string'?value:value.cardId;
 const visualTraces=new WeakMap();
-function visualState(g){return {round:g.round,turn:g.turn,players:g.players.map(p=>({health:p.health,maxHealth:p.maxHealth,energy:p.energy,rage:p.rage,renown:p.renown,combo:p.combo,passed:p.passed,skillUsed:p.skillUsed,ultimateUsed:p.ultimateUsed,kills:p.kills,boosts:structuredClone(p.boosts),heroGear:(p.heroGear||[]).map(x=>({cardId:x.cardId})),handCount:p.hand.length,deckCount:p.deck.length,lanes:Object.fromEntries(Object.entries(p.lanes).map(([lane,units])=>[lane,units.map(u=>({...structuredClone(u),gearItems:(u.gearItems||[]).map(x=>({cardId:x.cardId}))}))]))}))};}
+function visualState(g){return {round:g.round,turn:g.turn,players:g.players.map(p=>({health:p.health,maxHealth:p.maxHealth,energy:p.energy,rage:p.rage,renown:p.renown,combo:p.combo,passed:p.passed,skillUsed:p.skillUsed,ultimateUsed:p.ultimateUsed,kills:p.kills,favors:p.favors||0,siege:p.siege||0,supplies:p.supplies||0,tributeActive:!!p.tributeActive,boosts:structuredClone(p.boosts),heroGear:(p.heroGear||[]).map(x=>({cardId:x.cardId})),handCount:p.hand.length,deckCount:p.deck.length,lanes:Object.fromEntries(Object.entries(p.lanes).map(([lane,units])=>[lane,units.map(u=>({...structuredClone(u),gearItems:(u.gearItems||[]).map(x=>({cardId:x.cardId}))}))]))}))};}
 function emit(g, type, details = {}) {
   const event={id:g.nextEvent++,type,...details},previous=visualTraces.get(g);
   if(previous){const current=visualState(g),patch={players:[{},{}]};for(const key of ['round','turn'])if(current[key]!==previous[key])patch[key]=current[key];current.players.forEach((p,i)=>{for(const [key,value]of Object.entries(p))if(JSON.stringify(value)!==JSON.stringify(previous.players[i][key]))patch.players[i][key]=value;});event.visual=patch;visualTraces.set(g,current);}
@@ -27,7 +27,7 @@ function draw(g,p,count=1) {
 export function createGame(faction='vampire',random=Math.random,mode='practice',deckLists={},rival=null) {
   check(Object.hasOwn(DECKS,faction),'Facção inválida.');
   const factions=[faction,rival?.faction||(faction==='vampire'?'werewolf':'vampire')];
-  const g={round:1,turn:0,initiative:0,phase:'playing',winner:null,nextId:1,nextEvent:1,version:0,mode,riskMode:'covenant',events:[],log:['A caçada começou.'],players:factions.map((f,index)=>{const p={faction:f,health:24,maxHealth:24,heroGear:[],heroAttackBonus:0,renown:0,energy:3,rage:0,combo:0,skillUsed:false,ultimateUsed:false,kills:0,cardsPlayed:0,claims:0,deck:shuffle(index===1&&rival?.deck?rival.deck:deckLists[f]||DECKS[f],random),hand:[],lanes:emptyLanes(),boosts:{court:0,crypt:0,hunt:0},passed:false,fatigue:0};if(index===1&&rival){const {deck,...identity}=rival;p.rival=identity;}return p;})};
+  const g={round:1,turn:0,initiative:0,phase:'playing',winner:null,nextId:1,nextEvent:1,version:0,mode,riskMode:'covenant',events:[],log:['A caçada começou.'],players:factions.map((f,index)=>{const p={faction:f,health:24,maxHealth:24,heroGear:[],heroAttackBonus:0,renown:0,energy:3,rage:0,combo:0,skillUsed:false,ultimateUsed:false,kills:0,cardsPlayed:0,claims:0,favors:0,siege:0,supplies:0,tributeActive:false,deck:shuffle(index===1&&rival?.deck?rival.deck:deckLists[f]||DECKS[f],random),hand:[],lanes:emptyLanes(),boosts:{court:0,crypt:0,hunt:0},passed:false,fatigue:0};if(index===1&&rival){const {deck,...identity}=rival;p.rival=identity;}return p;})};
   g.players.forEach(p=>draw(g,p,5));
   if(mode==='dungeon') {const boss=g.players[1];boss.boss=true;boss.health=36;boss.maxHealth=36;boss.lanes.crypt.push(unit(g,'warden'));g.log.push('O Rei Sepultado desperta. A cada rodada, sua maldição causa 1 de dano.');}
   return g;
@@ -121,27 +121,116 @@ function resolve(g) {
     if(strengths[0]===strengths[1])continue;
     const winner=strengths[0]>strengths[1]?0:1,p=g.players[winner];
     const renown=(lane.id==='court'?2:1)+(EVENTS[g.round-1].lane===lane.id?1:0);p.renown+=renown;p.claims++;
-    if(lane.id==='court')heal(g,winner,1);
-    if(lane.id==='crypt'&&p.hand.length<10){p.hand.push({uid:`c${g.nextId++}`,cardId:'relic'});emit(g,'loot',{seat:winner,lane:lane.id,label:'RELÍQUIA SAQUEADA'});}
-    if(lane.id==='hunt')damage(g,1-winner,'hero',3,lane.id);
-    emit(g,'claim',{seat:winner,lane:lane.id,label:`+${renown} RENOME`});
+    if(lane.id==='court'){
+      heal(g,winner,1);
+      const diff=Math.abs(strengths[0]-strengths[1]);
+      const gainedFavors=diff>=2?2:1;
+      p.favors=Math.min(5,(p.favors||0)+gainedFavors);
+      emit(g,'campaign',{seat:winner,category:'court',amount:gainedFavors,label:`+${gainedFavors} FAVOR(ES) POLÍTICO(S)`});
+    }
+    if(lane.id==='crypt'){
+      if(p.hand.length<10){p.hand.push({uid:`c${g.nextId++}`,cardId:'relic'});emit(g,'loot',{seat:winner,lane:lane.id,label:'RELÍQUIA SAQUEADA'});}
+      p.supplies=Math.min(6,(p.supplies||0)+2);
+      emit(g,'campaign',{seat:winner,category:'crypt',amount:2,label:'+2 SUPRIMENTOS DE CAMPO'});
+    }
+    if(lane.id==='hunt'){
+      damage(g,1-winner,'hero',3,lane.id);
+      p.siege=Math.min(3,(p.siege||0)+1);
+      emit(g,'campaign',{seat:winner,category:'hunt',amount:1,label:`CERCO MILITAR (NÍVEL ${p.siege})`});
+    }
+    emit(g,'claim',{seat:winner,lane:lane.id,captured:true,label:`+${renown} RENOME`});
     g.log.push(`${lane.name}: combatente ${winner+1} ganha ${renown} Renome.`);
   }
   finish(g,true);if(g.phase==='finished')return;
   g.round++;g.initiative=1-g.initiative;g.turn=g.initiative;
-  g.players.forEach(p=>{p.passed=false;p.combo=0;p.skillUsed=false;p.ultimateUsed=false;p.boosts={court:0,crypt:0,hunt:0};p.energy=Math.min(7,g.round+2);Object.values(p.lanes).flat().forEach(u=>{u.ready=true;u.tempAttack=0;u.tempInfluence=0;});draw(g,p);});
+  g.players.forEach(p=>{p.passed=false;p.combo=0;p.skillUsed=false;p.ultimateUsed=false;p.tributeActive=false;p.boosts={court:0,crypt:0,hunt:0};p.energy=Math.min(7,g.round+2);Object.values(p.lanes).flat().forEach(u=>{u.ready=true;u.tempAttack=0;u.tempInfluence=0;});draw(g,p);});
   if(g.mode==='dungeon'){damage(g,0,'hero',1);emit(g,'curse',{seat:1,label:'MALDIÇÃO DO SEPULCRO'});const boss=g.players[1];if(boss.health<=18&&!boss.enraged){boss.enraged=true;Object.values(boss.lanes).flat().forEach(u=>u.attack++);emit(g,'ultimate',{seat:1,label:'O REI DESPERTA'});}}
   finish(g);if(g.phase==='playing')emit(g,'round',{label:`RODADA ${g.round}`,round:g.round});
 }
 export function applyAction(original,actor,action,{visuals=false}={}) {
   check(original.phase==='playing','Esta aventura já terminou.');check(actor===original.turn,'Aguarde seu turno.');
-  check(action&&['play','pass','attack','skill','ultimate','concede'].includes(action.type),'Ação inválida.');
+  check(action&&['play','pass','attack','skill','ultimate','campaign','concede'].includes(action.type),'Ação inválida.');
   const g=structuredClone(original),p=g.players[actor];
   if(visuals)visualTraces.set(g,visualState(g));
   check(!p.passed,'Você já encerrou sua rodada.');
   if(action.type==='concede'){p.health=0;p.conceded=true;finish(g);g.version++;return g;}
   if(action.type==='pass'){p.passed=true;g.log.push(`Combatente ${actor+1} encerrou a rodada.`);}
-  else {
+  else if(action.type==='campaign'){
+    const {category,tactic}=action;
+    check(['court','hunt','crypt'].includes(category),'Categoria de campanha inválida.');
+    if(category==='court'){
+      if(tactic==='tribute'){
+        check((p.favors||0)>=1,'Favores políticos insuficientes.');
+        p.favors-=1;
+        g.players[1-actor].tributeActive=true;
+        emit(g,'campaign-action',{seat:actor,category:'court',tactic:'tribute',label:'EDITO DE TRIBUTO'});
+        g.log.push(`Combatente ${actor+1} aprova Edito de Tributo: todas as cartas do rival custam +1 nesta rodada.`);
+      }else if(tactic==='bribe'){
+        check((p.favors||0)>=1,'Favores políticos insuficientes.');
+        check(LANES.some(l=>l.id===action.lane),'Frente inválida.');
+        p.favors-=1;
+        p.boosts[action.lane]=(p.boosts[action.lane]||0)+2;
+        emit(g,'campaign-action',{seat:actor,category:'court',tactic:'bribe',lane:action.lane,label:'SUBORNO DE FRONTEIRA'});
+        g.log.push(`Combatente ${actor+1} suborna a frente ${LANES.find(l=>l.id===action.lane)?.name}: +2 poder nesta rodada.`);
+      }else if(tactic==='immunity'){
+        check((p.favors||0)>=2,'São necessários 2 Favores para Salva-Guarda.');
+        check(LANES.some(l=>l.id===action.lane),'Frente inválida.');
+        const ally=p.lanes[action.lane]?.find(u=>u.uid===action.target);
+        check(ally,'Escolha um aliado desta frente para proteger.');
+        p.favors-=2;
+        ally.guard=true;ally.guardUntilRound=g.round;
+        emit(g,'campaign-action',{seat:actor,category:'court',tactic:'immunity',target:ally.uid,lane:action.lane,label:'SALVA-GUARDA DIPLOMÁTICA'});
+        g.log.push(`Combatente ${actor+1} concede Salva-Guarda a ${CARDS[ally.cardId].name}.`);
+      }else throw new RuleError('Tática política desconhecida.');
+    }else if(category==='hunt'){
+      if(tactic==='breach'){
+        check((p.siege||0)>=1,'Pressão de Cerco insuficiente.');
+        check(LANES.some(l=>l.id===action.lane),'Frente inválida.');
+        const foe=g.players[1-actor].lanes[action.lane]?.find(u=>u.uid===action.target);
+        check(foe||action.target==='hero','Escolha um alvo inimigo para a ruptura.');
+        p.siege-=1;
+        damage(g,1-actor,action.target,2,action.lane,actor);
+        clearDead(g,action.lane);
+        emit(g,'campaign-action',{seat:actor,category:'hunt',tactic:'breach',target:action.target,lane:action.lane,label:'RUPTURA DE TRINCHEIRA'});
+        g.log.push(`Combatente ${actor+1} rompe a linha na ${LANES.find(l=>l.id===action.lane)?.name}: 2 de dano tático.`);
+      }else if(tactic==='plunder'){
+        check((p.siege||0)>=2,'São necessários 2 pontos de Cerco para saquear.');
+        p.siege-=2;
+        p.energy=Math.min(10,p.energy+1);
+        damage(g,1-actor,'hero',2,'hunt',actor);
+        emit(g,'campaign-action',{seat:actor,category:'hunt',tactic:'plunder',label:'SAQUE DE SUPRIMENTOS'});
+        g.log.push(`Combatente ${actor+1} saqueia suprimentos inimigos: +1 energia e 2 de dano ao líder.`);
+      }else throw new RuleError('Tática militar desconhecida.');
+    }else if(category==='crypt'){
+      if(tactic==='logistics'){
+        check((p.supplies||0)>=1,'Suprimentos insuficientes para manobra.');
+        check(LANES.some(l=>l.id===action.from)&&LANES.some(l=>l.id===action.to)&&action.from!==action.to,'Frentes de remanejamento inválidas.');
+        check(p.lanes[action.to].length<3,'A frente de destino está cheia.');
+        const uIndex=p.lanes[action.from].findIndex(x=>x.uid===action.uid);
+        check(uIndex!==-1,'Aliado não encontrado na frente de origem.');
+        p.supplies-=1;
+        const [moved]=p.lanes[action.from].splice(uIndex,1);
+        p.lanes[action.to].push(moved);
+        emit(g,'campaign-action',{seat:actor,category:'crypt',tactic:'logistics',uid:moved.uid,from:action.from,to:action.to,label:'MANOBRA LOGÍSTICA'});
+        g.log.push(`Combatente ${actor+1} desloca ${CARDS[moved.cardId].name} de ${LANES.find(l=>l.id===action.from).name} para ${LANES.find(l=>l.id===action.to).name}.`);
+      }else if(tactic==='rations'){
+        check((p.supplies||0)>=2,'São necessários 2 Suprimentos para rações.');
+        p.supplies-=2;
+        draw(g,p,1);
+        emit(g,'campaign-action',{seat:actor,category:'crypt',tactic:'rations',label:'RAÇÕES DE GUERRA'});
+        g.log.push(`Combatente ${actor+1} distribui rações de guerra: compra 1 carta.`);
+      }else if(tactic==='field_repair'){
+        check((p.supplies||0)>=2,'Suprimentos insuficientes para reparo.');
+        check(LANES.some(l=>l.id===action.lane),'Frente inválida.');
+        const ally=p.lanes[action.lane]?.find(u=>u.uid===action.target);
+        check(ally,'Escolha um aliado ferido para reparar.');
+        p.supplies-=2;
+        healUnit(g,actor,action.lane,ally,3);
+        emit(g,'campaign-action',{seat:actor,category:'crypt',tactic:'field_repair',target:ally.uid,lane:action.lane,label:'FORJA DE EMERGÊNCIA'});
+        g.log.push(`Combatente ${actor+1} repara ${CARDS[ally.cardId].name}: +3 vida.`);
+      }else throw new RuleError('Tática logística desconhecida.');
+    }
+  }else {
     check(LANES.some(l=>l.id===action.lane),'Frente inválida.');
     if(action.type==='attack')strike(g,actor,action);
     else if(action.type==='skill'||action.type==='ultimate'){
@@ -161,8 +250,11 @@ export function applyAction(original,actor,action,{visuals=false}={}) {
       clearDead(g,action.lane);g.log.push(`${HEROES[p.faction].name}: ${ult?HEROES[p.faction].ultimate:HEROES[p.faction].skill}.`);
     }else{
       const index=p.hand.findIndex(c=>c.uid===action.uid);check(index!==-1,'Carta indisponível.');
-      const cardInstance=p.hand[index],c=CARDS[cardInstance.cardId],units=p.lanes[action.lane];check(p.energy>=c.cost,'Recursos insuficientes.');
-      p.energy-=c.cost;p.hand.splice(index,1);p.cardsPlayed++;
+      const cardInstance=p.hand[index],c=CARDS[cardInstance.cardId],units=p.lanes[action.lane];
+      const extraCost=p.tributeActive?1:0;
+      check(p.energy>=(c.cost+extraCost),'Recursos insuficientes.');
+      p.energy-=(c.cost+extraCost);
+      p.hand.splice(index,1);p.cardsPlayed++;
       emit(g,'play',{seat:actor,source:action.uid,cardId:c.id,lane:action.lane,target:action.target,label:c.name});
       if(c.type==='unit'){check(units.length<3,'Esta frente já possui três unidades.');const u=unit(g,c.id);units.push(u);emit(g,'summon',{seat:actor,target:u.uid,lane:action.lane,label:c.name});triggerSynergies(g,actor,action.lane,'ally-summoned',{faction:c.faction,exclude:u.uid});}
       else if(c.type==='equipment'||['pounce','rally','guard'].includes(c.effect)){
@@ -211,12 +303,30 @@ export function botAction(g) {
     if(action.type==='skill'&&(p.skillUsed||p.energy<2)||action.type==='ultimate'&&(p.ultimateUsed||p.rage<6))return;
     if(action.type==='play'){
       const instance=p.hand.find(card=>card.uid===action.uid),card=instance&&CARDS[instance.cardId],allies=p.lanes[action.lane]||[],foes=enemy.lanes[action.lane]||[];
-      if(!card||p.energy<card.cost)return;
+      if(!card)return;
+      const neededEnergy=c=>c.cost+(p.tributeActive?1:0);
+      if(p.energy<neededEnergy(card))return;
       if(card.type==='unit'&&allies.length>=3)return;
       if(card.type==='equipment'&&action.target==='hero'&&(p.heroGear||[]).length>=1)return;
       if(card.type==='equipment'&&action.target!=='hero'&&!allies.some(unit=>unit.uid===action.target&&(unit.equipment||0)<2))return;
       if(['pounce','rally','guard'].includes(card.effect)&&!allies.some(unit=>unit.uid===action.target))return;
       if(['damage','execute','rend','drain'].includes(card.effect)&&!foes.some(unit=>unit.uid===action.target))return;
+    }
+    if(action.type==='campaign'){
+      if(action.category==='court'){
+        if(action.tactic==='tribute'&&((p.favors||0)<1||enemy.tributeActive))return;
+        if(action.tactic==='bribe'&&(p.favors||0)<1)return;
+        if(action.tactic==='immunity'&&((p.favors||0)<2||!p.lanes[action.lane]?.some(u=>u.uid===action.target)))return;
+      }
+      if(action.category==='hunt'){
+        if(action.tactic==='breach'&&((p.siege||0)<1||(!enemy.lanes[action.lane]?.some(u=>u.uid===action.target)&&action.target!=='hero')))return;
+        if(action.tactic==='plunder'&&(p.siege||0)<2)return;
+      }
+      if(action.category==='crypt'){
+        if(action.tactic==='logistics'&&((p.supplies||0)<1||p.lanes[action.to]?.length>=3))return;
+        if(action.tactic==='rations'&&(p.supplies||0)<2)return;
+        if(action.tactic==='field_repair'&&((p.supplies||0)<2||!p.lanes[action.lane]?.some(u=>u.uid===action.target)))return;
+      }
     }
     if(action.type==='attack'){
       const attacker=p.lanes[action.lane]?.find(unit=>unit.uid===action.uid),foes=enemy.lanes[action.lane]||[];
@@ -263,6 +373,14 @@ export function botAction(g) {
       }
     }
   }
+  if((p.supplies||0)>=2&&p.hand.length<=2)consider({type:'campaign',category:'crypt',tactic:'rations'},4.2);
+  if((p.favors||0)>=1&&!enemy.tributeActive&&enemy.energy>=3)consider({type:'campaign',category:'court',tactic:'tribute'},3.5);
+  if((p.favors||0)>=1)consider({type:'campaign',category:'court',tactic:'bribe',lane:'court'},2.5+laneBias('court'));
+  if((p.siege||0)>=1){
+    for(const bl of LANES){const bfoes=enemy.lanes[bl.id]||[];const btarget=bfoes.find(u=>u.health<=2);if(btarget){consider({type:'campaign',category:'hunt',tactic:'breach',lane:bl.id,target:btarget.uid},4.4);break;}}
+    if(!options.some(o=>o.action.tactic==='breach')){for(const bl of LANES){const bfoes=enemy.lanes[bl.id]||[];if(bfoes.length)consider({type:'campaign',category:'hunt',tactic:'breach',lane:bl.id,target:bfoes[0].uid},2.8);}}
+  }
+  if((p.siege||0)>=2)consider({type:'campaign',category:'hunt',tactic:'plunder'},3.8);
   options.sort((a,b)=>b.score-a.score);return options[0]?.score>0.65?options[0].action:{type:'pass'};
 }
 export function publicView(g,seat){const view=structuredClone(g);view.players.forEach((p,i)=>{p.deckCount=p.deck.length;delete p.deck;p.handCount=p.hand.length;if(i!==seat)delete p.hand;for(const u of Object.values(p.lanes).flat())u.gearItems=(u.gearItems||[]).map(x=>i===seat?x:{cardId:x.cardId});p.heroGear=(p.heroGear||[]).map(x=>i===seat?x:{cardId:x.cardId});});view.events=view.events.map(e=>{const safe={...e};delete safe.itemId;return safe;});return {...view,seat};}

@@ -1,18 +1,31 @@
 let context,master,noise,room,compressor;
 let lastSound=0;
 function engine(){
- if(context){if(context.state==='suspended')context.resume();return context;}
- context=new(window.AudioContext||window.webkitAudioContext)();master=context.createGain();master.gain.value=.42;
+ if(context){if(context.state==='suspended')context.resume().catch(()=>{});return context;}
+ const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)throw new Error('Web Audio indisponível');
+ context=new AudioContextClass();if(context.state==='suspended')context.resume().catch(()=>{});master=context.createGain();master.gain.value=.42;
  compressor=context.createDynamicsCompressor();compressor.threshold.value=-18;compressor.ratio.value=5;master.connect(compressor);compressor.connect(context.destination);
  const length=context.sampleRate;noise=context.createBuffer(1,length,context.sampleRate);const channel=noise.getChannelData(0);for(let i=0;i<length;i++)channel[i]=Math.random()*2-1;
  room=context.createConvolver();const impulse=context.createBuffer(2,Math.floor(length*.65),context.sampleRate);for(let ch=0;ch<2;ch++){const data=impulse.getChannelData(ch);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,3)*.16;}room.buffer=impulse;room.connect(master);return context;
 }
+export function unlockSoundscape(){
+ try{
+  const c=engine();
+  if(c.state==='suspended')c.resume().catch(()=>{});
+  const buf=c.createBuffer(1,1,22050);
+  const src=c.createBufferSource();
+  src.buffer=buf;src.connect(c.destination);src.start(0);
+  return true;
+ }catch{return false;}
+}
 function voice({frequency=120,end=frequency,at=0,duration=.3,volume=.2,type='sine',texture=false,pan=0,filter=1800,space=false}){
- const c=engine(),t=c.currentTime+at,source=texture?c.createBufferSource():c.createOscillator(),gain=c.createGain(),panner=c.createStereoPanner();panner.pan.value=pan;
+ const c=engine(),t=c.currentTime+at,source=texture?c.createBufferSource():c.createOscillator(),gain=c.createGain();
+ let outputNode=gain;
+ if(c.createStereoPanner){try{const panner=c.createStereoPanner();panner.pan.value=pan;gain.connect(panner);outputNode=panner;}catch{}}
  if(texture){source.buffer=noise;const tone=c.createBiquadFilter();tone.type='lowpass';tone.frequency.setValueAtTime(filter,t);tone.frequency.exponentialRampToValueAtTime(Math.max(80,filter*.2),t+duration);source.connect(tone);tone.connect(gain);}
  else{source.type=type;source.frequency.setValueAtTime(frequency,t);source.frequency.exponentialRampToValueAtTime(Math.max(18,end),t+duration);source.connect(gain);}
- gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),t+.012);gain.gain.exponentialRampToValueAtTime(.0001,t+duration);gain.connect(panner);panner.connect(master);if(space)panner.connect(room);source.start(t);source.stop(t+duration+.02);
- source.onended=()=>{source.disconnect();gain.disconnect();panner.disconnect();};
+ gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),t+.012);gain.gain.exponentialRampToValueAtTime(.0001,t+duration);outputNode.connect(master);if(space)outputNode.connect(room);source.start(t);source.stop(t+duration+.02);
+ source.onended=()=>{source.disconnect();gain.disconnect();if(outputNode!==gain)outputNode.disconnect();};
 }
 export function richSound(type,pan=0){
  try{
