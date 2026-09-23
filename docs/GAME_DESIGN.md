@@ -97,4 +97,4 @@ Cartas e combatentes voam até o alvo; dano atualiza vida do líder ou criatura,
 
 ## Limites atuais
 
-Perfis e inventário ficam em arquivo JSON local; salas em memória; duelo por código; o mercado é local ao mesmo servidor/processo e não faz transações entre instâncias. Não há matchmaking, ranking, campanha longa nem validação de economia em produção. O índice não substitui playtests, e parte da coleção reutiliza o atlas artístico do protótipo; a ilustração própria do pacote físico da Edição I ainda precisa ser produzida.
+Com `MONGO_URI`, perfis, inventário, salas e mundo ficam persistidos no MongoDB Atlas; o servidor mantém uma cópia de trabalho em memória e o modo JSON local é usado como fallback nos testes. Duelo por código e mercado são limitados a um único processo e não sincronizam várias instâncias. Não há matchmaking, ranking, campanha longa nem validação de economia em produção. O índice não substitui playtests, e parte da coleção reutiliza o atlas artístico do protótipo; a ilustração própria do pacote físico da Edição I ainda precisa ser produzida.

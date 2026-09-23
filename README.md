@@ -4,13 +4,22 @@ TCG de combate e RPG em fantasia sombria medieval. A versão 0.4 combina arena 2
 
 ## Jogar
 
-Requer Node.js 22+. Sem instalação de dependências.
+Requer Node.js 22+. Instale as dependências com `npm ci`. Para desenvolvimento, copie `.env.example` para `.env`, configure `MONGO_URI` com a connection string do Atlas e inicie com `npm start`.
 
 ```sh
+npm ci
 npm start
 ```
 
 Abra http://127.0.0.1:4173. No primeiro acesso, escolha vampiros ou lobisomens para receber um deck pré-construído de 20 cartas e 300 Marcas. Inicie uma caçada contra a IA, desafie o Rei Sepultado ou crie uma sala 1×1. Ganhe moedas/Fragmentos, abra boosters, crie cartas e equipe decks diferentes pelo refúgio.
+
+## MongoDB Atlas e Render
+
+O servidor usa o banco `bloodmoon` no Atlas quando `MONGO_URI` está configurada. O driver cria as coleções `profiles`, `rooms` e `world`, com índices para consulta de perfis, participantes, modo e fase das partidas. O painel Atlas pode editar esses documentos diretamente. Cada gravação do estado é aplicada em transação. Em produção, o servidor exige `MONGO_URI`; sem essa variável ele não inicia usando armazenamento temporário.
+
+Nunca envie `.env` para o Git. No Render, crie um Web Service usando o `render.yaml` deste projeto, informe `MONGO_URI` como variável secreta e mantenha `MONGO_DB=bloodmoon`. O servidor escuta `process.env.PORT` e usa `0.0.0.0` em produção; localmente usa `127.0.0.1`. O endpoint de health check é `/api/health`. O Atlas exige a faixa de saída do serviço na IP Access List: veja `Connect → Outbound` do serviço Render e adicione os CIDRs correspondentes no projeto Atlas.
+
+`npm run db:check` confere conexão e quantidades sem alterar os dados. Para apagar os dados do jogo no Atlas e reiniciar o antigo save JSON local, rode `npm run db:wipe:confirm`. Esse comando destrutivo exige confirmação explícita e limpa somente `profiles`, `rooms` e `world` dentro do banco `bloodmoon`; não remove outras bases nem coleções do cluster. Ao iniciar novamente, o servidor grava um mundo novo, sem perfis ou partidas antigos.
 
 ## Controles
 
@@ -45,7 +54,7 @@ Arte do pacote de booster: a interface de abertura usa a arte do Rei Sepultado d
 
 ## Comandos e estrutura
 
-`npm test`: testes de API e regras, incluindo boosters, sinergias de equipamento, 200 partidas comuns e 12 dungeons simuladas. `npm run check`: validação de sintaxe. `npm run dev`: reinicia o servidor ao editar (salas em memória serão perdidas).
+`npm test`: testes de API e regras, incluindo boosters, sinergias de equipamento, 200 partidas comuns e 12 dungeons simuladas. `npm run check`: validação de sintaxe. `npm run dev`: reinicia o servidor ao editar.
 
 ```text
 client/app.js         Refúgio, onboarding, coleção, decks, economia e arena
@@ -57,17 +66,18 @@ shared/cards.js      Edição I, arte, heróis e eventos
 shared/engine.js     Motor autoritativo e eventos de combate
 shared/progression.js Régua de decks, onboarding e economia
 server/index.js      API, salas, inventário, decks e recompensas
+server/mongo-store.js Persistência transacional Atlas e fallback JSON de testes
 tests/               Regras originais, novas mecânicas e API
 docs/                Design, arquitetura, próximos passos e arte
 ```
 
 Para testar duas pessoas, use navegadores/perfis diferentes (uma janela anônima funciona). O criador escolhe facção; o convidado recebe a oposta e usa o deck equipado daquela facção, caso tenha um. Na mesma aba, o menu permite voltar ao refúgio e retomar a sala. Salas não sobrevivem ao reinício do servidor.
 
-Para rede privada, defina `HOST=0.0.0.0` no ambiente e use o IP da máquina. `.env.example` é referência, não carregado automaticamente. `DATA_DIR` permite um diretório alternativo para os perfis, útil nos testes.
+`DATA_DIR` permite um diretório alternativo para o fallback JSON dos testes. Se `MONGO_URI` estiver ausente fora de produção, o servidor usa esse fallback local.
 
 ## Limites
 
-Protótipo local, não serviço comercial. Perfis usam uma credencial local sem login real. Dados em JSON, salas em memória e atualização por consulta a cada 1,5 segundo. Ainda não há matchmaking, ranking, trocas, sincronização entre dispositivos, campanha com várias salas ou recuperação após falha do servidor. O índice de deck é uma régua de autoria, não um MMR ou ajuste oculto. Arte por atlas pode ser refinada por carta; áudio sintetizado, sem trilha gravada. Animações representam eventos confirmados pelo motor, sem replay quadro a quadro. Combate alterna ações; não é tempo real.
+Protótipo, não serviço comercial. Perfis usam uma credencial local sem login real. MongoDB Atlas guarda a persistência, mas o estado de trabalho é mantido em memória por um único processo; não aumente o número de instâncias sem adicionar coordenação distribuída. Ainda não há matchmaking, ranking, trocas, campanha com várias salas ou recuperação completa após falha do servidor. O índice de deck é uma régua de autoria, não um MMR ou ajuste oculto. Arte por atlas pode ser refinada por carta; áudio sintetizado, sem trilha gravada. Animações representam eventos confirmados pelo motor, sem replay quadro a quadro. Combate alterna ações; não é tempo real.
 
 Balanceamento e diversão exigem sessões humanas; simulações verificam consistência. Melhor experiência em desktop ou tablet horizontal. Em telas verticais pequenas, elementos são compactados e a arena pode exigir rolagem vertical em alturas abaixo de 730 px.
 

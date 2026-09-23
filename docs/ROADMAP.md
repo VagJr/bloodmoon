@@ -19,13 +19,13 @@ O pacote oficial, o mapa do reino, quatro ambientes, seis avatares e as artes ex
 
 ## Limites de execução
 
-Este é um protótipo local em Node, sem autenticação real. Estado e salas persistem em snapshot JSON para uma única instância do servidor. Presença, política e economia são compartilhadas somente entre sessões dessa instância. Combate de Reinos usa adversário IA por agora; combate entre jogadores acontece no modo de duelo por sala. Tratar todo preço como moeda do jogo; não existe dinheiro real.
+Este é um protótipo em Node, sem autenticação real. Com `MONGO_URI`, perfis, inventário, salas e mundo persistem no MongoDB Atlas em uma base configurável (padrão `bloodmoon`); o modo JSON permanece como fallback local para testes. Presença, política e economia são compartilhadas somente entre sessões da mesma instância do servidor. Combate de Reinos usa adversário IA por agora; combate entre jogadores acontece no modo de duelo por sala. Tratar todo preço como moeda do jogo; não existe dinheiro real.
 
 ## Próximos marcos
 
 1. Completar as 70 ilustrações pendentes em lotes aprovados, conferir leitura em miniatura e atualizar o manifesto.
 2. Playtest dos arquétipos e economia com jogadores; medir resultado por deck/facção, dano, duração, escolhas de carta, desgaste, reparos e moedas antes de rebalancear a coleção.
 3. Transformar encontros de Reinos em conteúdo PvE persistente, com rota/recompensa opcional, saúde e condição do equipamento entre mesas; expandir eventos e contratos de Casas.
-4. Para multiplayer público: autenticação, banco relacional/transações, idempotência de recompensa, WebSocket/presença distribuída, moderação, proteção contra abuso, reconexão, métricas e operação.
+4. Para multiplayer público: autenticação, gravações por entidade e coordenação multi-instância, idempotência de recompensa, WebSocket/presença distribuída, moderação, proteção contra abuso, reconexão, métricas e operação.
 
 Não declarar a economia nem as 161 cartas equilibradas sem partidas humanas e telemetria. A régua atual orienta construção de decks e orçamento; os testes determinísticos provam regras e estados, não substituem playtest.

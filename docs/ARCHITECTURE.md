@@ -51,7 +51,7 @@ Eventos de combate possuem `id` crescente, `type`, assento e alvo/frente conform
 
 Retomada: o código da última sala fica em `sessionStorage`; o perfil permanece em `localStorage`. Atualizar a página retorna ao refúgio, onde o botão de retomada recupera o estado da sala. Perfis legados recebem uma migração única para deck inicial, coleção e moedas. Recompensa de partida é aplicada uma vez por sala; desistência não recebe prêmio. Decks entram na sala por lista de IDs validada contra a coleção.
 
-O protótipo grava perfis, inventários, mundo, Casas, territórios e salas em um snapshot JSON atômico. Ao reiniciar, salas inacabadas e travas de itens são restauradas; no MVP, isso funciona em **um processo e uma instância**. A presença expira após 45 segundos sem atualização. O mundo parece simultâneo para os jogadores ligados à mesma instância; ainda não há sincronização entre servidores nem garantia transacional contra queda no instante da liquidação. Produção exige banco transacional e identidade idempotente de resultado.
+Com `MONGO_URI`, perfis/inventários, salas e mundo persistem nas coleções Atlas `profiles`, `rooms` e `world`. Cada snapshot substitui/upserta os documentos dentro de transação MongoDB; as travas de itens são reconstruídas das salas inacabadas no boot. Sem URI, o modo local usa `DATA_DIR/state.json`, principalmente nos testes. A presença expira após 45 segundos sem atualização. Embora o armazenamento seja durável, o estado de trabalho ainda usa Maps e fila de requisições em **um único processo/instância**; não escale horizontalmente sem trocar essa coordenação por estado compartilhado e gravações por entidade.
 
 ### Reinos de Véspera — regras do MVP
 

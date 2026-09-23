@@ -3,6 +3,7 @@ import { randomBytes, randomUUID, randomInt } from 'node:crypto';
 import { readFile, mkdir, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { connectMongoStore } from './mongo-store.js';
 import { createGame, replaceOpeningDeck, applyAction, botAction, publicView, RuleError } from '../shared/engine.js';
 import { CARDS, DECKS } from '../shared/cards.js';
 import { ECONOMY, CONTRACTS, grantStarter, validateDeck, countCards, cardLimit, makeItem } from '../shared/progression.js';
@@ -15,19 +16,37 @@ const itemLocks = new Map();
 const dataDir=process.env.DATA_DIR || path.join(root,'data');
 const profileFile = path.join(dataDir, 'state.json');
 let world=createWorld();
-try {
-  const saved=JSON.parse(await readFile(profileFile,'utf8'));
+if(process.env.NODE_ENV==='production'&&!process.env.MONGO_URI)throw new Error('MONGO_URI é obrigatória em produção; configure o segredo no provedor de hospedagem.');
+const mongoStore=process.env.MONGO_URI?await connectMongoStore():null;
+if(mongoStore){
+  const saved=await mongoStore.load();
   for(const p of saved.profiles)profiles.set(p.id,p);
-  for(const r of saved.rooms||[])rooms.set(r.id,r);
+  for(const r of saved.rooms)rooms.set(r.id,r);
   world=saved.world||world;
-  for(const r of rooms.values())if(r.game.phase!=='finished')for(const ids of r.lockedItems||[])for(const id of ids)itemLocks.set(id,r.id);
-}catch(e){if(e.code!=='ENOENT')throw e;try{for(const p of JSON.parse(await readFile(path.join(dataDir,'profiles.json'),'utf8')))profiles.set(p.id,p);}catch(legacy){if(legacy.code!=='ENOENT')throw legacy;}}
+}else{
+  try {
+    const saved=JSON.parse(await readFile(profileFile,'utf8'));
+    for(const p of saved.profiles)profiles.set(p.id,p);
+    for(const r of saved.rooms||[])rooms.set(r.id,r);
+    world=saved.world||world;
+  }catch(e){if(e.code!=='ENOENT')throw e;try{for(const p of JSON.parse(await readFile(path.join(dataDir,'profiles.json'),'utf8')))profiles.set(p.id,p);}catch(legacy){if(legacy.code!=='ENOENT')throw legacy;}}
+}
+for(const r of rooms.values())if(r.game.phase!=='finished')for(const ids of r.lockedItems||[])for(const id of ids)itemLocks.set(id,r.id);
 let saving = Promise.resolve();
 function persist() {
-  const snapshot = JSON.stringify({schema:2,profiles:[...profiles.values()],rooms:[...rooms.values()],world}, null, 2);
-  saving = saving.catch(() => {}).then(async () => { await mkdir(path.dirname(profileFile), { recursive: true }); await writeFile(`${profileFile}.tmp`, snapshot); await rename(`${profileFile}.tmp`,profileFile); });
+  saving = saving.catch(() => {}).then(async () => {
+    if(mongoStore){
+      await mongoStore.save({profiles:[...profiles.values()],rooms:[...rooms.values()],world});
+      return;
+    }
+    const snapshot = JSON.stringify({schema:2,profiles:[...profiles.values()],rooms:[...rooms.values()],world}, null, 2);
+    await mkdir(path.dirname(profileFile), { recursive: true });
+    await writeFile(`${profileFile}.tmp`, snapshot);
+    await rename(`${profileFile}.tmp`,profileFile);
+  });
   return saving;
 }
+if(mongoStore)await persist();
 function json(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); }
 async function body(req) {
   let data = '';
@@ -162,7 +181,7 @@ const server = http.createServer(async (req,res) => {
   try {
       const url = new URL(req.url, 'http://localhost');
       pruneRooms();
-    if (req.method === 'GET' && url.pathname === '/api/health') return json(res,200,{ ok: true, version: '0.4.0', edition:'edition-one' });
+    if (req.method === 'GET' && url.pathname === '/api/health') return json(res,200,{ ok: true, version: '0.4.0', edition:'edition-one', storage:mongoStore?'mongodb-atlas':'local-file' });
     if (req.method === 'POST' && url.pathname === '/api/profile') {
       const input = await body(req);
       const name = typeof input.name === 'string' ? input.name.trim().slice(0,24) : 'Viajante';
@@ -326,4 +345,13 @@ const server = http.createServer(async (req,res) => {
   } catch (e) { if (!(e instanceof RuleError)) console.error(e); json(res,e instanceof RuleError ? 400 : 500,{ error: e instanceof RuleError ? e.message : 'Falha interna do servidor.' }); }
   finally { release?.(); }
 });
-server.listen(Number(process.env.PORT || 4173),process.env.HOST || '127.0.0.1',() => console.log(`Bloodmoon em http://${process.env.HOST || '127.0.0.1'}:${server.address().port}`));
+const port=Number(process.env.PORT||4173);
+const host=process.env.HOST||(process.env.NODE_ENV==='production'?'0.0.0.0':'127.0.0.1');
+server.listen(port,host,() => console.log(`Bloodmoon em http://${host}:${server.address().port} · ${mongoStore?'MongoDB Atlas':'persistência local'}`));
+
+for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{
+  server.close(async()=>{
+    try{await saving;await mongoStore?.close();process.exit(0);}
+    catch{process.exit(1);}
+  });
+});

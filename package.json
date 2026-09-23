@@ -5,10 +5,18 @@
   "type": "module",
   "description": "Protótipo autoral de TCG de aventura competitiva",
   "scripts": {
-    "dev": "node --watch server/index.js",
-    "start": "node server/index.js",
+    "dev": "node --env-file-if-exists=.env --watch server/index.js",
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "db:wipe": "node --env-file-if-exists=.env scripts/wipe-game-data.js",
+    "db:wipe:confirm": "node --env-file-if-exists=.env scripts/wipe-game-data.js --confirm",
+    "db:check": "node --env-file-if-exists=.env scripts/check-mongo.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check server/index.js && node --check shared/engine.js && node --check shared/realms.js && node --check shared/progression.js && node --check shared/art-manifest.js && node --check client/app.js && node --check client/realms-ui.js && node --check client/effects.js"
+    "check": "node --check server/index.js && node --check server/mongo-store.js && node --check scripts/wipe-game-data.js && node --check scripts/check-mongo.js && node --check shared/engine.js && node --check shared/realms.js && node --check shared/progression.js && node --check shared/art-manifest.js && node --check client/app.js && node --check client/realms-ui.js && node --check client/effects.js"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "mongodb": "^7.6.0"
+  }
 }
