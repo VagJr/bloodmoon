@@ -11,6 +11,7 @@ export const ECONOMY = {
   copyLimit: { default: 2, legendary: 1 },
   rewards: { duelWin: 45, duelLoss: 25, practiceWin: 20, practiceLoss: 10, dungeonWin: 50, dungeonLoss: 20, levelCoins: 60, levelDust: 10 },
   gearDurability: 3,
+  gearBreakChance: 15,
   marketTaxPercent: 7,
   marketListingFeePercent: 3,
   marketMinPrice: 5,
@@ -22,10 +23,28 @@ export const ECONOMY = {
 };
 
 export const CONTRACTS = [
-  { id:'matches', name:'O juramento continua', goal:3, reward:{coins:60}, label:'Conclua 3 caçadas' },
+  { id:'matches', name:'O juramento continua', goal:4, reward:{coins:75,gear:'common'}, label:'Conclua 4 caçadas · receba uma peça comum' },
   { id:'kills', name:'A presa não escapa', goal:5, reward:{coins:50,dust:10}, label:'Abata 5 combatentes rivais' },
   { id:'wins', name:'Nome escrito em sangue', goal:2, reward:{coins:80,dust:15}, label:'Vença 2 caçadas' }
 ];
+
+export function xpThresholdForLevel(level) {
+  const target=Math.max(1,Math.floor(Number(level)||1));
+  if(target<=10)return (target-1)*300;
+  const beyond=target-10;
+  return 2700+350*beyond+20*beyond*(beyond-1)/2;
+}
+
+export function accountLevelForXP(xp) {
+  const total=Math.max(0,Number(xp)||0);let level=1;
+  while(level<1000&&total>=xpThresholdForLevel(level+1))level++;
+  return level;
+}
+
+export function accountLevelProgress(xp,level=accountLevelForXP(xp)) {
+  const start=xpThresholdForLevel(level),next=xpThresholdForLevel(level+1),earned=Math.max(0,(Number(xp)||0)-start),needed=next-start;
+  return {earned,needed,percent:Math.max(0,Math.min(100,earned/needed*100)),nextLevelXp:next};
+}
 
 export const DECK_RULES = { size:20, minUnits:8, minAffordableUnits:2, maxEquipment:6, maxAverageCost:4.5, maxCopies:2, maxLegendaryCopies:1 };
 
@@ -47,6 +66,81 @@ export function ownedCardCount(cardId,collection={},items=[]) {
   return collection[cardId]||0;
 }
 
+export function deckCollection(collection={},autoRefills=[]) {
+  const owned={...collection};
+  for(const refill of autoRefills||[])if(refill?.replacementId)owned[refill.replacementId]=(owned[refill.replacementId]||0)+1;
+  return owned;
+}
+
+export function applyDurabilityWear(durability,wear=1,roll=Math.random()) {
+  const current=Math.max(0,Number(durability)||0),loss=Math.max(1,Math.floor(Number(wear)||1));
+  const remaining=Math.max(0,current-loss),exhausted=remaining===0;
+  const broken=exhausted&&roll<ECONOMY.gearBreakChance/100;
+  return {durability:remaining,exhausted,broken};
+}
+
+export function restoreReplacedGear(profile,cardId) {
+  let changed=false;
+  for(const deck of profile.decks||[]){
+    deck.autoRefills||=[];
+    for(let index=0;index<deck.autoRefills.length;){
+      const refill=deck.autoRefills[index];
+      if(refill.equipmentId!==cardId||countCards(deck.cards)[cardId]>=ownedCardCount(cardId,profile.collection||{},profile.items||[])){index++;continue;}
+      const replacementIndex=deck.cards.lastIndexOf(refill.replacementId);
+      if(replacementIndex<0){deck.autoRefills.splice(index,1);changed=true;continue;}
+      deck.cards[replacementIndex]=cardId;deck.autoRefills.splice(index,1);changed=true;
+    }
+  }
+  return changed;
+}
+
+export function reconcileDepletedGear(profile) {
+  let changed=false;profile.collection||={};profile.items||=[];profile.decks||=[];
+  for(const deck of profile.decks){
+    deck.cards||=[];deck.autoRefills=Array.isArray(deck.autoRefills)?deck.autoRefills:[];
+    const counts=countCards(deck.cards),refillCounts={},oldRefillCount=deck.autoRefills.length;
+    deck.autoRefills=deck.autoRefills.filter(refill=>{
+      if(!CARDS[refill?.equipmentId]||CARDS[refill.equipmentId].type!=='equipment'||!CARDS[refill?.replacementId]||CARDS[refill.replacementId].type!=='unit')return false;
+      refillCounts[refill.replacementId]=(refillCounts[refill.replacementId]||0)+1;
+      if((counts[refill.replacementId]||0)<refillCounts[refill.replacementId])return false;
+      return true;
+    });
+    if(deck.autoRefills.length!==oldRefillCount)changed=true;
+    const effectiveOwned=deckCollection(profile.collection,deck.autoRefills);
+    for(const refill of [...deck.autoRefills]){
+      const cardId=refill.equipmentId,usable=ownedCardCount(cardId,profile.collection,profile.items),current=countCards(deck.cards)[cardId]||0;
+      if(current>=usable)continue;
+      const replaceIndex=deck.cards.lastIndexOf(refill.replacementId);
+      if(replaceIndex<0)continue;
+      deck.cards[replaceIndex]=cardId;
+      deck.autoRefills.splice(deck.autoRefills.indexOf(refill),1);
+      effectiveOwned[refill.replacementId]=Math.max(0,(effectiveOwned[refill.replacementId]||0)-1);
+      changed=true;
+    }
+    const gearIds=Object.keys(countCards(deck.cards)).filter(id=>CARDS[id]?.type==='equipment');
+    for(const cardId of gearIds){
+      const usable=ownedCardCount(cardId,profile.collection,profile.items),current=countCards(deck.cards)[cardId]||0;
+      let missing=Math.max(0,current-usable);
+      while(missing>0){
+        const candidates=Object.values(CARDS).filter(card=>card.type==='unit'&&card.faction===deck.faction&&card.cost<=2)
+          .sort((a,b)=>a.cost-b.cost||b.health-a.health||a.name.localeCompare(b.name));
+        const replacement=candidates.find(card=>{
+          const copies=countCards(deck.cards)[card.id]||0;
+          return card.cost<=CARDS[cardId].cost&&copies<cardLimit(card)&&(copies<(effectiveOwned[card.id]||0)||copies+(deck.autoRefills.filter(refill=>refill.replacementId===card.id).length)<cardLimit(card));
+        });
+        if(!replacement)break;
+        const replaceIndex=deck.cards.lastIndexOf(cardId);if(replaceIndex<0)break;
+        const copies=countCards(deck.cards)[replacement.id]||0;
+        const hasSpare=copies<(profile.collection[replacement.id]||0);
+        deck.cards[replaceIndex]=replacement.id;
+        if(!hasSpare){deck.autoRefills.push({equipmentId:cardId,replacementId:replacement.id});effectiveOwned[replacement.id]=(effectiveOwned[replacement.id]||0)+1;}
+        missing--;changed=true;
+      }
+    }
+  }
+  return changed;
+}
+
 export function cardLimit(card) { return card?.rarity==='legendary'?DECK_RULES.maxLegendaryCopies:DECK_RULES.maxCopies; }
 export function countCards(cards) { return cards.reduce((counts,id)=>(counts[id]=(counts[id]||0)+1,counts),{}); }
 
@@ -66,6 +160,24 @@ export function grantStarter(profile,faction='vampire',createId=defaultId) {
     profile.decks.push(deck);profile.activeDecks[faction]=deck.id;profile.coins+=300;profile.starterFaction=faction;profile.starterGranted=true;changed=true;
   }
   return changed;
+}
+
+// Grants the other starter once, without replenishing currency or worn equipment.
+export function grantSecondLineage(profile,createId=defaultId) {
+  if(profile.dualStartersGranted)return false;
+  const other=profile.starterFaction==='vampire'?'werewolf':'vampire';
+  profile.decks||=[];profile.activeDecks||={};profile.collection||={};profile.items||=[];
+  if(!profile.decks.some(d=>d.faction===other)) {
+    const deck=starterDeck(other);deck.id=createId();
+    for(const [id,count] of Object.entries(countCards(deck.cards))) {
+      if(CARDS[id].type==='equipment') {
+        const usable=profile.items.filter(i=>i.cardId===id&&i.durability>0&&!i.listingId).length;
+        for(let i=usable;i<count;i++)profile.items.push(makeItem(id,createId,'starter'));
+      } else profile.collection[id]=Math.max(profile.collection[id]||0,count);
+    }
+    profile.decks.push(deck);profile.activeDecks[other]=deck.id;
+  }else if(!profile.activeDecks[other])profile.activeDecks[other]=profile.decks.find(d=>d.faction===other)?.id;
+  profile.dualStartersGranted=true;return true;
 }
 
 export function validateDeck(cards,faction,collection={},items=[]) {

@@ -37,7 +37,10 @@ export async function connectMongoStore({ uri = process.env.MONGO_URI, dbName = 
     const profiles = db.collection('profiles');
     const rooms = db.collection('rooms');
     const worlds = db.collection('world');
+    const accounts=db.collection('accounts'),sessions=db.collection('sessions');
     await Promise.all([
+      accounts.createIndex({email:1},{name:'unique_email',unique:true}),
+      sessions.createIndex({accountId:1},{name:'by_account'}),
       profiles.createIndex({ name: 1 }, { name: 'by_name' }),
       profiles.createIndex({ level: -1 }, { name: 'by_level' }),
       rooms.createIndex({ mode: 1, 'game.phase': 1 }, { name: 'by_mode_phase' }),
@@ -48,24 +51,28 @@ export async function connectMongoStore({ uri = process.env.MONGO_URI, dbName = 
     return {
       dbName,
       async load() {
-        const [profileDocs, roomDocs, worldDoc] = await Promise.all([
+        const [profileDocs, roomDocs, worldDoc,accountDocs,sessionDocs] = await Promise.all([
           profiles.find({}).toArray(),
           rooms.find({}).toArray(),
-          worlds.findOne({ _id: 'world' })
+          worlds.findOne({ _id: 'world' }),accounts.find({}).toArray(),sessions.find({expiresAt:{$gt:Date.now()}}).toArray()
         ]);
         return {
           profiles: profileDocs.map(withoutMongoId),
           rooms: roomDocs.map(withoutMongoId),
           world: worldDoc?.value || null
+          ,accounts:accountDocs.map(withoutMongoId),sessions:sessionDocs.map(withoutMongoId)
         };
       },
-      async save({ profiles: profileDocs = [], rooms: roomDocs = [], deleteRooms = [], world }) {
-        const writeCount = profileDocs.length + roomDocs.length + deleteRooms.length + (world === undefined ? 0 : 1);
+      async save({ profiles: profileDocs = [], rooms: roomDocs = [], deleteRooms = [], world, accounts:accountDocs=[],sessions:sessionDocs=[],deleteSessions=[] }) {
+        const writeCount = profileDocs.length + roomDocs.length + deleteRooms.length + accountDocs.length+sessionDocs.length+deleteSessions.length+(world === undefined ? 0 : 1);
         if (!writeCount) return;
 
         const write = async session => {
           await replaceDocuments(profiles, profileDocs, session);
           await replaceDocuments(rooms, roomDocs, session);
+          await replaceDocuments(accounts,accountDocs,session);
+          await replaceDocuments(sessions,sessionDocs,session);
+          if(deleteSessions.length)await sessions.deleteMany({_id:{$in:deleteSessions}},session?{session}:{});
           if (deleteRooms.length) {
             await rooms.deleteMany({ _id: { $in: deleteRooms } }, session ? { session } : { writeConcern: { w: 'majority' } });
           }
@@ -102,6 +109,7 @@ export async function connectMongoStore({ uri = process.env.MONGO_URI, dbName = 
             const profileResult = await profiles.deleteMany({}, { session });
             const roomResult = await rooms.deleteMany({}, { session });
             const worldResult = await worlds.deleteMany({}, { session });
+            await accounts.deleteMany({}, {session});await sessions.deleteMany({}, {session});
             deleted = {
               profiles: profileResult.deletedCount,
               rooms: roomResult.deletedCount,

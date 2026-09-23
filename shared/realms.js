@@ -1,4 +1,7 @@
 import { RuleError } from './engine.js';
+import { CARDS } from './cards.js';
+import { makeItem } from './progression.js';
+import { CHAPTERS,TALENTS,ensureAdventure,dailyState,chapterProgress,talentPoints,adventureJournal } from './adventure.js';
 
 export const REGIONS = [
   {id:'haven',name:'Porto das Cinzas',kind:'sanctuary',x:48,y:48,level:1,board:'court-board',resource:'timber',links:['rosekeep','moonwood','quarry'],description:'O último porto neutro de Véspera. Casas rivais dividem a taverna, a forja e seus segredos.',icon:'⌂'},
@@ -11,8 +14,13 @@ export const REGIONS = [
   {id:'lake',name:'Lago do Véu Partido',kind:'wilds',x:85,y:43,level:1,board:'forest-board',resource:'essence',links:['moonwood','peak','bridge'],description:'Reflexos de luas esquecidas prometem poder aos que enfrentam seus guardiões.',icon:'◈'},
   {id:'crypt',name:'Sepulcro de Mordrath',kind:'dungeon',x:48,y:88,level:2,board:'crypt-board',resource:'ore',links:['quarry','bridge'],description:'Uma expedição em três mesas. Venza os guardiões, abra a tumba e desafie o Rei Sepultado.',icon:'☠'},
   {id:'bridge',name:'Ponte das Viúvas',kind:'fortress',x:67,y:63,level:1,board:'siege-board',resource:'ore',links:['quarry','lake','crypt','citadel'],description:'A travessia entre dois reinos. Sob as correntes, os nomes dos mortos ecoam.',icon:'♜'},
-  {id:'citadel',name:'Cidadela do Eclipse',kind:'capital',x:84,y:78,level:3,board:'siege-board',resource:'essence',links:['bridge'],description:'A última mesa da conquista. Seu estandarte será visto em toda Véspera.',icon:'♛'}
+  {id:'citadel',name:'Cidadela do Eclipse',kind:'capital',x:84,y:78,level:3,board:'siege-board',resource:'essence',links:['bridge','abyss'],description:'A última mesa da conquista. Seu estandarte será visto em toda Véspera.',icon:'♛'},
+  {id:'observatory',name:'Observatório do Véu',kind:'wilds',x:52,y:12,level:3,board:'court-board',resource:'essence',links:['moonwood','crown'],description:'Astrolábios leem constelações que deixaram de existir. Aqui, toda estrela tem uma dívida.',icon:'✧'},
+  {id:'abbey',name:'Abadia Sem Rosto',kind:'dungeon',x:9,y:44,level:4,board:'crypt-board',resource:'essence',links:['marsh','crown'],description:'Três vigílias entre vitrais partidos. Os monges guardam os nomes de seus futuros visitantes.',icon:'☠'},
+  {id:'ashroad',name:'Estrada dos Exilados',kind:'wilds',x:67,y:88,level:3,board:'siege-board',resource:'timber',links:['crypt','bridge','abyss'],description:'Caravanas de ambas as linhagens cruzam cinzas que ainda guardam calor.',icon:'◇'},
+  {id:'abyss',name:'Coração do Abismo',kind:'dungeon',x:94,y:59,level:5,board:'crypt-board',resource:'ore',links:['citadel','ashroad','lake'],description:'A última fronteira. Uma fome sem rosto aguarda além das três portas do eclipse.',icon:'☠'}
 ];
+for(const node of REGIONS)for(const id of [...node.links]){const other=REGIONS.find(n=>n.id===id);if(other&&!other.links.includes(node.id))other.links.push(node.id);}
 export const AVATARS=['vesper','kael','mordrath','raven','thorn','oracle'];
 export const POLICIES={expedition:{name:'Expedição',description:'+1 madeira, minério ou essência nas vitórias de expedição.'},commerce:{name:'Comércio',description:'+5 Marcas na primeira vitória remunerada em cada região a cada cinco minutos.'},bastion:{name:'Bastião',description:'Fortalezas exigem uma vitória adicional de invasores para serem tomadas.'}};
 export const MATERIALS={timber:'Madeira',ore:'Minério',essence:'Essência'};
@@ -20,9 +28,9 @@ const check=(ok,message)=>{if(!ok)throw new RuleError(message);};
 const region=id=>REGIONS.find(n=>n.id===id);
 export function createWorld(){return {version:1,houses:[],territories:Object.fromEntries(REGIONS.filter(n=>['capital','fortress'].includes(n.kind)).map(n=>[n.id,{owner:null,influence:{},protectedUntil:0}])),wars:[],events:[]};}
 export function enterRealms(profile,createId,now=Date.now()){
-  if(profile.realm)return false;
+  if(profile.realm)return ensureAdventure(profile.realm);
   profile.realm={publicId:createId(),version:1,location:'haven',avatar:profile.starterFaction==='werewolf'?'kael':'vesper',xp:0,level:1,provisions:20,materials:{timber:0,ore:0,essence:0},holdings:{camp:1,forge:0,library:0},visited:['haven'],gathered:{},claims:{},houseId:null,activeRoom:null,expedition:null,seenAt:now};
-  return true;
+  ensureAdventure(profile.realm);return true;
 }
 function journal(world,text,now){world.events.unshift({text,at:now});world.events=world.events.slice(0,60);world.version++;}
 function houseOf(world,profile){return world.houses.find(h=>h.id===profile.realm.houseId);}
@@ -41,13 +49,14 @@ export function realmView(world,profile,profiles,now=Date.now(),includeProfile=t
     byPublicId.set(p.realm.publicId,p);
     if(now-p.realm.seenAt<45000)people.push({id:p.realm.publicId,name:p.name,avatar:p.realm.avatar,location:p.realm.location,level:p.realm.level,faction:p.starterFaction,houseId:p.realm.houseId,busy:!!p.realm.activeRoom});
   }
-  const profileView=includeProfile?profile:{id:profile.id,name:profile.name,starterFaction:profile.starterFaction};
+  const profileView=includeProfile?profile:{id:profile.id,name:profile.name,starterFaction:profile.starterFaction,level:profile.level||1,xp:profile.xp||0,coins:profile.coins||0,dust:profile.dust||0,scrap:profile.scrap||0};
   return {version:world.version,serverTime:now,player:structuredClone(r),regions:REGIONS,territories:world.territories,houses:world.houses.map(h=>({...h,members:h.members.map(id=>({id,name:byPublicId.get(id)?.name||'Viajante'}))})),wars:world.wars.slice(-30),events:world.events.slice(0,12),online:people,profile:profileView};
 }
 export function realmAction(world,profile,input,createId,now=Date.now()){
   expirePolitics(world,now);
   const r=profile.realm;check(r,'Entre em Reinos primeiro.');check(input.version===r.version,'Sua aventura mudou. Atualize o mapa e tente novamente.');
   const here=region(r.location),house=houseOf(world,profile),action=input.type;
+  ensureAdventure(r);const adventure=r.adventure;
   check(!r.activeRoom||action==='avatar','Conclua ou abandone o combate antes de agir no mundo.');
   if(action==='travel'){
     const destination=region(input.destination);check(destination&&here.links.includes(destination.id),'Viaje por uma rota conectada.');check(r.level>=destination.level,`Esta região exige nível de exploração ${destination.level}.`);check(r.provisions>0,'Reabasteça suas provisões no acampamento.');
@@ -55,12 +64,23 @@ export function realmAction(world,profile,input,createId,now=Date.now()){
   }else if(action==='retreat'){r.location='haven';r.expedition=null;}
   else if(action==='gather'){
     check(here.kind!=='sanctuary','Explore uma região para coletar recursos.');check(now-(r.gathered[here.id]||0)>=60000,'Este local ainda se recupera. Aguarde um minuto entre coletas.');check(r.provisions>=1,'Você precisa de uma provisão.');
-    r.provisions--;r.gathered[here.id]=now;r.materials[here.resource]+=2+r.holdings.camp;gainXP(r,8);
-  }else if(action==='rest'){check(r.provisions<20+r.holdings.camp*5,'Suas provisões estão completas.');debit(profile,10);r.provisions=Math.min(20+r.holdings.camp*5,r.provisions+8);}
+    r.provisions--;r.gathered[here.id]=now;const amount=2+r.holdings.camp+adventure.talents.scout;r.materials[here.resource]+=amount;gainXP(r,8);adventure.stats.gathers++;dailyState(r,now).gathers++;adventureJournal(r,`Coleta em ${here.name}: +${amount} ${MATERIALS[here.resource]}.`,now);
+  }else if(action==='rest'){check(r.provisions<20+r.holdings.camp*5,'Suas provisões estão completas.');debit(profile,10);r.provisions=Math.min(20+r.holdings.camp*5,r.provisions+8+adventure.talents.warden*2);}
+  else if(action==='relief'){check(here.id==='haven','O auxílio é oferecido no Porto das Cinzas.');check(!adventure.reliefAt||now-adventure.reliefAt>=3600000,'O porto pode ajudá-lo novamente após uma hora.');check(r.provisions<8,'Guarde o auxílio para quando restarem menos de 8 provisões.');r.provisions=8;adventure.reliefAt=now;adventureJournal(r,'Iria compartilhou os mantimentos do porto. Sua jornada continua.',now);}
+  else if(action==='talent'){check(Object.hasOwn(TALENTS,input.talent),'Especialização desconhecida.');check(talentPoints(r)>0,'Alcance outro nível de exploração para ganhar um ponto.');check(adventure.talents[input.talent]<3,'Esta especialização já está no grau máximo.');adventure.talents[input.talent]++;}
+  else if(action==='respec'){check(Object.values(adventure.talents).some(n=>n>0),'Nenhum ponto foi distribuído.');debit(profile,40);adventure.talents={scout:0,warden:0,artisan:0};}
+  else if(action==='chapter'){
+    const progress=chapterProgress(r);check(progress.ready,'Conclua os objetivos deste capítulo primeiro.');const chapter=progress.chapter,choice=chapter.choices.find(c=>c[0]===input.choice);check(choice,'Escolha como encerrar este capítulo.');
+    check(!adventure.claimed.includes(chapter.id),'Este capítulo já foi concluído.');const reward=chapter.reward;profile.coins+=reward.coins||0;profile.dust=(profile.dust||0)+(reward.dust||0);profile.scrap=(profile.scrap||0)+(reward.scrap||0);for(const key of Object.keys(MATERIALS))r.materials[key]+=reward[key]||0;
+    if(reward.gear){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===reward.gear);profile.items||=[];profile.items.push(makeItem(pool[adventure.chapter%pool.length].id,createId,'chronicle'));}
+    adventure.claimed.push(chapter.id);adventure.choices[chapter.id]=choice[0];adventure.chapter++;gainXP(r,40);adventureJournal(r,`${chapter.title}: ${choice[1]}. ${choice[2]}`,now);
+  }
+  else if(action==='daily-claim'){const day=dailyState(r,now);check(!day.claimed&&day.gathers>=3&&day.wins>=2,'A comissão exige 3 coletas e 2 vitórias e só pode ser recebida uma vez por dia.');day.claimed=true;profile.coins+=60;profile.scrap=(profile.scrap||0)+10;gainXP(r,30);adventureJournal(r,'Comissão da Vigília concluída: +60 Marcas e +10 sucatas.',now);}
+  else if(action==='forge-gear'){check(r.holdings.forge>=1,'Construa sua Forja primeiro.');const rarity=r.holdings.forge>=3?'uncommon':'common';debit(profile,rarity==='common'?25:50,{ore:rarity==='common'?6:10,essence:2});const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===rarity);profile.items||=[];const card=pool[(profile.items.length+adventure.stats.gathers)%pool.length];profile.items.push(makeItem(card.id,createId,'realm-forge'));adventureJournal(r,`Relíquia forjada: ${card.name}. Encontre-a no Relicário.`,now);}
   else if(action==='upgrade'){
     check(['camp','forge','library'].includes(input.building),'Construção desconhecida.');const level=r.holdings[input.building];check(level<5,'A construção já está no nível máximo.');
     debit(profile,20*(level+1),{timber:4*(level+1),ore:3*(level+1)});r.holdings[input.building]++;gainXP(r,25);
-  }else if(action==='refine'){check(r.holdings.forge>0,'Construa uma forja primeiro.');debit(profile,5,{ore:3});profile.scrap+=4+r.holdings.forge;}
+  }else if(action==='refine'){check(r.holdings.forge>0,'Construa uma forja primeiro.');debit(profile,5,{ore:3});profile.scrap+=4+r.holdings.forge+adventure.talents.artisan*2;}
   else if(action==='study'){check(r.holdings.library>0,'Construa uma biblioteca primeiro.');debit(profile,5,{essence:3});profile.dust+=6+r.holdings.library*2;}
   else if(action==='avatar'){check(AVATARS.includes(input.avatar),'Avatar desconhecido.');r.avatar=input.avatar;}
   else if(action==='found'){
@@ -85,17 +105,18 @@ function resolveVote(house,world,now){const p=house.proposal;if(p.votes.length>=
 export function prepareEncounter(world,profile,now=Date.now()){
   const r=profile.realm,n=region(r.location);check(!r.activeRoom,'Você já tem uma aventura em combate.');check(n.kind!=='sanctuary','O porto é uma zona de paz.');check(r.provisions>=2,'Uma expedição exige duas provisões.');
   const territory=world.territories[n.id],house=houseOf(world,profile);
-  if(territory?.owner&&territory.owner!==house?.id){check(world.wars.some(w=>w.status==='active'&&w.endsAt>now&&[w.attacker,w.defender].includes(territory.owner)&&[w.attacker,w.defender].includes(house?.id)),'Este território pertence a outra Casa. Declare guerra antes de atacar.');check(territory.protectedUntil<=now,'Este território está sob trégua após uma conquista.');}
+  // Solo expeditions remain accessible; territorial conquest is checked at settlement.
   const stage=n.kind==='dungeon'?(r.expedition?.node===n.id?r.expedition.stage:0):0;
-  return {node:n.id,stage,stages:n.kind==='dungeon'?3:1,board:n.board,title:n.kind==='dungeon'?['Portão dos Sepultados','Galeria dos Esquecidos','Trono de Mordrath'][stage]:`Disputa por ${n.name}`,difficulty:n.level,houseId:house?.id||null};
+  return {node:n.id,stage,stages:n.kind==='dungeon'?3:1,board:n.board,title:n.kind==='dungeon'?(n.id==='abbey'?['Claustro das Cinzas','Coro dos Condenados','Altar da Abadessa']:n.id==='abyss'?['Escadaria sem Lua','Coração da Fenda','Trono do Devorador']:['Portão dos Sepultados','Galeria dos Esquecidos','Trono de Mordrath'])[stage]:`Expedição em ${n.name}`,difficulty:n.level,houseId:house?.id||null};
 }
 export function settleEncounter(world,profile,encounter,won,conceded,now=Date.now()){
+  ensureAdventure(profile.realm);
   const r=profile.realm;r.activeRoom=null;r.version++;const n=region(encounter.node),house=houseOf(world,profile);const reward={xp:0,coins:0,materials:0,loot:false,message:''};
   if(!won||conceded){r.expedition=null;reward.message='A expedição recuou. Seus territórios e construções permanecem.';return reward;}
   const final=encounter.stage+1>=encounter.stages;
   r.expedition=final?null:{node:n.id,stage:encounter.stage+1};
   const key=`${n.id}:${encounter.stage}`,eligible=now-(r.claims[key]||0)>=300000;
-  if(eligible){r.claims[key]=now;reward.xp=30+encounter.difficulty*10;gainXP(r,reward.xp);reward.coins=10+(house?.policy==='commerce'?5:0);profile.coins+=reward.coins;reward.materials=2+(house?.policy==='expedition'?1:0);r.materials[n.resource]+=reward.materials;reward.loot=final;}
+  if(eligible){r.claims[key]=now;reward.xp=30+encounter.difficulty*10;gainXP(r,reward.xp);reward.coins=10+(house?.policy==='commerce'?5:0);profile.coins+=reward.coins;reward.materials=2+(house?.policy==='expedition'?1:0);r.materials[n.resource]+=reward.materials;reward.loot=final;r.adventure.stats.wins++;dailyState(r,now).wins++;if(final&&encounter.stages>1)r.adventure.stats.dungeons++;adventureJournal(r,`Vitória em ${n.name} · ${encounter.stage+1}/${encounter.stages}. +${reward.xp} XP de exploração.`,now);}
   reward.message=final?'Expedição concluída.':'Mesa vencida. A próxima instância está aberta.';
   const t=world.territories[n.id];
   if(t&&house&&house.id===encounter.houseId&&eligible){

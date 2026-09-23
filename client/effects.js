@@ -1,21 +1,54 @@
+import {savageImpact} from '/visceral.js';
+import {richSound} from '/soundscape.js';
 let enabled=localStorage.getItem('bloodmoon.sound')==='true',context;
+const musicTracks={
+  title:'/music/song1.mp3',
+  ambient:'/music/ambient_idle.mp3',
+  battle:'/music/battle.mp3',
+  expedition:'/music/battle2.mp3'
+};
+let musicAudio=null,musicScene=null,musicFade=null,musicTransition=0;
 export const soundEnabled=()=>enabled;
-export function toggleSound(){enabled=!enabled;localStorage.setItem('bloodmoon.sound',String(enabled));if(enabled)playSound('start');}
-export function playSound(type){
-  if(!enabled)return;
-  try{
-    context||=new (window.AudioContext||window.webkitAudioContext)();
-    if(context.state==='suspended')context.resume();
-    const t=context.currentTime,osc=context.createOscillator(),gain=context.createGain();
-    osc.connect(gain);gain.connect(context.destination);
-    const hit=['attack','damage','ultimate','clash','death'].includes(type);
-    osc.type=hit?'sawtooth':'sine';
-    osc.frequency.setValueAtTime(hit?145:type==='select'?440:290,t);
-    osc.frequency.exponentialRampToValueAtTime(hit?38:720,t+(hit?.28:.18));
-    gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(hit?.085:.04,t+.012);
-    gain.gain.exponentialRampToValueAtTime(.001,t+(hit?.32:.2));osc.start(t);osc.stop(t+(hit?.33:.21));
-  }catch{/* Optional sound never blocks a turn. */}
+export function setMusicScene(scene){
+  if(!musicTracks[scene])return;
+  musicScene=scene;
+  if(!enabled){musicAudio?.pause();return;}
+  if(!musicAudio){musicAudio=new Audio();musicAudio.loop=true;musicAudio.preload='none';musicAudio.volume=0;}
+  const source=new URL(musicTracks[scene],location.href).href;
+  if(musicAudio.src===source){
+    if(musicAudio.paused)musicAudio.play().then(()=>fadeMusic(0.32,500)).catch(()=>{});
+    else if(musicAudio.volume<0.32)fadeMusic(0.32,500);
+    return;
+  }
+  const transition=++musicTransition;
+  clearInterval(musicFade);
+  const fadeOut=()=>{
+    if(transition!==musicTransition)return;
+    const next=Math.max(0,musicAudio.volume-0.06);
+    musicAudio.volume=next;
+    if(next>0){musicFade=setTimeout(fadeOut,35);return;}
+    musicAudio.pause();musicAudio.src=source;musicAudio.load();
+    musicAudio.play().then(()=>{if(transition===musicTransition)fadeMusic(0.32,900);}).catch(()=>{});
+  };
+  if(musicAudio.paused||!musicAudio.src){musicAudio.src=source;musicAudio.play().then(()=>{if(transition===musicTransition)fadeMusic(0.32,900);}).catch(()=>{});}
+  else fadeOut();
 }
+function fadeMusic(target,duration){
+  clearInterval(musicFade);
+  const start=musicAudio?.volume||0,started=performance.now();
+  musicFade=setInterval(()=>{
+    if(!musicAudio){clearInterval(musicFade);return;}
+    const progress=Math.min(1,(performance.now()-started)/duration);
+    musicAudio.volume=Math.max(0,Math.min(1,start+(target-start)*progress));
+    if(progress>=1)clearInterval(musicFade);
+  },40);
+}
+export function toggleSound(){
+  enabled=!enabled;localStorage.setItem('bloodmoon.sound',String(enabled));
+  if(enabled){playSound('start');if(musicScene)setMusicScene(musicScene);}
+  else{musicTransition++;clearInterval(musicFade);if(musicAudio){fadeMusic(0,180);setTimeout(()=>{if(!enabled)musicAudio?.pause();},200);}}
+}
+export function playSound(type){if(enabled)richSound(type);}
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const rect=el=>el?.getBoundingClientRect?.()||null;
 const center=r=>r?{x:r.left+r.width/2,y:r.top+r.height/2}:null;
@@ -76,6 +109,44 @@ function appendImpact(root,point,type){
     const wave=document.createElement('i');wave.className='heal-wave';wave.style.left=`${point.x}px`;wave.style.top=`${point.y}px`;root.append(wave);setTimeout(()=>wave.remove(),750);
   }
 }
+let siphonId=0;
+async function appendBloodSiphon(root,sourceRect,targetRect,speed=1){
+  if(!root||!sourceRect||!targetRect||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const ns='http://www.w3.org/2000/svg',width=root.clientWidth,height=root.clientHeight;if(!width||!height)return;
+  const start=overlayPoint(sourceRect,rect(document.querySelector('.arena'))),end=overlayPoint(targetRect,rect(document.querySelector('.arena'))),dx=end.x-start.x,dy=end.y-start.y,distance=Math.hypot(dx,dy)||1,nx=-dy/distance,ny=dx/distance;
+  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('preserveAspectRatio','none');svg.classList.add('blood-siphon');svg.setAttribute('aria-hidden','true');
+  const defs=document.createElementNS(ns,'defs'),filter=document.createElementNS(ns,'filter'),blur=document.createElementNS(ns,'feGaussianBlur'),merge=document.createElementNS(ns,'feMerge'),blurNode=document.createElementNS(ns,'feMergeNode'),sourceNode=document.createElementNS(ns,'feMergeNode');filter.id=`blood-siphon-glow-${++siphonId}`;filter.setAttribute('x','-60%');filter.setAttribute('y','-60%');filter.setAttribute('width','220%');filter.setAttribute('height','220%');blur.setAttribute('stdDeviation','1.35');blur.setAttribute('result','glow');blurNode.setAttribute('in','glow');sourceNode.setAttribute('in','SourceGraphic');merge.append(blurNode,sourceNode);filter.append(blur,merge);defs.append(filter);svg.append(defs);
+  const duration=900/speed,filamentCount=19,filaments=[];
+  // Many separate hairline vessels replace the old broad central ribbon.
+  for(let i=0;i<filamentCount;i++){
+    const lane=i-(filamentCount-1)/2,phase=i*2.399963,amp=14+(i%5)*5.5;
+    const sx=start.x+nx*lane*1.25,sy=start.y+ny*lane*1.25,ex=end.x+nx*Math.sin(phase*.73)*5,ey=end.y+ny*Math.sin(phase*.73)*5;
+    const a=Math.sin(phase),b=Math.cos(phase*1.31),c=Math.sin(phase+1.8);
+    const p1x=start.x+dx*.22+nx*(a*amp*1.4)+dx/distance*(b*amp*.13),p1y=start.y+dy*.22+ny*(a*amp*1.4)+dy/distance*(b*amp*.13);
+    const mx=start.x+dx*.51+nx*(b*amp*.78),my=start.y+dy*.51+ny*(b*amp*.78);
+    const p2x=start.x+dx*.79+nx*(c*amp*1.25)-dx/distance*(a*amp*.12),p2y=start.y+dy*.79+ny*(c*amp*1.25)-dy/distance*(a*amp*.12);
+    const d=`M ${sx} ${sy} C ${p1x} ${p1y}, ${mx-nx*a*amp*.62} ${my-ny*a*amp*.62}, ${mx} ${my} C ${mx+nx*b*amp*.82} ${my+ny*b*amp*.82}, ${p2x} ${p2y}, ${ex} ${ey}`;
+    const color=i%7===0?'#ffb0ae':i%3===0?'#ff5265':i%2?'#d91d42':'#a80d2d',widthPx=i%7===0?1.45:i%3===0?1.08:.72;
+    const halo=document.createElementNS(ns,'path');halo.setAttribute('d',d);halo.setAttribute('fill','none');halo.setAttribute('stroke',i%3===0?'#ff1f48':'#c81036');halo.setAttribute('stroke-width',`${widthPx*2.8}`);halo.setAttribute('stroke-linecap','round');halo.setAttribute('opacity','.24');halo.setAttribute('filter',`url(#${filter.id})`);svg.append(halo);
+    const core=document.createElementNS(ns,'path');core.setAttribute('d',d);core.setAttribute('fill','none');core.setAttribute('stroke',color);core.setAttribute('stroke-width',`${widthPx}`);core.setAttribute('stroke-linecap','round');core.setAttribute('opacity',i%7===0?'.96':'.78');svg.append(core);
+    const length=core.getTotalLength();for(const path of [halo,core]){path.style.strokeDasharray=`${length}`;path.style.strokeDashoffset=`${length}`;path.animate([{strokeDashoffset:length,opacity:0},{strokeDashoffset:length*.66,opacity:1,offset:.28},{strokeDashoffset:0,opacity:path===core?(i%7===0?'.96':'.78'):'.24'}],{duration,easing:'cubic-bezier(.16,.74,.18,1)',delay:(i%6)*15/speed,fill:'forwards'});}
+    filaments.push({d,phase,amp});
+    if(i%3===0){const pulse=document.createElementNS(ns,'circle');pulse.setAttribute('r',i%6===0?'1.8':'1.25');pulse.setAttribute('fill',i%6===0?'#ffe0cf':'#ff6372');pulse.setAttribute('filter',`url(#${filter.id})`);const motion=document.createElementNS(ns,'animateMotion');motion.setAttribute('path',d);motion.setAttribute('dur',`${duration*.82}ms`);motion.setAttribute('begin',`${(i%5)*28/speed}ms`);motion.setAttribute('fill','freeze');pulse.append(motion);svg.append(pulse);}
+  }
+  // Fine secondary branches make the stream read as a branching vein network.
+  for(let i=0;i<15;i++){
+    const lane=filaments[(i*7+3)%filamentCount],t=.13+(i%8)*.095,side=i%2?1:-1,offset=Math.sin(lane.phase+t*4)*lane.amp*.68;
+    const ax=start.x+dx*t+nx*offset,ay=start.y+dy*t+ny*offset,branchLen=10+(i%4)*5;
+    const bx=ax+nx*side*branchLen+dx/distance*(i%3-1)*4,by=ay+ny*side*branchLen+dy/distance*(i%3-1)*4;
+    const branch=document.createElementNS(ns,'path'),d=`M ${bx} ${by} Q ${ax+nx*side*branchLen*.35} ${ay+ny*side*branchLen*.35} ${ax} ${ay}`;
+    branch.setAttribute('d',d);branch.setAttribute('fill','none');branch.setAttribute('stroke',i%4===0?'#ff5365':'#a90c2c');branch.setAttribute('stroke-width',i%4===0?'.92':'.62');branch.setAttribute('stroke-linecap','round');branch.setAttribute('opacity','.68');branch.setAttribute('filter',`url(#${filter.id})`);svg.append(branch);
+    const length=branch.getTotalLength();branch.style.strokeDasharray=`${length}`;branch.style.strokeDashoffset=`${length}`;branch.animate([{strokeDashoffset:length,opacity:0},{strokeDashoffset:0,opacity:.68}],{duration:duration*.62,delay:70+(i%7)*18,fill:'forwards',easing:'ease-out'});
+  }
+  for(let i=0;i<3;i++){
+    const ring=document.createElementNS(ns,'circle');ring.setAttribute('cx',end.x);ring.setAttribute('cy',end.y);ring.setAttribute('r','18');ring.setAttribute('fill','none');ring.setAttribute('stroke',i===0?'#ff6677':'#c51b3b');ring.setAttribute('stroke-width',i===0?'.9':'.65');ring.setAttribute('opacity',i===0?'.62':'.34');ring.setAttribute('filter',`url(#${filter.id})`);ring.animate([{r:12+i*5,opacity:.04},{r:24+i*7,opacity:i===0?.62:.32,offset:.55},{r:34+i*8,opacity:0}],{duration:duration*.85,delay:duration*.18+i*100/speed,fill:'forwards',easing:'ease-out'});svg.append(ring);
+  }
+  root.append(svg);const avatar=targetRect?.element?.matches?.('.hero-portrait')?targetRect.element:targetRect?.element?.querySelector?.('.hero-portrait'),wound=sourceRect?.element?.matches?.('.fighter,.hero-portrait')?sourceRect.element:sourceRect?.element?.closest?.('.fighter')||sourceRect?.element?.querySelector?.('.hero-portrait');avatar?.classList.add('blood-siphon-target');wound?.classList.add('blood-siphon-source');setTimeout(()=>{avatar?.classList.remove('blood-siphon-target');wound?.classList.remove('blood-siphon-source');},duration+250);await sleep(duration+80);svg.remove();
+}
 async function fly(node,from,to,root,arena,{duration=430,scale=.68,arc=-35}={}){
   if(!node||!from||!to)return;
   const a=overlayPoint(from,arena),b=overlayPoint(to,arena),dx=b.x-a.x,dy=b.y-a.y;
@@ -90,16 +161,16 @@ async function fly(node,from,to,root,arena,{duration=430,scale=.68,arc=-35}={}){
 function tweenTarget(el,type){
   if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   try{el.animate(type==='damage'?
-    [{transform:'translateX(0) scale(1)',filter:'brightness(1)'},{transform:'translateX(-8px) scale(1.08)',filter:'brightness(2) saturate(1.7)'},{transform:'translateX(6px) scale(.96)',filter:'brightness(1.35)'},{transform:'translateX(0) scale(1)',filter:'brightness(1)'}]:
-    [{transform:'scale(1)'},{transform:'scale(1.18)',filter:'brightness(1.4)'},{transform:'scale(1)',filter:'brightness(1)'}],{duration:type==='damage'?430:520,easing:'ease-out'});}catch{}
+    [{transform:'translate(0,0) rotate(0) scale(1)',filter:'brightness(1) saturate(1)'},{transform:'translate(-12px,3px) rotate(-4deg) scale(1.11)',filter:'brightness(2.1) saturate(2.1) contrast(1.25)',offset:.18},{transform:'translate(10px,-2px) rotate(3deg) scale(.94)',filter:'brightness(.68) saturate(1.8)',offset:.38},{transform:'translate(-5px,1px) rotate(-1.5deg) scale(1.025)',filter:'brightness(1.35) saturate(1.45)',offset:.62},{transform:'translate(2px,0) rotate(.5deg) scale(1)',filter:'brightness(1) saturate(1)'}]:
+    [{transform:'scale(1)'},{transform:'scale(1.18)',filter:'brightness(1.4)'},{transform:'scale(1)',filter:'brightness(1)'}],{duration:type==='damage'?510:520,easing:'cubic-bezier(.12,.75,.22,1)'});}catch{}
 }
 
-export async function animateEvents(events,seat,frame){
+export async function animateEvents(events,seat,frame,{speed=1}={}){
   const root=document.querySelector('#effects'),arena=document.querySelector('.arena');
   if(!root||!arena)return;
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,arenaRect=rect(arena);
   let cardFlight=frame?.cardFlight||null,cardUsed=false;
-  for(const e of events.slice(-32)){
+  for(const e of events){
     if(!root.isConnected)return;
     const isCardResult=['summon','skill','equip','heal','damage','claim','loot'].includes(e.type);
     if(cardFlight&&!cardUsed&&e.seat===seat&&isCardResult){
@@ -115,13 +186,20 @@ export async function animateEvents(events,seat,frame){
       const ghost=frame?.sourceFlight?.cloneNode?.(true)||cloneForFlight(source,'fighter',sourceR);
       if(ghost)ghost.classList.add('attack-flight');
       if(!reduce&&ghost&&sourceR&&targetR){playSound('attack');await fly(ghost,sourceR,targetR,root,arenaRect,{duration:330,scale:.82,arc:e.seat===seat?-26:26});}
-      if(targetR){const p=overlayPoint(targetR,arenaRect);const trail=document.createElement('i');trail.className='strike-flash';trail.style.left=`${p.x}px`;trail.style.top=`${p.y}px`;root.append(trail);setTimeout(()=>trail.remove(),320);}
+      if(targetR){const p=overlayPoint(targetR,arenaRect);savageImpact(root,p,{heavy:e.target==='hero',wolf:source?.classList.contains('werewolf')||e.seat!==seat});const trail=document.createElement('i');trail.className='strike-flash';trail.style.left=`${p.x}px`;trail.style.top=`${p.y}px`;root.append(trail);setTimeout(()=>trail.remove(),320);}
+    }
+    if(e.type==='heal'&&e.drain){
+      playSound('drain');
+      const source=e.source==='hero'?findHero(e.sourceSeat):findUnit(e.source),from=rect(source)||(e.source==='hero'?frame?.positions?.heroes?.[e.sourceSeat]:frame?.positions?.units?.[e.source]),to=rect(findHero(e.seat)),target=document.querySelector(`[data-hero="${e.seat}"] .hero-portrait`);
+      if(from&&to&&!reduce)await appendBloodSiphon(root,{left:from.left,top:from.top,width:from.width,height:from.height,element:source?.querySelector?.('.hero-portrait')||source},{left:to.left,top:to.top,width:to.width,height:to.height,element:target},speed);
     }
     if(e.type==='damage'||e.type==='heal'){
+      if(e.type==='heal'&&!e.drain)playSound('heal');
       const target=e.target==='hero'?findHero(e.seat):findUnit(e.target);
       const r=rect(target)||eventTargetRect(e,seat,frame),point=overlayPoint(r,arenaRect);
       if(e.amount>0){const amount=document.createElement('span');amount.className=`floating ${e.type} ${e.target==='hero'?'hero-number':'unit-number'}`;amount.textContent=e.type==='damage'?`−${e.amount}`:`+${e.amount}`;amount.style.left=`${point.x}px`;amount.style.top=`${point.y}px`;root.append(amount);setTimeout(()=>amount.remove(),1250);appendImpact(root,point,e.type);}
       if(e.blocked){const block=document.createElement('span');block.className='floating guard-block';block.textContent=`✧ ${e.blocked} BLOQUEADO`;block.style.left=`${point.x}px`;block.style.top=`${point.y-24}px`;root.append(block);setTimeout(()=>block.remove(),1050);const shield=document.createElement('i');shield.className='guard-impact';shield.style.left=`${point.x}px`;shield.style.top=`${point.y}px`;root.append(shield);setTimeout(()=>shield.remove(),520);}
+      if(e.amount>0&&e.type==='damage'){savageImpact(root,point,{heavy:e.amount>=4||e.target==='hero',wolf:arena.classList.contains('werewolf')});}
       if(e.amount>0)tweenTarget(target|| (e.target==='hero'?document.querySelector(`[data-hero="${e.seat}"]`):null),e.type);
       if(e.target==='hero'){
         const hero=document.querySelector(`[data-hero="${e.seat}"]`);
@@ -147,11 +225,12 @@ export async function animateEvents(events,seat,frame){
       if(['ultimate','clash','curse'].includes(e.type)&&!reduce){try{arena.animate([{transform:'translate(0)'},{transform:'translate(-6px,3px)'},{transform:'translate(5px,-3px)'},{transform:'translate(-2px,1px)'},{transform:'translate(0)'}],{duration:e.type==='ultimate'?430:290,easing:'ease-out'});}catch{}}
       playSound(e.type);
     }
+    if(['equip','skill','ultimate','synergy','summon'].includes(e.type)&&!reduce){const r=eventTargetRect(e,seat,frame);if(r){const point=overlayPoint(r,arenaRect),ring=document.createElement('i');ring.className='ritual-ring '+e.type;ring.style.left=point.x+'px';ring.style.top=point.y+'px';root.append(ring);setTimeout(()=>ring.remove(),800);}}
     if(e.type==='summon'){
       const unit=findUnit(e.target);if(unit&&!reduce){try{unit.animate([{transform:'translateY(42px) scale(.48)',opacity:.15,filter:'brightness(2)'},{transform:'translateY(-8px) scale(1.12)',opacity:1,filter:'brightness(1.3)'},{transform:'translateY(0) scale(1)',opacity:1,filter:'brightness(1)'}],{duration:430,easing:'cubic-bezier(.2,.8,.22,1)'});}catch{}}
       playSound('summon');
     }
-    if(!reduce)await sleep(e.type==='attack'?50:['ultimate','clash'].includes(e.type)?180:65);
+    if(!reduce)await sleep((['damage','heal'].includes(e.type)?340:['ultimate','clash','round'].includes(e.type)?600:e.type==='summon'?450:120)/speed);
   }
   cardFlight?.remove();
   if(!reduce)await sleep(100);

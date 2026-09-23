@@ -22,6 +22,9 @@ test('API: acesso, privacidade, concorrência e duelo completo', async () => {
     const a=(await request('/api/profile','POST',{name:'A'})).data;
     const b=(await request('/api/profile','POST',{name:'B',faction:'werewolf'})).data;
     const outsider=(await request('/api/profile','POST',{name:'C'})).data;
+    const readiness=await request('/api/readiness?faction=vampire','GET',undefined,a.id);
+    assert.equal(readiness.status,200);assert.equal(readiness.data.canStart,true);assert.equal(readiness.data.deck.cards,20);assert.ok(readiness.data.inventory.available>=1);
+    assert.equal((await request('/api/readiness')).status,401);
     const pack=await request('/api/boosters/open','POST',{},outsider.id);
     assert.equal(pack.status,200);assert.equal(pack.data.pulls.length,5);
     assert.equal(pack.data.pulls.filter(p=>p.item).length,1);
@@ -46,7 +49,23 @@ test('API: acesso, privacidade, concorrência e duelo completo', async () => {
     assert.equal(result.matches,1);assert.equal(result.xp,50);
     assert.equal((await request(route+'/actions','POST',{version:room.version,action:{type:'pass'}},a.id)).status,400);
     assert.equal((await request('/api/profile','GET',undefined,a.id)).data.xp,50);
+    const hunter=(await request('/api/profile','POST',{name:'Hunter',faction:'vampire'})).data;
+    for(let hunt=0;hunt<4;hunt++){
+      let practice=(await request('/api/rooms','POST',{mode:'practice',faction:'vampire'},hunter.id)).data;
+      for(let turn=0;turn<32&&practice.phase==='playing';turn++)practice=(await request(`/api/rooms/${practice.roomId}/actions`,'POST',{version:practice.version,action:{type:'pass'}},hunter.id)).data;
+      assert.equal(practice.phase,'finished');
+    }
+    const progressed=(await request('/api/profile','GET',undefined,hunter.id)).data;
+    assert.equal(progressed.matches,4);assert.ok(progressed.items.some(item=>item.source==='contract'));
     const page=await fetch(origin);assert.equal(page.status,200);assert.match(await page.text(),/Bloodmoon/);
+    for(const track of ['song1','ambient_idle','battle','battle2']){
+      const audio=await fetch(`${origin}/music/${track}.mp3`);
+      assert.equal(audio.status,200,`${track} deve ser servido pelo jogo`);
+      assert.match(audio.headers.get('content-type')||'',/audio\/mpeg/);
+      assert.ok(Number(audio.headers.get('content-length'))>1000000);
+      await audio.body?.cancel();
+    }
+    assert.equal((await fetch(`${origin}/music/fora-da-lista.mp3`)).status,404);
     assert.equal((await fetch(origin+'/server/index.js')).status,404);
   } finally {
     const exited=once(server,'exit');server.kill();await exited;

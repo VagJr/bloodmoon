@@ -5,14 +5,19 @@ import { readFile, stat, mkdir, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { connectMongoStore } from './mongo-store.js';
+import { normalizeEmail, hashPassword, verifyPassword, newSession, sessionId, sessionCookie, allowAuthAttempt } from './auth.js';
+import {MatchQueue} from './matchmaking.js';
 import { createGame, replaceOpeningDeck, applyAction, botAction, publicView, RuleError } from '../shared/engine.js';
+import { RIVALS, buildRivalDeck, practiceRival, campaignRival } from '../shared/rivals.js';
 import { CARDS, DECKS } from '../shared/cards.js';
-import { ECONOMY, CONTRACTS, grantStarter, validateDeck, countCards, cardLimit, makeItem } from '../shared/progression.js';
+import { ECONOMY, CONTRACTS, grantStarter, grantSecondLineage, validateDeck, countCards, cardLimit, makeItem, applyDurabilityWear, deckCollection, reconcileDepletedGear, restoreReplacedGear, accountLevelForXP, xpThresholdForLevel } from '../shared/progression.js';
 import { createWorld, enterRealms, realmView, realmAction, prepareEncounter, settleEncounter, expirePolitics, REGIONS } from '../shared/realms.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rooms = new Map();
 const profiles = new Map();
+const accounts=new Map(),sessions=new Map();
+const matchQueue=new MatchQueue();
 const itemLocks = new Map();
 const dataDir=process.env.DATA_DIR || path.join(root,'data');
 const profileFile = path.join(dataDir, 'state.json');
@@ -22,6 +27,8 @@ if(process.env.NODE_ENV==='production'&&!process.env.MONGO_URI)throw new Error('
 const mongoStore=process.env.MONGO_URI?await connectMongoStore():null;
 if(mongoStore){
   const saved=await mongoStore.load();
+  for(const a of saved.accounts||[])accounts.set(a.id,a);
+  for(const s of saved.sessions||[])sessions.set(s.id,s);
   for(const p of saved.profiles)profiles.set(p.id,p);
   for(const r of saved.rooms)rooms.set(r.id,r);
   world=saved.world||world;
@@ -29,6 +36,8 @@ if(mongoStore){
 }else{
   try {
     const saved=JSON.parse(await readFile(profileFile,'utf8'));
+    for(const a of saved.accounts||[])accounts.set(a.id,a);
+    for(const s of saved.sessions||[])sessions.set(s.id,s);
     for(const p of saved.profiles)profiles.set(p.id,p);
     for(const r of saved.rooms||[])rooms.set(r.id,r);
     world=saved.world||world;
@@ -36,13 +45,13 @@ if(mongoStore){
 }
 for(const r of rooms.values())if(r.game.phase!=='finished')for(const ids of r.lockedItems||[])for(const id of ids)itemLocks.set(id,r.id);
 let saving = Promise.resolve();
-function persist({ profiles: changedProfiles = [], rooms: changedRooms = [], deleteRooms = [], world: saveWorld = false } = {}) {
+function persist({ profiles: changedProfiles = [], rooms: changedRooms = [], deleteRooms = [], world: saveWorld = false, accounts:changedAccounts=[],sessions:changedSessions=[],deleteSessions=[] } = {}) {
   saving = saving.catch(() => {}).then(async () => {
     if(mongoStore){
-      await mongoStore.save({profiles:changedProfiles,rooms:changedRooms,deleteRooms,world:saveWorld?world:undefined});
+      await mongoStore.save({profiles:changedProfiles,rooms:changedRooms,deleteRooms,world:saveWorld?world:undefined,accounts:changedAccounts,sessions:changedSessions,deleteSessions});
       return;
     }
-    const snapshot = JSON.stringify({schema:2,profiles:[...profiles.values()],rooms:[...rooms.values()],world}, null, 2);
+    const snapshot = JSON.stringify({schema:3,profiles:[...profiles.values()],rooms:[...rooms.values()],accounts:[...accounts.values()],sessions:[...sessions.values()],world}, null, 2);
     await mkdir(path.dirname(profileFile), { recursive: true });
     await writeFile(`${profileFile}.tmp`, snapshot);
     await rename(`${profileFile}.tmp`,profileFile);
@@ -56,13 +65,21 @@ async function body(req) {
   for await (const chunk of req) { data += chunk; if (Buffer.byteLength(data) > 8192) throw new RuleError('Requisição grande demais.'); }
   try { return JSON.parse(data || '{}'); } catch { throw new RuleError('JSON inválido.'); }
 }
-function identity(req) { return profiles.get(req.headers.authorization?.replace(/^Bearer /, '')); }
+function identity(req) {
+  const session=sessions.get(sessionId(req));
+  if(session&&session.expiresAt>Date.now()){const account=accounts.get(session.accountId);if(account)return profiles.get(account.profileId);}
+  const legacy=profiles.get(req.headers.authorization?.replace(/^Bearer /, ''));
+  return legacy&&!legacy.accountId?legacy:undefined;
+}
 function view(room, id) {
   const seat=room.seats.indexOf(id),reward=room.rewards?.[seat];
-  return { roomId: room.id, mode: room.mode, encounter:room.encounter||null, battlefield:room.battlefield||'court-board', riskMode:room.riskMode||'covenant', rewards:reward?{...reward,items:reward.items?.length||0}: {}, waiting: room.seats.length < 2, ...publicView(room.game, seat) };
+  return { roomId: room.id, mode: room.mode, encounter:room.encounter||null, opponent:room.opponent||null, battlefield:room.battlefield||'court-board', riskMode:room.riskMode||'covenant', rewards:reward?{...reward,items:reward.items?.length||0}: {}, waiting: room.seats.length < 2, ...publicView(room.game, seat) };
 }
 async function prepareProfile(profile,faction='vampire') {
   let changed=grantStarter(profile,faction,randomUUID);
+  if(grantSecondLineage(profile,randomUUID))changed=true;
+  if(reconcileDepletedGear(profile))changed=true;
+  if((profile.level||1)>10&&profile.xp<xpThresholdForLevel(profile.level)){profile.xp=xpThresholdForLevel(profile.level);changed=true;}
   const now=Date.now();for(const item of profile.items||[])if(item.listingId&&item.listedAt+ECONOMY.marketListingHours*3600000<=now){item.listingId=null;item.price=null;item.listedAt=null;changed=true;}
   if(changed)await persist({profiles:[profile]});
   return profile;
@@ -71,8 +88,8 @@ function activeDeck(profile,faction) {
   const id=profile.activeDecks?.[faction],deck=profile.decks?.find(d=>d.id===id&&d.faction===faction);
   return deck||null;
 }
-function validateOwnedDeck(cards,faction,profile) {
-  try{return validateDeck(cards,faction,profile.collection,profile.items);}catch(e){throw new RuleError(e.message);}
+function validateOwnedDeck(cards,faction,profile,autoRefills=[]) {
+  try{return validateDeck(cards,faction,deckCollection(profile.collection,autoRefills),profile.items);}catch(e){throw new RuleError(e.message);}
 }
 function reserveDeck(profile,cards,roomId) {
   const reserved=[];
@@ -88,6 +105,25 @@ function reserveDeck(profile,cards,roomId) {
   }catch(e){for(const id of reserved)itemLocks.delete(id);throw e;}
 }
 function unlockRoom(room) { for(const ids of room.lockedItems||[])for(const id of ids)itemLocks.delete(id); }
+function readinessFor(profile,faction) {
+  const deck=activeDeck(profile,faction),items=profile.items||[],inventory={
+    total:items.length,
+    available:items.filter(item=>item.durability>0&&!item.listingId&&!itemLocks.has(item.id)).length,
+    damaged:items.filter(item=>item.durability<=0).length,
+    listed:items.filter(item=>!!item.listingId).length,
+    reserved:items.filter(item=>item.durability>0&&!item.listingId&&itemLocks.has(item.id)).length
+  };
+  let deckError=null;
+  if(!deck)deckError='Nenhum deck ativo desta linhagem. Escolha ou monte um deck no Arsenal.';
+  else try{validateOwnedDeck(deck.cards,faction,profile,deck.autoRefills);}catch(error){deckError=error.message;}
+  const equipment=[];
+  if(deck)for(const [cardId,required] of Object.entries(countCards(deck.cards)).filter(([id])=>CARDS[id]?.type==='equipment')){
+    const owned=items.filter(item=>item.cardId===cardId),available=owned.filter(item=>item.durability>0&&!item.listingId&&!itemLocks.has(item.id)).length;
+    equipment.push({cardId,name:CARDS[cardId].name,required,available,damaged:owned.filter(item=>item.durability<=0).length,listed:owned.filter(item=>!!item.listingId).length,reserved:owned.filter(item=>item.durability>0&&!item.listingId&&itemLocks.has(item.id)).length});
+  }
+  const missing=equipment.filter(item=>item.available<item.required);
+  return {faction,canStart:!!deck&&!deckError&&!missing.length,deck:deck?{id:deck.id,name:deck.name,cards:deck.cards.length,autoRefills:deck.autoRefills||[]}:null,deckError,missing,equipment,inventory,rules:{deckSize:20,maxEquipment:6}};
+}
 function pruneRooms(now=Date.now()) {
   const deleteRooms=[],expiredIds=new Set();
   for(const [id,room] of rooms){
@@ -101,6 +137,7 @@ function pruneRooms(now=Date.now()) {
 
 const maintenanceTimer=setInterval(async()=>{
   try{
+    matchQueue.prune();const expiredSessions=[];for(const [id,session]of sessions)if(session.expiresAt<Date.now()){sessions.delete(id);expiredSessions.push(id);}if(expiredSessions.length)await persist({deleteSessions:expiredSessions});
     const pruned=pruneRooms();
     const worldChanged=expirePolitics(world);
     if(pruned.profiles.length||pruned.deleteRooms.length||worldChanged)await persist({...pruned,world:worldChanged});
@@ -119,51 +156,62 @@ function recordItemBreak(room,seat,cardId,scrap) {
 }
 function wearItem(room,ownerSeat,itemId,wear=1,killerSeat=null) {
   const ownerId=room.seats[ownerSeat],owner=profiles.get(ownerId),item=gearFor(owner,itemId);if(!owner||!item)return null;
+  const wearResult=applyDurabilityWear(item.durability,wear,randomInt(100)/100);
   if(killerSeat!==null){
     const killer=profiles.get(room.seats[killerSeat]);
     if(killer&&killer.id!==owner.id&&!item.bound){
-      owner.items=owner.items.filter(i=>i.id!==item.id);item.durability-=wear;
-      if(item.durability<=0){const scrap=ECONOMY.breakScrap[item.rarity]||4;owner.scrap=(owner.scrap||0)+scrap;return {broken:true,scrap};}
-      killer.items.push({...item,listingId:null,price:null,listedAt:null,source:'spoils'});return {transferred:true};
+      owner.items=owner.items.filter(i=>i.id!==item.id);
+      if(wearResult.broken){const scrap=ECONOMY.breakScrap[item.rarity]||4;owner.scrap=(owner.scrap||0)+scrap;return {broken:true,scrap};}
+      item.durability=wearResult.durability;killer.items.push({...item,listingId:null,price:null,listedAt:null,source:'spoils'});return {transferred:true,exhausted:wearResult.exhausted};
     }
   }
-  item.durability-=wear;
-  if(item.durability<=0){const scrap=breakItem(owner,item);return {broken:true,scrap};}
-  return {worn:true};
+  item.durability=wearResult.durability;
+  if(wearResult.broken){const scrap=breakItem(owner,item);return {broken:true,scrap};}
+  return {worn:true,exhausted:wearResult.exhausted};
 }
 function settleGear(room) {
-  const handled=new Set();
+  const handled=new Set(),outcomes=room.seats.map(()=>({wornOut:[],substitutions:[]}));
+  const noteWear=(seat,cardId,result)=>{if(result?.exhausted)outcomes[seat]?.wornOut.push(CARDS[cardId]?.name||cardId);};
   for(const event of [...(room.gearEvents||[]),...room.game.events.filter(e=>e.type==='item-lost'&&e.itemId)]){
     if(handled.has(event.itemId))continue;
     const result=wearItem(room,event.seat,event.itemId,event.wear,event.transfer?event.killerSeat:null);handled.add(event.itemId);
+    noteWear(event.seat,event.cardId,result);
     if(result?.transferred)room.game.events.push({id:room.game.nextEvent++,type:'item-loot',seat:event.killerSeat,target:'hero',label:`${CARDS[event.cardId].name} · SAQUEADO`});
     else if(result?.broken)recordItemBreak(room,event.seat,event.cardId,result.scrap);
   }
   for(let seat=0;seat<room.seats.length;seat++){
     const p=room.game.players[seat];
-    for(const unit of Object.values(p.lanes).flat())for(const gear of unit.gearItems||[]){const id=gear.itemId;if(!id||handled.has(id))continue;handled.add(id);const result=wearItem(room,seat,id,1,null);if(result?.broken)recordItemBreak(room,seat,gear.cardId,result.scrap);}
+    for(const unit of Object.values(p.lanes).flat())for(const gear of unit.gearItems||[]){const id=gear.itemId;if(!id||handled.has(id))continue;handled.add(id);const result=wearItem(room,seat,id,1,null);noteWear(seat,gear.cardId,result);if(result?.broken)recordItemBreak(room,seat,gear.cardId,result.scrap);}
   }
   if(room.mode==='duel'&&room.riskMode==='blood-oath'&&room.game.winner>=0){
     const loser=1-room.game.winner,lp=profiles.get(room.seats[loser]),winner=profiles.get(room.seats[room.game.winner]);
     const heroItem=room.game.players[loser].heroGear?.find(i=>i.itemId&&!handled.has(i.itemId));
-    if(heroItem&&lp&&winner){const result=wearItem(room,loser,heroItem.itemId,1,room.game.winner);handled.add(heroItem.itemId);if(result?.transferred)room.game.events.push({id:room.game.nextEvent++,type:'item-loot',seat:room.game.winner,target:'hero',label:`${CARDS[heroItem.cardId].name} · SAQUEADO`});else if(result?.broken)recordItemBreak(room,loser,heroItem.cardId,result.scrap);}
+    if(heroItem&&lp&&winner){const result=wearItem(room,loser,heroItem.itemId,1,room.game.winner);handled.add(heroItem.itemId);noteWear(loser,heroItem.cardId,result);if(result?.transferred)room.game.events.push({id:room.game.nextEvent++,type:'item-loot',seat:room.game.winner,target:'hero',label:`${CARDS[heroItem.cardId].name} · SAQUEADO`});else if(result?.broken)recordItemBreak(room,loser,heroItem.cardId,result.scrap);}
   }
-  for(let seat=0;seat<room.seats.length;seat++)for(const gear of room.game.players[seat].heroGear||[])if(gear.itemId&&!handled.has(gear.itemId)){handled.add(gear.itemId);const result=wearItem(room,seat,gear.itemId,1,null);if(result?.broken)recordItemBreak(room,seat,gear.cardId,result.scrap);}
+  for(let seat=0;seat<room.seats.length;seat++)for(const gear of room.game.players[seat].heroGear||[])if(gear.itemId&&!handled.has(gear.itemId)){handled.add(gear.itemId);const result=wearItem(room,seat,gear.itemId,1,null);noteWear(seat,gear.cardId,result);if(result?.broken)recordItemBreak(room,seat,gear.cardId,result.scrap);}
   unlockRoom(room);
+  for(let seat=0;seat<room.seats.length;seat++){
+    const profile=profiles.get(room.seats[seat]);if(!profile)continue;
+    const before=new Set((profile.decks||[]).flatMap(deck=>(deck.autoRefills||[]).map(refill=>`${deck.id}:${refill.equipmentId}:${refill.replacementId}`)));
+    reconcileDepletedGear(profile);
+    for(const deck of profile.decks||[])for(const refill of deck.autoRefills||[]){const key=`${deck.id}:${refill.equipmentId}:${refill.replacementId}`;if(!before.has(key))outcomes[seat].substitutions.push(`${CARDS[refill.equipmentId]?.name||refill.equipmentId} → ${CARDS[refill.replacementId]?.name||refill.replacementId}`);}
+  }
+  return outcomes;
 }
 async function reward(room) {
   if (room.game.phase !== 'finished' || room.rewarded) return;
   room.rewarded = true;
-  settleGear(room);
+  const gearOutcomes=settleGear(room);
   room.seats.forEach((id, seat) => {
     const p = profiles.get(id); if (!p) return;
     const won=room.game.winner===seat,player=room.game.players[seat],oldLevel=p.level||1;
+    if(room.matchmade){const opponent=profiles.get(room.seats[1-seat]),expected=1/(1+10**(((room.startRatings?.[1-seat]||opponent?.rating||1000)-(room.startRatings?.[seat]||p.rating||1000))/400));p.rating=Math.max(100,Math.round((p.rating||1000)+24*((room.game.winner===-1?.5:won?1:0)-expected)));}
     const broken=room.game.events.filter(e=>e.type==='item-break'&&e.seat===seat),looted=room.game.events.filter(e=>e.type==='item-loot'&&e.seat===seat);
-    room.rewards||={};room.rewards[seat]={xp:0,coins:0,dust:0,scrap:0,items:[],broken:broken.map(e=>e.label),looted:looted.map(e=>e.label)};
+    room.rewards||={};room.rewards[seat]={xp:0,coins:0,dust:0,scrap:0,items:[],broken:broken.map(e=>e.label),looted:looted.map(e=>e.label),wornOut:gearOutcomes[seat]?.wornOut||[],substitutions:gearOutcomes[seat]?.substitutions||[]};
     if(room.encounter&&seat===0){const expedition=settleEncounter(world,p,room.encounter,won,player.conceded);room.rewards[seat].realm=expedition;if(expedition.loot){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===(room.encounter.stages===3?'rare':'common')),card=pool[randomInt(pool.length)],item=makeItem(card.id,randomUUID,'realm');p.items.push(item);room.rewards[seat].items.push(item.id);}}
     if(player.conceded)return;
     p.matches++;if(won)p.wins++;
-    p.xp += won ? 100 : 50;p.level = 1 + Math.floor(p.xp / 300);
+    p.xp += won ? 100 : 50;p.level = Math.max(oldLevel,accountLevelForXP(p.xp));
     const coins=room.mode==='duel'?(won?ECONOMY.rewards.duelWin:ECONOMY.rewards.duelLoss):room.mode==='dungeon'?(won?ECONOMY.rewards.dungeonWin:ECONOMY.rewards.dungeonLoss):(won?ECONOMY.rewards.practiceWin:ECONOMY.rewards.practiceLoss);
     const levelCoins=(p.level-oldLevel)*ECONOMY.rewards.levelCoins;
     p.coins=(p.coins||0)+coins+levelCoins;
@@ -175,8 +223,12 @@ async function reward(room) {
       const roll=randomInt(100),rarity=roll<5?'epic':roll<24?'rare':roll<58?'uncommon':'common',pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===rarity),card=pool[randomInt(pool.length)];
       if(card){const item=makeItem(card.id,randomUUID,'dungeon');p.items.push(item);room.rewards[seat].items.push(item.id);}
     }
+    for(let level=oldLevel+1;level<=p.level;level++)if(level%5===0){
+      const rarity=level%10===0?'rare':'uncommon',pool=Object.values(CARDS).filter(card=>card.type==='equipment'&&card.rarity===rarity),card=pool[randomInt(pool.length)];
+      if(card){const item=makeItem(card.id,randomUUID,'level');p.items.push(item);room.rewards[seat].items.push(item.id);room.rewards[seat].levelCache=(room.rewards[seat].levelCache||[]).concat({level,cardId:card.id,rarity});}
+    }
     p.contracts||={matches:0,kills:0,wins:0};p.contracts.matches=(p.contracts.matches||0)+1;p.contracts.kills=(p.contracts.kills||0)+(player.kills||0);if(won)p.contracts.wins=(p.contracts.wins||0)+1;
-    for(const contract of CONTRACTS){while(p.contracts[contract.id]>=contract.goal){p.contracts[contract.id]-=contract.goal;const bonusCoins=contract.reward.coins||0,bonusDust=contract.reward.dust||0;p.coins+=bonusCoins;p.dust+=bonusDust;room.rewards[seat].coins+=bonusCoins;room.rewards[seat].dust+=bonusDust;}}
+    for(const contract of CONTRACTS){while(p.contracts[contract.id]>=contract.goal){p.contracts[contract.id]-=contract.goal;const bonusCoins=contract.reward.coins||0,bonusDust=contract.reward.dust||0;p.coins+=bonusCoins;p.dust+=bonusDust;room.rewards[seat].coins+=bonusCoins;room.rewards[seat].dust+=bonusDust;if(contract.reward.gear){const pool=Object.values(CARDS).filter(card=>card.type==='equipment'&&card.rarity===contract.reward.gear),card=pool[randomInt(pool.length)];if(card){const item=makeItem(card.id,randomUUID,'contract');p.items.push(item);room.rewards[seat].items.push(item.id);room.rewards[seat].contractGear=(room.rewards[seat].contractGear||[]).concat(card.id);}}}}
     p.trophies ||= [];
     if(room.mode === 'dungeon' && won && !p.trophies.includes('crown-of-the-buried')) p.trophies.push('crown-of-the-buried');
   });
@@ -185,18 +237,52 @@ function runBot(room) {
   let actions = 0;
   while (room.mode !== 'duel' && room.game.phase === 'playing' && room.game.turn === 1) {
     if (++actions > 100) throw new Error('Limite de ações do rival excedido.');
-    room.game = applyAction(room.game, 1, botAction(room.game));
+    room.game = applyAction(room.game, 1, botAction(room.game),{visuals:true});
   }
 }
-const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png':'image/png', '.webp':'image/webp' };
+const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png':'image/png', '.webp':'image/webp', '.mp3':'audio/mpeg', '.mp4':'video/mp4' };
 let requestQueue=Promise.resolve();
 const server = http.createServer(async (req,res) => {
   let release;
   if(req.url.startsWith('/api/')&&req.method!=='GET'&&!req.url.startsWith('/api/health')){const previous=requestQueue;requestQueue=new Promise(resolve=>{release=resolve;});await previous;}
   try {
       const url = new URL(req.url, 'http://localhost');
+    if(req.method!=='GET'&&req.headers.origin&&new URL(req.headers.origin).host!==req.headers.host)return json(res,403,{error:'Origem da requisição não autorizada.'});
     if (req.method === 'GET' && url.pathname === '/api/health') return json(res,200,{ ok: true, version: '0.4.0', edition:'edition-one', storage:mongoStore?'mongodb-atlas':'local-file' });
+    if(url.pathname==='/api/auth/session'&&req.method==='GET'){
+      const profile=identity(req);return profile?json(res,200,{profile,registered:!!profile.accountId}):json(res,401,{error:'Entre na sua conta para continuar.'});
+    }
+    if(url.pathname==='/api/auth/logout'&&req.method==='POST'){
+      const current=identity(req);if(current)matchQueue.remove(current.id);
+      const id=sessionId(req);if(id){sessions.delete(id);await persist({deleteSessions:[id]});}
+      res.setHeader('Set-Cookie',sessionCookie('',true));return json(res,200,{ok:true});
+    }
+    if(['/api/auth/register','/api/auth/login'].includes(url.pathname)&&req.method==='POST'){
+      allowAuthAttempt(req.socket.remoteAddress);const input=await body(req),email=normalizeEmail(input.email);
+      let account=[...accounts.values()].find(a=>a.email===email),profile;
+      if(url.pathname.endsWith('register')){
+        if(account)throw new RuleError('Não foi possível criar esta conta. Confira os dados ou entre com sua conta existente.');
+        const passwordHash=await hashPassword(input.password);
+        const legacy=identity(req);
+        profile=input.claimLegacy&&legacy&&!legacy.accountId?structuredClone(legacy):{id:randomUUID(),name:'Caçador',xp:0,level:1,wins:0,matches:0,trophies:[]};
+        if(!profile.dualStartersGranted)profile.onboardingComplete=false;
+        account={id:randomUUID(),email,passwordHash,profileId:profile.id,createdAt:Date.now()};profile.accountId=account.id;
+      }else{
+        // A dummy derivation keeps the missing-account path comparable to a bad password.
+        const hash=account?.passwordHash||'scrypt:00000000000000000000000000000000:'+ '00'.repeat(64);
+        const valid=await verifyPassword(input.password,hash);
+        if(!account||!valid)return json(res,401,{error:'E-mail ou senha incorretos.'});
+        profile=profiles.get(account.profileId);if(!profile)throw new RuleError('O progresso desta conta não foi encontrado.');
+      }
+      const session=newSession(account.id);
+      // Persist credentials, profile and session atomically before making them visible.
+      if(mongoStore)await mongoStore.save({profiles:[profile],accounts:[account],sessions:[session.record]});
+      accounts.set(account.id,account);profiles.set(profile.id,profile);sessions.set(session.record.id,session.record);
+      if(!mongoStore)await persist();
+      res.setHeader('Set-Cookie',sessionCookie(session.token));return json(res,200,{profile,registered:true});
+    }
     if (req.method === 'POST' && url.pathname === '/api/profile') {
+      if(process.env.NODE_ENV==='production')return json(res,403,{error:'Crie uma conta para salvar seu juramento.'});
       const input = await body(req);
       const name = typeof input.name === 'string' ? input.name.trim().slice(0,24) : 'Viajante';
       const profile = { id: randomUUID(), name: name || 'Viajante', xp: 0, level: 1, wins: 0, matches: 0, trophies:[] };
@@ -206,7 +292,51 @@ const server = http.createServer(async (req,res) => {
     if (url.pathname.startsWith('/api/')) {
       const profile = identity(req);
       if (!profile) return json(res,401,{ error: 'Crie um perfil local para entrar.' });
+      if(url.pathname==='/api/onboarding'&&req.method==='POST'){
+        const input=await body(req),name=String(input.name||'').trim();
+        if(name.length<2||name.length>24)throw new RuleError('O nome do personagem deve ter entre 2 e 24 caracteres.');
+        if(!['vampire','werewolf'].includes(input.faction))throw new RuleError('Escolha seu primeiro deck.');
+        if(profile.onboardingComplete===false){
+          grantStarter(profile,input.faction,randomUUID);grantSecondLineage(profile,randomUUID);
+          profile.name=name;profile.selectedFaction=input.faction;profile.onboardingComplete=true;
+          await persist({profiles:[profile]});
+        }
+        return json(res,200,{profile});
+      }
+      if(profile.onboardingComplete===false)throw new RuleError('Conclua a apresentação do seu personagem para começar.');
       await prepareProfile(profile,profile.starterFaction||'vampire');
+      if(url.pathname==='/api/decks/select'&&req.method==='POST'){
+        const input=await body(req);if(!activeDeck(profile,input.faction))throw new RuleError('Ative um deck válido no Arsenal.');
+        if(profile.realm?.activeRoom||[...rooms.values()].some(r=>r.game.phase==='playing'&&r.seats.includes(profile.id)))throw new RuleError('Conclua sua partida antes de trocar o deck.');
+        matchQueue.remove(profile.id);profile.selectedFaction=input.faction;await persist({profiles:[profile]});return json(res,200,{profile});
+      }
+      if(url.pathname==='/api/matchmaking'&&req.method==='DELETE'){matchQueue.remove(profile.id);const matched=[...rooms.values()].find(r=>r.matchmade&&r.game.phase==='playing'&&r.seats.includes(profile.id));return json(res,200,matched?{state:'matched',roomId:matched.id}:{state:'cancelled'});}
+      if(url.pathname==='/api/matchmaking'&&req.method==='POST'){
+        const input=await body(req),faction=input.faction||profile.selectedFaction||profile.starterFaction;
+        const existing=[...rooms.values()].find(r=>r.matchmade&&r.game.phase==='playing'&&r.seats.includes(profile.id));
+        if(existing){matchQueue.remove(profile.id);return json(res,200,{state:'matched',roomId:existing.id});}
+        if(!['vampire','werewolf'].includes(faction))throw new RuleError('Escolha uma linhagem válida.');
+        const ready=readinessFor(profile,faction);if(!ready.canStart){matchQueue.remove(profile.id);throw new RuleError(ready.deckError||'Prepare seus equipamentos antes de buscar um adversário.');}
+        const {entry,candidates}=matchQueue.join(profile,faction);
+        for(const ticket of candidates){
+          const rival=profiles.get(ticket.id);if(!rival){matchQueue.remove(ticket.id);continue;}
+          await prepareProfile(rival,ticket.faction);
+          if(!readinessFor(rival,ticket.faction).canStart){matchQueue.remove(rival.id);continue;}
+          if(rooms.size>=500)throw new RuleError('Todas as mesas estão ocupadas. Tente novamente em instantes.');
+          const id=randomBytes(5).toString('hex').toUpperCase();let one,two;
+          try{one=reserveDeck(rival,activeDeck(rival,ticket.faction).cards,id);two=reserveDeck(profile,activeDeck(profile,faction).cards,id);
+            let game=createGame(ticket.faction,Math.random,'duel',{[ticket.faction]:one.cards});game=replaceOpeningDeck(game,1,two.cards);game.players[1].faction=faction;
+            const matched={id,mode:'duel',matchmade:true,startRatings:[rival.rating||1000,profile.rating||1000],riskMode:'covenant',battlefield:'court-board',game,seats:[rival.id,profile.id],rewarded:false,createdAt:Date.now(),lockedItems:[one.itemIds,two.itemIds],gearEvents:[]};
+            rooms.set(id,matched);try{await persist({rooms:[matched]});}catch(error){rooms.delete(id);throw error;}
+            matchQueue.remove(rival.id);matchQueue.remove(profile.id);return json(res,200,{state:'matched',roomId:id});
+          }catch(error){for(const itemId of [...(one?.itemIds||[]),...(two?.itemIds||[])])itemLocks.delete(itemId);throw error;}
+        }
+        return json(res,200,{state:'searching',joinedAt:entry.joinedAt,rating:entry.rating,queued:matchQueue.entries.size});
+      }
+      if(url.pathname==='/api/readiness'&&req.method==='GET'){
+        const requested=url.searchParams.get('faction'),faction=['vampire','werewolf'].includes(requested)?requested:(profile.selectedFaction||profile.starterFaction||'vampire');
+        return json(res,200,readinessFor(profile,faction));
+      }
       if(url.pathname==='/api/realms'&&req.method==='GET'){
         if(enterRealms(profile,randomUUID))await persist({profiles:[profile]});
         return json(res,200,realmView(world,profile,profiles,Date.now(),false));
@@ -217,14 +347,15 @@ const server = http.createServer(async (req,res) => {
       if(url.pathname==='/api/realms/encounter'&&req.method==='POST'){
         const input=await body(req);enterRealms(profile,randomUUID);
         if(input.version!==profile.realm.version)throw new RuleError('Seu mapa mudou. Atualize e tente novamente.');
-        const encounter=prepareEncounter(world,profile),faction=profile.starterFaction,deck=activeDeck(profile,faction);
+        const encounter=prepareEncounter(world,profile),faction=profile.selectedFaction||profile.starterFaction,deck=activeDeck(profile,faction);
         if(!deck)throw new RuleError('Equipe um deck válido da sua linhagem no Arsenal.');
-        validateOwnedDeck(deck.cards,faction,profile);
+        validateOwnedDeck(deck.cards,faction,profile,deck.autoRefills);
         const id=randomBytes(5).toString('hex').toUpperCase(),reserved=reserveDeck(profile,deck.cards,id);
-        const boss=encounter.stages===3&&encounter.stage===2;
-        const game=createGame(faction,Math.random,boss?'dungeon':'practice',{[faction]:reserved.cards});
+        const rival=campaignRival(faction,encounter.node,encounter.stage),boss=encounter.stages===3&&encounter.stage===2;
+        encounter.rivalId=rival.id;encounter.rivalName=rival.name;encounter.rivalStyle=rival.style;
+        const game=createGame(faction,Math.random,boss?'dungeon':'practice',{[faction]:reserved.cards},{...rival,deck:buildRivalDeck(rival.id)});
         game.players[1].health=game.players[1].maxHealth=boss?36:22+encounter.difficulty*2+encounter.stage*2;
-        const room={id,mode:'realm',encounter,battlefield:encounter.board,riskMode:'covenant',game,seats:[profile.id,'bot'],rewarded:false,createdAt:Date.now(),lockedItems:[reserved.itemIds],gearEvents:[]};
+        const room={id,mode:'realm',encounter,opponent:{id:rival.id,name:rival.name,title:rival.title,style:rival.style,avatar:rival.avatar},battlefield:encounter.board,riskMode:'covenant',game,seats:[profile.id,'bot'],rewarded:false,createdAt:Date.now(),lockedItems:[reserved.itemIds],gearEvents:[]};
         rooms.set(id,room);profile.realm.activeRoom=id;profile.realm.provisions-=2;profile.realm.version++;await persist({profiles:[profile],rooms:[room]});return json(res,201,view(room,profile.id));
       }
       if (req.method === 'GET' && url.pathname === '/api/profile') return json(res,200,profile);
@@ -267,13 +398,13 @@ const server = http.createServer(async (req,res) => {
       const deckRoute=url.pathname.match(/^\/api\/decks\/([\da-f-]+)(?:\/(activate))?$/i);
       if(deckRoute){
         const deck=profile.decks.find(d=>d.id===deckRoute[1]);if(!deck)throw new RuleError('Deck não encontrado.');
-        if(req.method==='POST'&&deckRoute[2]==='activate'){validateOwnedDeck(deck.cards,deck.faction,profile);profile.activeDecks[deck.faction]=deck.id;await persist({profiles:[profile]});return json(res,200,{profile,deck});}
-        if(req.method==='PUT'&&!deckRoute[2]){const input=await body(req);validateOwnedDeck(input.cards,deck.faction,profile);deck.cards=[...input.cards];if(input.name)deck.name=String(input.name).trim().slice(0,28);await persist({profiles:[profile]});return json(res,200,{profile,deck});}
+        if(req.method==='POST'&&deckRoute[2]==='activate'){validateOwnedDeck(deck.cards,deck.faction,profile,deck.autoRefills);profile.activeDecks[deck.faction]=deck.id;profile.selectedFaction=deck.faction;await persist({profiles:[profile]});return json(res,200,{profile,deck});}
+        if(req.method==='PUT'&&!deckRoute[2]){const input=await body(req);validateOwnedDeck(input.cards,deck.faction,profile,deck.autoRefills);deck.cards=[...input.cards];const borrowedNeeded={};for(const [id,count] of Object.entries(countCards(deck.cards)))borrowedNeeded[id]=Math.max(0,count-(profile.collection?.[id]||0));deck.autoRefills=(deck.autoRefills||[]).filter(refill=>{if((borrowedNeeded[refill.replacementId]||0)<=0)return false;borrowedNeeded[refill.replacementId]--;return true;});if(input.name)deck.name=String(input.name).trim().slice(0,28);await persist({profiles:[profile]});return json(res,200,{profile,deck});}
       }
       if(req.method==='POST'&&url.pathname==='/api/items/repair'){
         const input=await body(req),item=gearFor(profile,input.itemId);if(!item||item.listingId||itemLocks.has(item.id))throw new RuleError('Este item não pode ser reparado agora.');
         const missing=item.maxDurability-item.durability,cost=(ECONOMY.repairCost[item.rarity]||12)*missing;if(missing<=0)throw new RuleError('Este equipamento já está íntegro.');
-        if(profile.coins<cost)throw new RuleError(`O reparo custa ${cost} Marcas.`);profile.coins-=cost;item.durability=item.maxDurability;await persist({profiles:[profile]});return json(res,200,{profile,repaired:item.id,cost});
+        if(profile.coins<cost)throw new RuleError(`O reparo custa ${cost} Marcas.`);profile.coins-=cost;item.durability=item.maxDurability;restoreReplacedGear(profile,item.cardId);await persist({profiles:[profile]});return json(res,200,{profile,repaired:item.id,cost});
       }
       if(req.method==='GET'&&url.pathname==='/api/market'){
         const now=Date.now(),offers=[];
@@ -305,35 +436,25 @@ const server = http.createServer(async (req,res) => {
       if (req.method === 'POST' && url.pathname === '/api/rooms') {
         const input = await body(req);
         if (!['practice','duel','dungeon'].includes(input.mode)) throw new RuleError('Modo inválido.');
+        if(input.mode==='duel')throw new RuleError('Duelo online entra pela busca de adversário.');
         if (rooms.size >= 500) throw new RuleError('Limite de salas atingido. Reinicie o servidor de desenvolvimento.');
         const deck=profile.decks.find(d=>d.id===(input.deckId||profile.activeDecks[input.faction]));
         if(!deck)throw new RuleError('Equipe um deck válido dessa facção antes de iniciar.');
-        validateOwnedDeck(deck.cards,input.faction,profile);
+        validateOwnedDeck(deck.cards,input.faction,profile,deck.autoRefills);
         if(deck&&deck.faction!==input.faction)throw new RuleError('Escolha um deck da facção selecionada.');
         const id=randomBytes(5).toString('hex').toUpperCase(),reserved=deck?reserveDeck(profile,deck.cards,id):{cards:null,itemIds:[]};
         const deckLists=deck?{[input.faction]:reserved.cards}:{};
-        const game=createGame(input.faction,Math.random,input.mode,deckLists),riskMode=input.mode==='duel'&&input.riskMode==='blood-oath'?'blood-oath':'covenant';game.riskMode=riskMode;
-        const room = { id, mode: input.mode, riskMode, battlefield:['court-board','forest-board','crypt-board','siege-board'].includes(input.battlefield)?input.battlefield:input.mode==='dungeon'?'crypt-board':input.faction==='werewolf'?'forest-board':'court-board', game, seats: [profile.id], rewarded: false, createdAt:Date.now(),lockedItems:[reserved.itemIds],gearEvents:[] };
+        const template=input.mode==='dungeon'?RIVALS.mordrath:practiceRival(input.faction,profile.matches||0),rival={...template,deck:buildRivalDeck(template.id)};
+        const game=createGame(input.faction,Math.random,input.mode,deckLists,rival),riskMode=input.mode==='duel'&&input.riskMode==='blood-oath'?'blood-oath':'covenant';game.riskMode=riskMode;
+        const room = { id, mode: input.mode, opponent:{id:rival.id,name:rival.name,title:rival.title,style:rival.style,avatar:rival.avatar}, riskMode, battlefield:['court-board','forest-board','crypt-board','siege-board'].includes(input.battlefield)?input.battlefield:input.mode==='dungeon'?'crypt-board':input.faction==='werewolf'?'forest-board':'court-board', game, seats: [profile.id], rewarded: false, createdAt:Date.now(),lockedItems:[reserved.itemIds],gearEvents:[] };
         if (input.mode !== 'duel') room.seats.push('bot');
         rooms.set(room.id,room); await persist({rooms:[room]});return json(res,201,view(room,profile.id));
       }
-      const match = url.pathname.match(/^\/api\/rooms\/([A-F0-9]{10})(?:\/(join|actions))?$/);
+      const match = url.pathname.match(/^\/api\/rooms\/([A-F0-9]{10})(?:\/(actions))?$/);
       if (match) {
         const room = rooms.get(match[1]);
         if (!room) return json(res,404,{ error: 'Sala não encontrada ou expirada.' });
-        if (req.method === 'POST' && match[2] === 'join') {
-          if (!room.seats.includes(profile.id)) {
-            if (room.seats.length >= 2) throw new RuleError('Sala completa.');
-            const input=await body(req);if(room.riskMode==='blood-oath'&&input.acceptRisk!==true)throw new RuleError('Este duelo tem Juramento de Sangue. Confirme o risco antes de entrar.');
-            const seat=room.seats.length,faction=room.game.players[seat].faction,deck=activeDeck(profile,faction);
-            if(!deck)throw new RuleError('Equipe um deck da facção adversária para entrar neste duelo.');
-            validateOwnedDeck(deck.cards,faction,profile);
-            const reserved=reserveDeck(profile,deck.cards,room.id);room.game=replaceOpeningDeck(room.game,seat,reserved.cards);room.lockedItems[seat]=reserved.itemIds;
-            room.seats.push(profile.id);
-            await persist({rooms:[room]});
-          }
-          return json(res,200,view(room,profile.id));
-        }
+        if(room.mode==='duel'&&!room.matchmade&&room.seats.length<2)return json(res,410,{error:'Este convite expirou. Use a busca automática para encontrar um rival.'});
         const seat = room.seats.indexOf(profile.id);
         if (seat < 0) return json(res,403,{ error: 'Você não participa desta sala.' });
         if (req.method === 'GET' && !match[2]) return json(res,200,view(room,profile.id));
@@ -341,7 +462,7 @@ const server = http.createServer(async (req,res) => {
           const input = await body(req);
           if (room.seats.length < 2) throw new RuleError('Aguarde o segundo jogador.');
           if (input.version !== room.game.version) return json(res,409,{ error: 'O estado mudou. Atualize antes de jogar.' });
-          const firstEvent=room.game.nextEvent;room.game = applyAction(room.game,seat,input.action); runBot(room);room.gearEvents.push(...room.game.events.filter(e=>e.id>=firstEvent&&e.type==='item-lost'));
+          const firstEvent=room.game.nextEvent;room.game = applyAction(room.game,seat,input.action,{visuals:true}); runBot(room);room.gearEvents.push(...room.game.events.filter(e=>e.id>=firstEvent&&e.type==='item-lost'));
           const rewarding=room.game.phase==='finished'&&!room.rewarded;await reward(room);
           const changedProfiles=rewarding?room.seats.map(id=>profiles.get(id)).filter(Boolean):[];
           await persist({rooms:[room],profiles:changedProfiles,world:rewarding&&!!room.encounter});
@@ -350,20 +471,31 @@ const server = http.createServer(async (req,res) => {
       }
       return json(res,404,{ error: 'Rota não encontrada.' });
     }
-    if (req.method !== 'GET') return json(res,405,{ error: 'Método não permitido.' });
-    const requested = url.pathname === '/' ? 'client/index.html' : url.pathname.startsWith('/shared/') ? url.pathname.slice(1) : `client/${url.pathname.slice(1)}`;
+    if (!['GET','HEAD'].includes(req.method)) return json(res,405,{ error: 'Método não permitido.' });
+    const musicAsset=/^\/music\/(ambient_idle|battle|battle2|song1)\.mp3$/.exec(url.pathname);
+    const requested = musicAsset ? `${musicAsset[1]}.mp3` : url.pathname === '/' ? 'client/index.html' : url.pathname.startsWith('/shared/') ? url.pathname.slice(1) : `client/${url.pathname.slice(1)}`;
     const target = path.resolve(root,requested);
-    const allowed = ['client','shared'].some(dir => target.startsWith(path.join(root,dir) + path.sep));
+    const allowed = !!musicAsset || ['client','shared'].some(dir => target.startsWith(path.join(root,dir) + path.sep));
     if (!allowed || !mime[path.extname(target)]) return json(res,404,{ error: 'Arquivo não encontrado.' });
     try {
       const info=await stat(target),ext=path.extname(target),etag=`W/"${info.size.toString(16)}-${Math.trunc(info.mtimeMs).toString(16)}"`;
-      const cacheControl=ext==='.png'||ext==='.webp'?'public, max-age=86400':'no-cache';
+      const cacheControl=['.png','.webp','.mp3','.mp4'].includes(ext)?'public, max-age=86400':'no-cache';
       const headers={ 'Content-Type': mime[ext], 'Content-Length': info.size, 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'", 'Cache-Control':cacheControl, 'ETag':etag, 'Last-Modified':info.mtime.toUTCString() };
       const since=req.headers['if-modified-since'];
       const matchTag=req.headers['if-none-match']?.split(',').some(value=>value.trim()==='*'||value.trim()===etag);
       if(matchTag||(!req.headers['if-none-match']&&since&&Math.floor(info.mtimeMs/1000)<=Math.floor(Date.parse(since)/1000))){res.writeHead(304,headers);return res.end();}
-      res.writeHead(200,headers);
-      const stream=createReadStream(target);
+      if(['.mp3','.mp4'].includes(ext))headers['Accept-Ranges']='bytes';
+      let range;
+      if(req.headers.range&&['.mp3','.mp4'].includes(ext)){
+        const match=/^bytes=(\d*)-(\d*)$/.exec(req.headers.range);
+        const start=match?.[1]?Number(match[1]):Math.max(0,info.size-Number(match?.[2]||0)),end=match?.[1]&&match[2]?Math.min(info.size-1,Number(match[2])):info.size-1;
+        if(!match||start>end||start>=info.size){res.writeHead(416,{'Content-Range':`bytes */${info.size}`});return res.end();}
+        range={start,end};headers['Content-Range']=`bytes ${start}-${end}/${info.size}`;headers['Content-Length']=end-start+1;
+      }
+      res.writeHead(range?206:200,headers);
+      if(req.method==='HEAD')return res.end();
+      const stream=createReadStream(target,range);
+      res.on('close',()=>stream.destroy());
       stream.on('error',error=>{if(!res.headersSent)json(res,500,{error:'Falha ao carregar o arquivo.'});else res.destroy(error);});
       stream.pipe(res);
     } catch (e) { if (e.code !== 'ENOENT') throw e; json(res,404,{ error: 'Arquivo não encontrado.' }); }

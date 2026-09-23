@@ -1,0 +1,143 @@
+/* Cinematic impact language: ink, hot steel, blood aerosol and restrained hit-stop. */
+.savage-wound{width:clamp(155px,30vw,250px);height:clamp(150px,28vw,230px);filter:drop-shadow(0 11px 8px #020307d9)}
+.savage-wound i{height:clamp(8px,1.2vw,13px);background:linear-gradient(180deg,#fff5d9 0 12%,#ffbd96 13% 28%,#ec3348 31% 55%,#7d071f 62% 100%);mix-blend-mode:screen;filter:drop-shadow(0 0 5px #fa1d43) drop-shadow(0 0 18px #bd102ecc);clip-path:polygon(0 48%,87% 0,100% 24%,24% 73%,100% 50%,78% 78%,13% 100%,0 82%)}
+.savage-wound.wolf-claws i{height:12px;background:linear-gradient(180deg,#fcf2d8 0 13%,#efc995 14% 26%,#f64340 28% 48%,#6d0b1b 65% 100%);filter:drop-shadow(0 0 6px #ff593e) drop-shadow(0 0 19px #b21a20)}
+.savage-wound.heavy{width:clamp(220px,48vw,360px);height:clamp(200px,44vw,320px)}
+.impact-pressure-ring{position:absolute;z-index:53;width:20px;height:20px;border:3px solid #fff1d1;border-radius:50%;transform:translate(-50%,-50%) rotate(-16deg) scaleY(.62);box-shadow:0 0 13px #ffb85b,0 0 38px #de203b;pointer-events:none;animation:impact-pressure 680ms cubic-bezier(.08,.72,.2,1) both}
+.impact-pressure-ring:before,.impact-pressure-ring:after{content:"";position:absolute;inset:-10px;border:2px solid #b71632;border-radius:50%;transform:rotate(32deg) scaleY(.76)}
+.impact-pressure-ring:after{inset:-21px;border-width:1px;border-color:#f6c884aa;transform:rotate(-24deg) scaleY(.45)}
+.impact-pressure-ring.heavy{border-width:5px}
+.impact-blood-fan{position:absolute;z-index:54;width:0;height:0;pointer-events:none}
+.impact-blood-fan i{position:absolute;left:0;top:0;width:var(--blood-size);height:calc(var(--blood-size)*1.6);border-radius:58% 38% 68% 42%;background:linear-gradient(145deg,#ff7868 0 13%,#d70d32 34%,#68061d 82%);box-shadow:0 0 5px #fe3b48,0 0 13px #a20a28;animation:blood-aerosol 790ms cubic-bezier(.12,.65,.25,1) var(--blood-delay) both}
+.impact-blood-fan.wolf i{background:linear-gradient(145deg,#ffc07f,#e33232 32%,#630718 86%);border-radius:44% 56% 70% 30%}
+.impact-blood-fan.heavy i{box-shadow:0 0 9px #fa243d,0 0 24px #a70b29}
+.arena.impact-freeze:before{content:"";position:absolute;inset:-5%;z-index:66;pointer-events:none;background:linear-gradient(113deg,transparent 38%,#fff4d633 48%,#fa344866 50%,transparent 59%);mix-blend-mode:screen;animation:impact-flash 130ms steps(2,end) both}
+.arena.cinematic-impact:after{box-shadow:inset 0 0 150px #97091fa8, inset 0 0 38px #ffb75c45;background:radial-gradient(ellipse at 50% 48%,transparent 36%,#a00a2d68 100%);animation:blood-lens .58s cubic-bezier(.16,.65,.25,1) forwards}
+.arena.cinematic-impact .battlefield{filter:contrast(1.13) saturate(1.28)}
+.arena.cinematic-impact .hero-damaged .hero-portrait,.arena.cinematic-impact .unit-damaged{filter:brightness(1.55) saturate(1.7) drop-shadow(0 0 13px #ef182f)}
+.fighter.unit-damaged .fighter-bevel{box-shadow:inset 0 0 26px #db092f88,0 0 27px #ff344b,0 0 58px #b3002677}
+.hero-damaged{animation:anime-hero-recoil .52s cubic-bezier(.12,.75,.22,1)}
+.torn-card-fragment{filter:brightness(1.25) saturate(1.5) drop-shadow(0 0 8px #e82c45)}
+.torn-card-fragment:after{content:"";position:absolute;inset:0;background:linear-gradient(155deg,transparent 44%,#ffefcf 47%,#f33a4e 49%,#79071d 51%,transparent 56%);mix-blend-mode:screen;opacity:.92}
+
+/* Finger scrubbing keeps the selected card visible and readable above the arena. */
+.touch-card-preview{position:fixed;z-index:130;top:calc(env(safe-area-inset-top) + 54px);left:50%;width:min(410px,calc(100vw - 20px));display:grid;grid-template-columns:clamp(105px,30vw,132px) minmax(0,1fr);align-items:center;gap:14px;padding:12px;border:1px solid #e0bd805e;border-radius:5px;background:linear-gradient(112deg,#090d11f5,#171a1bf0 62%,#210e17f5);box-shadow:0 15px 50px #000d,0 0 0 1px #060708,0 0 36px #9a193c55,inset 0 1px #fff2;backdrop-filter:blur(13px);opacity:0;visibility:hidden;transform:translate(-50%,-12px) scale(.96);transition:opacity .16s ease,transform .2s cubic-bezier(.2,.8,.2,1),visibility .16s;pointer-events:none}
+.touch-card-preview.visible{opacity:1;visibility:visible;transform:translate(-50%,0) scale(1)}
+.touch-preview-face{display:grid;place-items:center;perspective:800px}
+.touch-preview-face>.game-card{--card-w:clamp(105px,30vw,132px)!important;--card-h:calc(var(--card-w)*1.4286)!important;width:var(--card-w)!important;height:var(--card-h)!important;margin:0!important;transform:rotateY(-5deg)!important;box-shadow:0 8px 20px #000d,0 0 0 1px #d7b471,0 0 18px #c0343f55!important}
+.touch-preview-copy{min-width:0;text-align:left}
+.touch-preview-copy>small{display:block;color:#d8ba79;font:8px/1.5 Arial,sans-serif;letter-spacing:.7px}
+.touch-preview-copy>strong{display:block;margin:6px 0;color:#f3dfb8;font:clamp(14px,4vw,19px)/1.1 Georgia,serif}
+.touch-preview-copy>p{display:-webkit-box;margin:5px 0 8px;overflow:hidden;color:#ddd1bc;font:clamp(10px,2.8vw,12px)/1.45 Arial,sans-serif;-webkit-box-orient:vertical;-webkit-line-clamp:4}
+.touch-preview-copy>span{display:block;color:#e1c589;font:9px/1.4 Arial,sans-serif}
+.hand-fan>.game-card.touch-scrub-focus{z-index:90!important;transform:translateY(-22px) scale(1.07)!important;border-color:#ffdf99;box-shadow:0 0 0 2px #f4ce83,0 0 22px #edb85e99,0 18px 32px #000d!important;filter:brightness(1.2) saturate(1.25)}
+
+/* Clearer deck-building stations on desktop and a compact touch-first editor. */
+.menu-decks .deck-list{grid-template-columns:repeat(auto-fit,minmax(min(100%,370px),1fr));gap:16px}
+.menu-decks .deck-row{min-width:0;grid-template-columns:92px minmax(0,1fr) auto;grid-template-rows:1fr auto;gap:8px 14px;min-height:170px;padding:18px 20px}
+.menu-decks .deck-row>.deck-crest{grid-column:1;grid-row:1/3;width:82px;height:112px;align-self:center;object-fit:cover}
+.menu-decks .deck-row>div:nth-child(2){grid-column:2;grid-row:1/3;align-self:center;min-width:0}
+.menu-decks .deck-row>button{grid-column:3;min-width:90px;padding:10px}
+.menu-decks .deck-row>button:nth-of-type(1){grid-row:1}
+.menu-decks .deck-row>button:nth-of-type(2){grid-row:2}
+.menu-decks .deck-row>.deck-active{grid-column:3;grid-row:2;padding:9px 5px;border:1px solid #83a76b66;background:#192b20;text-align:center}
+.menu-decks .new-deck-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:17px 3px}
+.menu-decks .new-deck-row>span{flex:1 1 100%;color:#c5b38f;font-size:10px}
+.menu-decks .new-deck-row>button{min-height:42px;padding-inline:17px;border:1px solid #9f8551;background:linear-gradient(135deg,#27362d,#111719);color:#dfc58c;font:10px Arial,sans-serif;letter-spacing:.8px}
+.menu-decks .deck-editor-columns{grid-template-columns:minmax(250px,.76fr) minmax(0,1.4fr);gap:14px}
+.menu-decks .deck-current,.menu-decks .deck-pool{max-height:54vh;border-color:#ab925340;background:linear-gradient(155deg,#101919ef,#0a1014ee);box-shadow:inset 0 1px #fff1,0 10px 24px #0005}
+.menu-decks .deck-current h3,.menu-decks .deck-pool h3{box-shadow:0 5px 12px #0008;border-bottom:1px solid #b8995555}
+.menu-decks .deck-pool{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:16px 9px;padding:14px 10px}
+.menu-decks .deck-pool-tile{align-self:start;padding:9px 5px;border:1px solid #a4884533;border-radius:3px;background:linear-gradient(160deg,#ffffff08,#0005);transition:transform .18s,border-color .18s,box-shadow .18s}
+.menu-decks .deck-pool-tile:hover{transform:translateY(-3px);border-color:#dfbb7777;box-shadow:0 9px 18px #0008,0 0 17px #d1a94a20}
+.menu-decks .deck-pool-tile>.game-card{--card-w:clamp(92px,8.5vw,116px)!important;--card-h:calc(var(--card-w)*1.4286)!important;width:var(--card-w)!important;height:var(--card-h)!important;max-width:100%;aspect-ratio:2.8/4;overflow:hidden;flex:none;transform:none}
+.menu-decks .deck-pool-tile.unowned>.game-card{filter:saturate(.35) brightness(.75)}
+.menu-decks .deck-pool-tile>div{padding:0 5px}
+.menu-decks .deck-pool-tile>div>span{font:13px Georgia,serif}
+.menu-decks .deck-pool-tile>div>button{width:34px;height:34px;border-radius:3px;box-shadow:inset 0 1px #fff2,0 3px #090d0e}
+.menu-decks .deck-card-row{min-height:62px;background:linear-gradient(100deg,#1b2727,#111719);border-bottom-color:#b7994d25}
+.menu-decks .deck-card-row:hover{background:linear-gradient(100deg,#344036,#18201e)}
+.menu-decks .deck-card-row>.deck-inspect>.mini-art.image-art{width:43px;height:57px;object-fit:cover;object-position:center;border-color:#b89b5f88;box-shadow:0 3px 9px #0009}
+.menu-decks .deck-editor-actions{position:sticky;bottom:-15px;z-index:5;display:flex;justify-content:flex-end;gap:10px;padding:14px 0;background:linear-gradient(#10171900,#0b1116 25%);}
+.menu-decks .deck-editor-actions button{min-height:43px}
+
+@media(max-width:760px){
+ .touch-card-preview{top:calc(env(safe-area-inset-top) + 48px);gap:10px;padding:9px;width:calc(100vw - 16px)}
+ .menu-decks .deck-row{grid-template-columns:55px minmax(0,1fr) auto;grid-template-rows:auto auto;min-height:0;padding:12px;gap:9px}
+ .menu-decks .deck-row>.deck-crest{grid-column:1;grid-row:1/3;width:49px;height:67px}
+ .menu-decks .deck-row>div:nth-child(2){grid-column:2;grid-row:1/3;align-self:center}
+ .menu-decks .deck-row strong{font-size:16px;overflow-wrap:anywhere}
+ .menu-decks .deck-row small{font-size:8px;letter-spacing:.2px;line-height:1.45}
+ .menu-decks .deck-row>button{grid-column:3;min-width:74px;min-height:37px;padding:7px;font-size:8px}
+ .menu-decks .deck-row>button:nth-of-type(1){grid-row:1}
+ .menu-decks .deck-row>button:nth-of-type(2){grid-row:2}
+ .menu-decks .deck-row>.deck-active{grid-column:3;grid-row:2;padding:8px 3px;font-size:7px}
+ .menu-decks .deck-editor-head{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 64px;gap:9px}
+ .menu-decks .deck-editor-head>button{grid-column:1;grid-row:1;width:auto;min-height:36px;justify-self:start}
+ .menu-decks .deck-editor-head>label{grid-column:1;grid-row:2;min-width:0}
+ .menu-decks .deck-ratio{grid-column:2;grid-row:1/3;width:62px;height:62px;align-self:center}
+ .menu-decks .deck-stats{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;white-space:nowrap;padding:9px}
+ .menu-decks .deck-validation{font-size:9px;line-height:1.45}
+ .menu-decks .arsenal-search{position:relative;gap:6px;padding:7px}
+ .menu-decks .arsenal-search input{min-width:0;font-size:11px}
+ .menu-decks .arsenal-search button{flex:none;max-width:116px;padding:8px 6px;font-size:7px}
+ .menu-decks .deck-editor-columns{display:flex;flex-direction:column;gap:10px}
+ .menu-decks .deck-current{order:0;width:100%;max-height:clamp(112px,19vh,155px);padding:8px;overscroll-behavior:contain}
+ .menu-decks .deck-pool{order:1;display:grid;width:100%;max-height:46vh;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 5px;padding:10px 6px;overscroll-behavior:contain}
+ .menu-decks .deck-current h3,.menu-decks .deck-pool h3{top:-8px;margin:-8px -8px 7px;padding:10px 8px;font-size:8px}
+ .menu-decks .deck-pool-tile{gap:7px;padding:7px 2px}
+ .menu-decks .deck-pool-tile>.game-card{--card-w:clamp(82px,25vw,106px)!important;--card-h:calc(var(--card-w)*1.4286)!important;width:var(--card-w)!important;height:var(--card-h)!important;}
+ .menu-decks .deck-pool-tile>div{gap:3px;padding:0 2px}
+ .menu-decks .deck-pool-tile>div>span{font-size:11px}
+ .menu-decks .deck-pool-tile small{font-size:5px}
+ .menu-decks .deck-pool-tile>div>button{width:29px;height:29px;flex:none}
+ .menu-decks .deck-card-row{min-height:47px;grid-template-columns:minmax(0,1fr) 28px 29px;gap:3px;padding:3px}
+ .menu-decks .deck-card-row>.deck-inspect{grid-template-columns:34px minmax(0,1fr);gap:6px;padding:2px}
+ .menu-decks .deck-card-row>.deck-inspect>.mini-art.image-art{width:31px!important;height:42px!important}
+ .menu-decks .deck-card-row>.deck-inspect>span{font-size:10px}
+ .menu-decks .deck-card-row>.deck-inspect>span>small{font-size:7px}
+ .menu-decks .deck-card-row>b{min-width:25px;font-size:9px}
+ .menu-decks .deck-editor-actions{bottom:-15px;display:grid;grid-template-columns:1fr;gap:6px;padding:10px 0}
+ .menu-decks .deck-editor-actions .gold-button,.menu-decks .deck-editor-actions .menu-option{width:100%;min-width:0;margin:0}
+ .menu-decks .deck-list{gap:10px}
+ .menu-decks .new-deck-row{align-items:stretch}
+ .menu-decks .new-deck-row>button{flex:1 1 100%;min-height:44px}
+}
+
+@keyframes impact-pressure{0%{opacity:.95;transform:translate(-50%,-50%) rotate(-16deg) scaleY(.58) scale(.14)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(17deg) scaleY(.36) scale(6.8)}}
+@keyframes blood-aerosol{0%{opacity:0;transform:translate(0,0) scale(.25) rotate(0)}12%{opacity:1}55%{opacity:.94}100%{opacity:0;transform:translate(var(--blood-x),var(--blood-y)) scale(.72) rotate(170deg)}}
+@keyframes impact-flash{0%{opacity:1}100%{opacity:0}}
+@keyframes anime-hit-recoil{0%,100%{transform:translate(0) rotate(0)}18%{transform:translate(-9px,2px) rotate(-4deg) scale(1.06)}38%{transform:translate(8px,-2px) rotate(3deg) scale(.96)}62%{transform:translate(-4px,1px) rotate(-2deg)}82%{transform:translate(2px) rotate(1deg)}}
+@keyframes anime-hero-recoil{0%,100%{filter:none}15%{filter:brightness(2.2) saturate(2)}30%{filter:brightness(.55) saturate(1.8)}52%{filter:brightness(1.7) saturate(1.4)}74%{filter:brightness(.82)} }
+/* Sanguine siphon: branching arteries travel from the wounded target into the hero frame. */
+.blood-siphon{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:64;pointer-events:none;mix-blend-mode:screen}
+.blood-siphon path{vector-effect:non-scaling-stroke}
+.hero-portrait.blood-siphon-target{animation:blood-siphon-catch .8s cubic-bezier(.15,.78,.2,1);filter:brightness(1.65) saturate(1.8) drop-shadow(0 0 18px #ed183d)!important}
+.fighter.blood-siphon-source,.hero-portrait.blood-siphon-source{animation:blood-being-drained .78s cubic-bezier(.2,.65,.2,1)}
+.blood-siphon-target .hero-ring{box-shadow:0 0 0 4px #eb133d,0 0 20px 12px #b60931,0 0 48px 24px #e328464f}
+.blood-siphon-target .hero-health{color:#fff1d8;text-shadow:0 0 12px #ff233f,0 0 25px #e40032}
+.touch-card-preview{touch-action:none;overscroll-behavior:contain}
+.touch-preview-face>.game-card{transform-origin:50% 50%;backface-visibility:hidden}
+.deck-editor-columns,.deck-current,.deck-pool{min-width:0;overscroll-behavior:contain;scrollbar-color:#987b4b #111719;scrollbar-width:thin}
+.deck-card-row>.deck-inspect{min-width:0}
+.deck-card-row>.deck-inspect>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deck-list,.deck-row,.deck-editor-head,.deck-editor-actions{min-width:0}
+.deck-validation{overflow-wrap:anywhere}
+/* All authored card art is cropped only within its fixed frame, never stretched. */
+.art.image-art{display:block;max-width:none;max-height:none;object-fit:cover;object-position:center}
+.game-card>img.art.image-art,.booster-pull .game-card>img.art.image-art,.booster-face-art>img.art.image-art{height:auto;aspect-ratio:1;object-fit:cover}
+.market-art>img.art.image-art,.deck-crest>img.art.image-art,.fighter>img.art.image-art,.hero-portrait>img.art.image-art,.gear-badge>img.art.image-art{height:100%;object-fit:cover}
+.full-art-gallery>img{width:min(100%,760px);height:auto;max-height:70vh;object-fit:contain;object-position:center}
+.market-art,.deck-crest,.gear-badge{overflow:hidden}
+.campaign-rival{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;margin:12px 0 18px;padding:10px 13px;border:1px solid #a94c4155;background:linear-gradient(110deg,#21151a,#101518 64%,#1e1a17);box-shadow:inset 0 1px #fff1,0 8px 22px #0005}
+.campaign-rival>img{width:64px;height:64px;object-fit:cover;object-position:center 24%;border:1px solid #bd79546b;box-shadow:0 0 18px #b5233655}
+.campaign-rival>span{display:grid;gap:3px;min-width:0}
+.campaign-rival small{font:8px Arial,sans-serif;letter-spacing:1.3px;color:#d9b97e}
+.campaign-rival strong{font:17px Georgia,serif;color:#efdfc1}
+.campaign-rival em{font:8px Arial,sans-serif;font-style:normal;letter-spacing:.65px;color:#bf9990}
+.campaign-rival q{font:italic 11px Georgia,serif;color:#c4b5a5}
+.campaign-rival>b{padding:7px;border:1px solid #ba7751;background:#2a161a;color:#e6b07f;font:8px Arial,sans-serif;letter-spacing:.8px}
+@keyframes blood-siphon-catch{0%,100%{transform:scale(1);filter:brightness(1)}16%{transform:scale(1.12);filter:brightness(2.1) saturate(2.1)}34%{transform:scale(.96);filter:brightness(.75) saturate(1.8)}54%{transform:scale(1.07);filter:brightness(1.7) saturate(1.8)}76%{transform:scale(.99)}}
+@keyframes blood-being-drained{0%,100%{filter:brightness(1) saturate(1)}20%{filter:brightness(1.8) saturate(1.8) drop-shadow(0 0 13px #da1233)}48%{filter:brightness(.56) saturate(1.7) drop-shadow(0 0 11px #96051d)}76%{filter:brightness(1.4) saturate(1.3)}}
+@media(max-width:760px){.campaign-rival{grid-template-columns:46px minmax(0,1fr);gap:9px;margin:8px 0 12px;padding:8px}.campaign-rival>img{width:46px;height:52px}.campaign-rival strong{font-size:14px}.campaign-rival em{font-size:7px}.campaign-rival q{font-size:10px}.campaign-rival>b{display:none}.deck-card-row>.deck-inspect>span{white-space:normal;line-height:1.2}.deck-current,.deck-pool{max-width:100%}}
+@media(prefers-reduced-motion:reduce){.impact-pressure-ring,.impact-blood-fan,.arena.impact-freeze:before,.blood-siphon{display:none!important}.savage-wound,.impact-blood-mist{display:none!important}.touch-card-preview{transition:none}}
