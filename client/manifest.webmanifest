@@ -1,0 +1,23 @@
+{
+  "id": "/play",
+  "name": "Bloodmoon: Sangue & Fúria",
+  "short_name": "Bloodmoon",
+  "description": "TCG de fantasia sombria. Comande sua linhagem, equipe relíquias e conquiste Véspera.",
+  "lang": "pt-BR",
+  "start_url": "/play",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#080c0f",
+  "theme_color": "#0b1118",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Entrar em Véspera", "short_name": "Jogar", "url": "/play", "icons": [{ "src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}

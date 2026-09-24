@@ -11,7 +11,9 @@ npm ci
 npm start
 ```
 
-Abra http://127.0.0.1:4173. No primeiro acesso, escolha vampiros ou lobisomens para receber um deck pré-construído de 20 cartas e 300 Marcas. Inicie uma caçada contra a IA, desafie o Rei Sepultado ou crie uma sala 1×1. Ganhe moedas/Fragmentos, abra boosters, crie cartas e equipe decks diferentes pelo refúgio.
+Abra http://127.0.0.1:4173/ para conhecer Bloodmoon e http://127.0.0.1:4173/play para entrar no jogo. No primeiro acesso, escolha vampiros ou lobisomens para receber um deck pré-construído de 20 cartas e 300 Marcas. Inicie uma caçada contra a IA, desafie o Rei Sepultado ou entre no matchmaking 1×1. Ganhe Marcas e Fragmentos, abra boosters, crie cartas e equipe decks diferentes pelo refúgio.
+
+O jogo também é um PWA instalável. Em celulares compatíveis, abra `/play` e use o convite de instalação; no iPhone, siga as instruções de Compartilhar → Adicionar à Tela de Início. A instalação abre o mesmo jogo em tela de app, com ícone próprio. A página pública `/` apresenta o projeto e mantém o jogo em `/play`.
 
 ## MongoDB Atlas e Render
 

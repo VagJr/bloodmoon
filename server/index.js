@@ -252,7 +252,7 @@ function runBot(room) {
     room.game = applyAction(room.game, 1, botAction(room.game),{visuals:true});
   }
 }
-const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png':'image/png', '.webp':'image/webp', '.mp3':'audio/mpeg', '.mp4':'video/mp4' };
+const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webmanifest':'application/manifest+json; charset=utf-8', '.png':'image/png', '.webp':'image/webp', '.mp3':'audio/mpeg', '.mp4':'video/mp4' };
 let requestQueue=Promise.resolve();
 const server = http.createServer(async (req,res) => {
   let release;
@@ -562,7 +562,7 @@ const server = http.createServer(async (req,res) => {
     }
     if (!['GET','HEAD'].includes(req.method)) return json(res,405,{ error: 'Método não permitido.' });
     const musicAsset=/^\/music\/(ambient_idle|battle|battle2|song1)\.mp3$/.exec(url.pathname);
-    const requested = musicAsset ? `${musicAsset[1]}.mp3` : url.pathname === '/' ? 'client/index.html' : url.pathname.startsWith('/shared/') ? url.pathname.slice(1) : `client/${url.pathname.slice(1)}`;
+    const requested = musicAsset ? `${musicAsset[1]}.mp3` : url.pathname === '/' ? 'client/landing.html' : ['/play','/play/'].includes(url.pathname) ? 'client/index.html' : url.pathname.startsWith('/shared/') ? url.pathname.slice(1) : `client/${url.pathname.slice(1)}`;
     const target = path.resolve(root,requested);
     const allowed = !!musicAsset || ['client','shared'].some(dir => target.startsWith(path.join(root,dir) + path.sep));
     if (!allowed || !mime[path.extname(target)]) return json(res,404,{ error: 'Arquivo não encontrado.' });
