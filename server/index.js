@@ -474,8 +474,16 @@ const server = http.createServer(async (req,res) => {
       }
       if (req.method === 'POST' && url.pathname === '/api/decks') {
         const input=await body(req);validateOwnedDeck(input.cards,input.faction,profile);
-        const deck={id:randomUUID(),name:String(input.name||'Meu deck').trim().slice(0,28)||'Meu deck',faction:input.faction,cards:[...input.cards],starter:false};
+        const deck={id:randomUUID(),name:String(input.name||'Meu deck').trim().slice(0,28)||'Meu deck',faction:input.faction,cards:[...input.cards],starter:false,boxSkin:input.faction==='werewolf'?'werewolf-iron':'vampire-crimson'};
         profile.decks.push(deck);await persist({profiles:[profile]});return json(res,201,{profile,deck});
+      }
+      const deckBoxRoute=url.pathname.match(/^\/api\/decks\/([\da-f-]+)\/box$/i);
+      if(deckBoxRoute&&req.method==='POST'){
+        if(!featureOpen(profile,'decks'))throw new RuleError(featureRequirement(profile,'decks'));
+        const deck=profile.decks.find(d=>d.id===deckBoxRoute[1]);if(!deck)throw new RuleError('Deck não encontrado.');
+        const input=await body(req),skins=deck.faction==='werewolf'?['werewolf-iron','werewolf-ash']:['vampire-crimson','vampire-obsidian'];
+        if(!skins.includes(input.skin))throw new RuleError('Escolha uma ilustração válida para esta linhagem.');
+        deck.boxSkin=input.skin;await persist({profiles:[profile]});return json(res,200,{profile,deck});
       }
       const deckRoute=url.pathname.match(/^\/api\/decks\/([\da-f-]+)(?:\/(activate))?$/i);
       if(deckRoute){

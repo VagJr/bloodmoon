@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 620" role="img" aria-label="Deck box Bloodmoon ilustrada, aberta">
+<defs>
+ <linearGradient id="leather" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#69735d"/><stop offset=".42" stop-color="#29352f"/><stop offset="1" stop-color="#121b1a"/></linearGradient>
+ <linearGradient id="side" x1="0" y1="0" x2="1" y2=".9"><stop stop-color="#29352f"/><stop offset="1" stop-color="#121b1a"/></linearGradient>
+ <linearGradient id="lid" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#69735d"/><stop offset="1" stop-color="#121b1a"/></linearGradient>
+ <linearGradient id="inside" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#322a26"/><stop offset="1" stop-color="#090d12"/></linearGradient>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0bd"/><stop offset=".32" stop-color="#c3ac72"/><stop offset=".7" stop-color="#675233"/><stop offset="1" stop-color="#392d20"/></linearGradient>
+ <radialGradient id="gem"><stop stop-color="#d8c27f"/><stop offset=".5" stop-color="#c3ac72"/><stop offset="1" stop-color="#675233"/></radialGradient>
+ <filter id="shadow" x="-35%" y="-35%" width="170%" height="180%"><feGaussianBlur stdDeviation="17"/></filter>
+ <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter>
+ <pattern id="grain" width="17" height="17" patternUnits="userSpaceOnUse"><path d="M2 2l2 1m7 5l2-1M4 14l1-1" stroke="#f4dfbd" stroke-opacity=".12" stroke-width="1"/></pattern>
+</defs>
+<ellipse cx="322" cy="557" rx="224" ry="34" fill="#000" opacity=".66" filter="url(#shadow)"/>
+<!-- raised hinged lid: painted leather, bevelled edge and embossed inner panel -->
+<path d="M150 286 203 94 411 42 473 229 310 326Z" fill="url(#lid)" stroke="#080b0f" stroke-width="13" stroke-linejoin="round"/>
+<path d="M161 278 211 105 403 57 460 222 309 309Z" fill="url(#grain)" opacity=".7"/>
+<path d="M177 265 221 119 394 76 445 214 308 291Z" fill="none" stroke="url(#metal)" stroke-width="7"/>
+<path d="M191 252 231 132 383 94 430 207 307 274Z" fill="__LID_INLAY__" stroke="#c3ac72" stroke-opacity=".6" stroke-width="2"/>
+<path d="M202 244 239 142 375 108 416 202 305 263Z" fill="none" stroke="#f3d99a" stroke-opacity=".28" stroke-width="2"/>
+<path d="M150 286 310 326 310 347 146 306Z" fill="url(#metal)" stroke="#17110d" stroke-width="5"/>
+<path d="M310 326 473 229 481 248 310 354Z" fill="url(#metal)" stroke="#17110d" stroke-width="5"/>
+<!-- sigil medallion -->
+<path d="M307 139 360 173 350 229 307 254 263 229 254 173Z" fill="#070b10" stroke="url(#metal)" stroke-width="5"/>
+<path d="M307 149 350 177 342 219 307 239 272 219 264 177Z" fill="url(#gem)" opacity=".45" filter="url(#glow)"/>
+<path d="M307 151 350 177 342 219 307 239 272 219 264 177Z" fill="#0e1013" stroke="#c3ac72" stroke-width="2"/>
+<path d="M307 157 C287 170 272 169 259 165 L268 193 282 203 282 219 307 235 332 219 332 203 346 193 355 165 C342 169 327 170 307 157Z M281 183 299 188 289 199ZM333 183 315 188 325 199ZM302 194 307 205 312 194 307 189Z" fill="url(#metal)" stroke="#c3ac72" stroke-width="1.8" stroke-linejoin="round"/>
+<!-- card stack visible inside -->
+<path d="M214 323 304 274 387 310 301 365Z" fill="#10151a" stroke="#675233" stroke-width="3"/>
+<path d="M233 321 304 282 370 311 302 350Z" fill="#241d20" stroke="#b49a63" stroke-opacity=".55" stroke-width="2"/>
+<path d="M247 316 304 286 359 311 302 340Z" fill="#34483b" stroke="#ead394" stroke-opacity=".72" stroke-width="2"/>
+<path d="M274 314 303 298 330 311 302 327Z" fill="url(#gem)" stroke="#c3ac72" stroke-width="2"/>
+<!-- dark velvet cavity and thick articulated rim -->
+<path d="M111 323 306 218 515 315 310 426Z" fill="url(#inside)" stroke="#090d11" stroke-width="12" stroke-linejoin="round"/>
+<path d="M137 324 307 233 489 317 310 406Z" fill="none" stroke="url(#metal)" stroke-width="8" stroke-linejoin="round"/>
+<path d="M156 324 307 246 469 319 310 390Z" fill="none" stroke="#c3ac72" stroke-opacity=".38" stroke-width="2"/>
+<!-- box body: beveled left and right planes -->
+<path d="M111 323 310 426 310 588 111 478Z" fill="url(#leather)" stroke="#080b0f" stroke-width="13" stroke-linejoin="round"/>
+<path d="M310 426 515 315 515 479 310 588Z" fill="url(#side)" stroke="#080b0f" stroke-width="13" stroke-linejoin="round"/>
+<path d="M126 339 296 429 296 568 126 472Z" fill="url(#grain)" opacity=".75"/>
+<path d="M326 433 500 338 500 469 326 565Z" fill="url(#grain)" opacity=".55"/>
+<path d="M128 343 294 430 294 560 128 467Z" fill="none" stroke="#c3ac72" stroke-opacity=".74" stroke-width="4"/>
+<path d="M327 438 500 344 500 466 327 560Z" fill="none" stroke="#c3ac72" stroke-opacity=".58" stroke-width="4"/>
+<!-- embossed front crest -->
+<path d="M210 433 254 455 254 511 210 487Z" fill="#080c10" fill-opacity=".65" stroke="url(#metal)" stroke-width="3"/>
+<path d="M231 446 244 453 244 488 231 481Z" fill="url(#gem)" opacity=".55"/>
+<path d="M307 157 C287 170 272 169 259 165 L268 193 282 203 282 219 307 235 332 219 332 203 346 193 355 165 C342 169 327 170 307 157Z M281 183 299 188 289 199ZM333 183 315 188 325 199ZM302 194 307 205 312 194 307 189Z" transform="translate(232 466) scale(.5) translate(-307 -199)" fill="url(#metal)" stroke="#c3ac72" stroke-width="2" stroke-linejoin="round"/>
+<!-- corner guards, rivets and hinge hardware -->
+<path d="M111 323 139 337 139 369 111 354ZM282 412 310 426 310 460 282 445ZM310 426 338 411 338 445 310 460ZM487 330 515 315 515 350 487 365Z" fill="url(#metal)" stroke="#21180f" stroke-width="4"/>
+<path d="M120 478 148 493 148 516 120 501ZM282 568 310 584 310 608 282 592ZM310 584 338 568 338 592 310 608ZM487 463 515 448 515 472 487 487Z" fill="url(#metal)" stroke="#21180f" stroke-width="4"/>
+<path d="M259 404 278 394 289 401 270 412ZM343 398 362 388 374 393 355 404Z" fill="url(#metal)" stroke="#141210" stroke-width="3"/>
+<circle cx="133" cy="350" r="4" fill="#fff0bd"/><circle cx="297" cy="438" r="4" fill="#fff0bd"/><circle cx="500" cy="334" r="4" fill="#fff0bd"/>
+<path d="M125 356 285 440M337 438 490 355" stroke="#fff4ce" stroke-opacity=".17" stroke-width="3"/>
+</svg>

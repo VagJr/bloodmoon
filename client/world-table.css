@@ -10,3 +10,55 @@
 @media(max-width:1000px){.rt-topbar{gap:10px;padding:8px 14px}.rt-title h1{font-size:16px}.rt-resources{gap:9px!important}.rt-resources b{font-size:14px}.rt-hotbar{width:calc(100% - 70px);grid-template-columns:130px 1fr 95px}.rt-context{width:235px}}
 @media(max-width:760px){.rt-topbar{height:54px;padding:6px 10px}.rt-brand{font-size:13px!important;letter-spacing:1.5px}.rt-title{display:none}.rt-resources{gap:9px!important}.rt-resources i{font-size:11px}.rt-resources b{font-size:12px}.rt-resources small{font-size:6px;letter-spacing:0}.rt-resources>span{gap:0 3px}.rt-party{top:68px;left:9px;width:47px}.rt-portrait{width:43px;height:56px;padding:2px!important}.rt-portrait b{width:21px;height:21px;right:-6px;font:13px/17px Georgia}.rt-party h2{font-size:9px;margin-top:10px;max-width:55px}.rt-party>small{display:none}.rt-navigation{gap:5px;margin-top:10px}.rt-navigation button{height:38px;min-height:38px;padding:5px!important;display:block;text-align:center}.rt-navigation i{font-size:17px}.rt-navigation span{display:block;font-size:7px;line-height:1}.rt-navigation .journey-lock-label{display:none!important}.rt-cartography{top:66px;right:9px;width:106px}.rt-map-heading{font-size:6px;letter-spacing:0}.rt-map-heading button{font-size:6px;padding:3px}.rt-minimap{height:76px;border-width:2px}.rt-minimap button{width:11px;height:11px;font:8px/9px Georgia!important}.rt-quest{padding:7px 3px!important;margin-top:3px}.rt-quest small{font-size:6px;letter-spacing:0}.rt-quest b{font-size:10px;line-height:1.25;margin:4px 0}.rt-quest span{font-size:8px}.rt-camera-controls{top:66px;gap:2px;left:46%}.rt-camera-controls button{width:25px;height:26px;font-size:15px}.rt-context{top:auto;bottom:118px;right:8px;width:208px;max-height:34dvh;background:#0e1923eb}.rt-location-art{height:66px;padding:16px 10px 7px}.rt-location-art h2{font-size:16px;margin:4px 0}.rt-location-art>small{font-size:6px}.rt-location-body{padding:8px}.rt-place-state{font-size:6px;margin-bottom:6px}.rt-rule{font-size:10px;line-height:1.45;margin:7px 0 9px}.rt-action{min-height:39px;padding:8px!important}.rt-action>span{font-size:9px}.rt-action small{font-size:6px}.rt-neighbors button{min-height:36px;padding:6px}.rt-neighbors span{font-size:10px}.rt-neighbors i{font-size:20px}.rt-reason{font-size:9px}.rt-order-head{padding:8px}.rt-order-head h3{font-size:18px}.rt-order-art{padding:8px;gap:9px}.rt-order-art img{width:43px;height:60px}.rt-order-art b{font-size:13px}.rt-hotbar{width:calc(100% - 12px);bottom:max(6px,env(safe-area-inset-bottom));min-height:95px;padding:8px;gap:7px;grid-template-columns:1fr 65px;clip-path:none;border-radius:3px}.rt-selected-ally{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-height:15px}.rt-selected-ally>small{display:none}.rt-selected-ally>b{font-size:11px;margin:0;flex:1}.rt-selected-ally button{min-height:22px;padding:4px;font-size:7px}.rt-hand{gap:4px}.rt-hand-card{flex-basis:32px;max-height:47px;aspect-ratio:5/7}.rt-hand-card small{display:none}.rt-hand-card i{font-size:7px;width:11px;height:11px;line-height:9px}.rt-hand>button:not(.rt-hand-card){font-size:21px;min-width:17px;padding:0}.rt-vigor{padding-left:5px}.rt-vigor>span{font-size:12px}.rt-vigor>small{font-size:6px;letter-spacing:0}.rt-help{top:109px}.rt-feedback{bottom:125px;max-width:90%;font-size:10px}.rt-socket-menu button{min-height:58px}.rt-context.collapsed{max-height:39px}.rt-context.collapsed .rt-location-art{padding-top:6px}.rt-context.collapsed .rt-location-art>small{display:none}.rt-context-toggle{width:30px;height:27px}.rt-topbar .codex-context{display:none}}
 @media(max-height:500px){.rt-party h2,.rt-party .rt-xp,.rt-party>small{display:none}.rt-navigation{gap:3px}.rt-navigation button{min-height:27px;height:27px}.rt-navigation span{display:none}.rt-cartography .rt-quest{display:none}.rt-context{top:160px;bottom:94px;max-height:none}.rt-hotbar{min-height:77px;grid-template-columns:120px 1fr 85px;max-width:650px}.rt-selected-ally{grid-column:auto;display:block}.rt-selected-ally>b{font-size:10px}.rt-hand-card{max-height:48px;flex-basis:35px}.rt-camera-controls{top:64px}.rt-context .rt-location-art{height:58px}}
+
+/* Mobile map drag must retain direct touch input; the context HUD stays translucent over the scene. */
+@media (max-width: 760px) {
+  .rt-viewport { touch-action: none; overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .rt-plane, .rt-plane * { -webkit-user-drag: none; }
+  .rt-context {
+    width: min(184px, 58vw);
+    max-height: 30dvh;
+    background: linear-gradient(135deg, #19252eb0, #0a131db8);
+    border-color: #bda16966;
+    box-shadow: 0 6px 22px #0007, inset 0 0 0 2px #0b141c77;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+  .rt-context .rt-location-art img { opacity: .38; }
+}
+
+/* Keep the selected region's full artwork legible in the mobile command card. */
+@media (max-width: 760px) {
+  .rt-context .rt-location-art {
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 3 / 2;
+    padding: 12px 10px 9px;
+    background: #101922;
+  }
+  .rt-context .rt-location-art img {
+    z-index: 0;
+    opacity: .72;
+    object-fit: contain;
+    object-position: center;
+  }
+  .rt-context .rt-location-art::after {
+    z-index: 1;
+    background: linear-gradient(180deg, #10192210 0%, #10192218 44%, #101922e8 100%);
+  }
+  .rt-context .rt-location-art > small,
+  .rt-context .rt-location-art h2 {
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 2px 7px #000, 0 0 10px #000;
+  }
+}
+
+@media (max-width: 760px) and (min-height: 600px) {
+  .rt-context { max-height: min(44dvh, calc(100dvh - 260px)); }
+}
