@@ -53,4 +53,37 @@
  .rw-stick{position:absolute;left:1px;bottom:152px;width:99px;height:97px;border-radius:50%;border:1px solid #b297616b;padding:5px;display:grid;grid-template-rows:39px 39px;align-content:center;justify-content:center;background:radial-gradient(ellipse,#3b4445e0,#111c24e8 66%);box-shadow:inset 0 0 0 4px #09121b88,0 6px 14px #0008;touch-action:none}.rw-stick>button,.rw-stick>div button{width:30px;height:38px;font:21px Georgia;background:linear-gradient(#35424ccc,#141d26ee);border-color:#a88b4e88}.rw-stick>div{gap:1px}.rw-feedback{bottom:154px;left:55%;max-width:80vw}
  .rw-viewport:focus-visible{outline:none}.rw-card{touch-action:pan-x}.rw-projects button{touch-action:manipulation}.rw-card:hover:not(:disabled){transform:none}.rw-card.chosen{transform:translateY(-3px)!important}
 }
+@media (max-width: 1050px), (pointer: coarse), (hover: none) {
+  .rw-stick {
+    position: absolute;
+    left: 8px;
+    bottom: 148px;
+    width: 99px;
+    height: 97px;
+    border-radius: 50%;
+    border: 1px solid #b297616b;
+    padding: 5px;
+    display: grid;
+    grid-template-rows: 39px 39px;
+    align-content: center;
+    justify-content: center;
+    background: radial-gradient(ellipse, #3b4445e0, #111c24e8 66%);
+    box-shadow: inset 0 0 0 4px #09121b88, 0 6px 14px #0008;
+    touch-action: none;
+    z-index: 15;
+  }
+  .rw-stick > button, .rw-stick > div button {
+    width: 30px;
+    height: 38px;
+    font: 21px Georgia;
+    background: linear-gradient(#35424ccc, #141d26ee);
+    border-color: #a88b4e88;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .rw-stick > div {
+    gap: 1px;
+    display: flex;
+  }
+}
 

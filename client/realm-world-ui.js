@@ -9,21 +9,21 @@ const RESOURCE_ART={coins:'/assets/world/objects/coin-pile.png',timber:'/assets/
 const BUILD_ART={camp:'watch-camp',lumbermill:'ash-sawmill',mine:'oath-mine',essencewell:'veil-well',ballista:'obsidian-ballista',thorntrap:'thorn-snare',banner:'oath-banner'};
 function objectArt(a){const id=BUILD_ART[a.blueprintId]||({satchel:'lost-satchel',caravan:'moon-caravan',portal:'dungeon-gate'})[a.kind];return id?'/assets/world/objects/'+id+'.png':a.kind==='resource'?RESOURCE_ART[a.resource]:null;}
 let cardFilter='unit',showHelp=false,detailsOpen=false;
-let ownerId=null,dataRef=null,handlers={},selected=null,selectedBlueprint='camp',selectedTarget=null,slotTarget=null,camera={x:0,y:0,z:.9},keys=new Set(),frame=0,seq=0,lastMove=0,moveBusy=false,controller=null,rootRef=null,drag=null,feedbackTimer=0,atlas=false;
+let ownerId=null,dataRef=null,handlers={},selected=null,selectedBlueprint='camp',selectedTarget=null,slotTarget=null,camera={x:0,y:0,z:.9},keys=new Set(),touchPointers=new Map(),frame=0,seq=0,lastMove=0,moveBusy=false,controller=null,rootRef=null,drag=null,feedbackTimer=0,atlas=false;
 const metric=(a,b)=>Math.hypot((a.x-b.x)*1.5,a.y-b.y);
 const worldCards=()=>{const d=dataRef||{},ids=d.liveWorld?.cards||d.worldCards||[];return ids.filter(id=>!!CARDS[id]);};
 const nearest=(w)=>w.actors.filter(a=>a.hp>0).sort((a,b)=>metric(w.player,a)-metric(w.player,b))[0];
 function dimensions(){const r=rootRef?.querySelector('.rw-viewport')?.getBoundingClientRect();return {w:r?.width||innerWidth,h:r?.height||innerHeight};}
 function clampCamera(){const {w,h}=dimensions(),min=Math.max(w/SIZE.width,h/SIZE.height,.09);camera.z=Math.max(min,Math.min(1.05,camera.z));camera.x=Math.min(0,Math.max(w-SIZE.width*camera.z,camera.x));camera.y=Math.min(0,Math.max(h-SIZE.height*camera.z,camera.y));}
-function focusPlayer(smooth=false){const {w,h}=dimensions(),p=dataRef.liveWorld.player;camera.x=w/2-p.x*SIZE.width/100*camera.z;camera.y=h/2-p.y*SIZE.height/100*camera.z;clampCamera();paintCamera(smooth);}
+function focusPlayer(smooth=false){const {w,h}=dimensions(),p=controller?.pose||dataRef.liveWorld.player;camera.x=w/2-p.x*SIZE.width/100*camera.z;camera.y=h/2-p.y*SIZE.height/100*camera.z;clampCamera();paintCamera(smooth);}
 function paintCamera(smooth=false){const plane=rootRef?.querySelector('.rw-plane');if(plane){plane.style.transition=smooth?'transform .35s ease':'none';plane.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${camera.z})`;}}
 function cardFace(id,label='Carta'){return `<img src="${esc(CARD_ART[id]||'/assets/world/objects/oath-banner.png')}" alt="${esc(label)}" loading="lazy">`;}
 function island(w,n){const selectedNode=n.id===w.player.location,near=metric(w.player,n)<18;return `<section class="rw-island ${selectedNode?'here':''}" style="left:${n.x*60}px;top:${n.y*40}px"><div class="rw-biome"><img src="/assets/world/${esc(n.board)}.png" alt="" loading="lazy"></div><div class="rw-place"><i>${esc(n.icon)}</i><span><small>${selectedNode?'SUA POSIÇÃO':n.kind==='dungeon'?'TERRA SELADA':'TERRITÓRIO'} · NÍVEL ${n.level}</small><b>${esc(n.name)}</b></span><em>${w.territories?.[n.id]?.owner?'♜':''}</em></div><div class="rw-ring"></div>${w.slots.filter(s=>s.node===n.id).map((s,i)=>{const o=s.occupant,x=(s.x-n.x)*60,y=(s.y-n.y)*40;return `<button class="rw-slot ${o?'occupied':''} ${o?.owner===w.player.publicId?'own':''} ${near?'near':''}" style="left:calc(50% + ${x}px);top:calc(50% + ${y}px)" data-rw-slot="${esc(s.id)}" title="${esc(w.slotKinds[s.kind])}: ${o?esc(o.name):'espaço de carta'}">${o?`${objectArt(o)?`<img class="rw-structure-art" src="${objectArt(o)}" alt="${esc(o.name)}">`:cardFace(o.cardId,'')}${o.blueprintId?`<i class="rw-build-icon">${ICON[s.kind]||'◇'}</i>`:''}<meter min="0" max="${o.maxHp}" value="${o.hp}"></meter><b>${esc(o.name)}</b>`:`<i>${ICON[s.kind]||'◇'}</i><b>${esc(w.slotKinds[s.kind])}</b>`}</button>`;}).join('')}</section>`;}
 function actor(a,w){const self=a.id===w.player.publicId,person=a.kind==='traveler',avatar=a.avatar||'oracle';return `<button class="rw-actor ${esc(a.kind)} ${objectArt(a)?'scenery':''} ${esc(a.faction||'neutral')} ${a.state==='em combate'?'fighting':''} ${selectedTarget===a.id?'targeted':''} ${a.hp<=0?'down':''}" data-rw-actor="${esc(a.id)}" style="left:${a.x*60}px;top:${a.y*40}px" title="${esc(a.name)} · ${esc(KIND[a.kind]||'Habitante')}">${objectArt(a)?`<img class="rw-object-art" src="${objectArt(a)}" alt="${esc(a.name)}" loading="lazy">`:person?`<img src="/assets/avatars/${esc(avatar)}.png" alt="">`:cardFace(a.cardId,a.name)}<i class="rw-footprint"></i>${a.hp>0&&a.kind!=='resource'?`<meter min="0" max="${a.maxHp}" value="${a.hp}"></meter>`:''}<b>${esc(a.name.split(' · ')[0])}</b>${a.kind==='raid'?'<em>✦ RAID</em>':a.arenaKind?'<em>✦ ARENA</em>':a.kind==='invader'?'<em>⚠ INVASÃO</em>':''}</button>`;}
 function scenery(regions){return '<div class="rw-scenery" aria-hidden="true">'+regions.map((n,i)=>{const sets={sanctuary:['brazier','supply-crates','signpost'],forest:['evergreen-trees','dead-tree','moon-mushrooms'],mine:['mossy-boulder','broken-pillar','brazier'],dungeon:['gravestones','ruined-arch','monster-bones'],fortress:['brazier','watchtower','iron-fence'],capital:['barracks','fortified-gate','lantern']},items=sets[n.kind]||['dead-tree','mossy-boulder','lantern'];return items.map((id,k)=>{const angle=(k*120+25+i*11)*Math.PI/180,x=n.x*60+Math.cos(angle)*390,y=n.y*40+Math.sin(angle)*300;return '<img src="/assets/world/objects/'+id+'.png" class="'+(k===1?'large':'')+'" style="left:'+x+'px;top:'+y+'px" alt="" loading="lazy">';}).join('');}).join('')+'</div>';}
-function paintWorld(){if(!rootRef||!dataRef?.liveWorld)return;const w=dataRef.liveWorld,plane=rootRef.querySelector('.rw-plane');if(!plane)return;const links=w.regions||dataRef.regions||[];const worldHTML=`<div class="rw-ground"></div><svg class="rw-roads" viewBox="0 0 6000 4000" aria-hidden="true">${links.flatMap(n=>(n.links||[]).filter(id=>id>n.id).map(id=>{const to=links.find(x=>x.id===id);return to?`<path d="M${n.x*60} ${n.y*40} Q${(n.x+to.x)*30} ${(n.y+to.y)*20+120} ${to.x*60} ${to.y*40}"/>`:''})).join('')}</svg>${links.map(n=>island(w,n)).join('')}${scenery(links)}<div class="rw-live-layer">${w.actors.map(a=>actor(a,w)).join('')}${w.players.filter(p=>p.id!==w.player.publicId).map(p=>actor({...p,kind:'traveler'},w)).join('')}<div class="rw-self" style="left:${w.player.x*60}px;top:${w.player.y*40}px"><img src="/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png" alt="${esc(dataRef.profile.name)}"><i></i><b>${esc(dataRef.profile.name)}</b><span>VOCÊ</span></div></div>${w.invasions.some(i=>i.status==='active')?'<div class="rw-ashfall"></div>':''}<div class="rw-atmosphere"></div>`;if(!plane.children.length){plane.innerHTML=worldHTML;}else{const temp=document.createElement('div');temp.innerHTML=worldHTML;
+function paintWorld(){if(!rootRef||!dataRef?.liveWorld)return;const w=dataRef.liveWorld,plane=rootRef.querySelector('.rw-plane');if(!plane)return;const links=w.regions||dataRef.regions||[];const selfX=(controller?.pose?controller.pose.x:w.player.x)*60,selfY=(controller?.pose?controller.pose.y:w.player.y)*40;const worldHTML=`<div class="rw-ground"></div><svg class="rw-roads" viewBox="0 0 6000 4000" aria-hidden="true">${links.flatMap(n=>(n.links||[]).filter(id=>id>n.id).map(id=>{const to=links.find(x=>x.id===id);return to?`<path d="M${n.x*60} ${n.y*40} Q${(n.x+to.x)*30} ${(n.y+to.y)*20+120} ${to.x*60} ${to.y*40}"/>`:''})).join('')}</svg>${links.map(n=>island(w,n)).join('')}${scenery(links)}<div class="rw-live-layer">${w.actors.map(a=>actor(a,w)).join('')}${w.players.filter(p=>p.id!==w.player.publicId).map(p=>actor({...p,kind:'traveler'},w)).join('')}<div class="rw-self" style="left:${selfX}px;top:${selfY}px"><img src="/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png" alt="${esc(dataRef.profile.name)}"><i></i><b>${esc(dataRef.profile.name)}</b><span>VOCÊ</span></div></div>${w.invasions.some(i=>i.status==='active')?'<div class="rw-ashfall"></div>':''}<div class="rw-atmosphere"></div>`;if(!plane.children.length){plane.innerHTML=worldHTML;}else{const temp=document.createElement('div');temp.innerHTML=worldHTML;
  const incoming=temp.querySelector('.rw-live-layer'),layer=plane.querySelector('.rw-live-layer'),old=new Map([...layer.children].map(el=>[el.dataset.rwActor||'self',el]));
- for(const next of [...incoming.children]){const key=next.dataset.rwActor||'self',current=old.get(key);old.delete(key);if(!current){layer.append(next);continue;}current.style.left=next.style.left;current.style.top=next.style.top;current.className=next.className;const bar=current.querySelector('meter'),nextBar=next.querySelector('meter');if(bar&&nextBar){bar.max=nextBar.max;bar.value=nextBar.value;}else if(bar)bar.remove();else if(nextBar)current.append(nextBar);}
+ for(const next of [...incoming.children]){const key=next.dataset.rwActor||'self',current=old.get(key);old.delete(key);if(!current){layer.append(next);continue;}if(key==='self'&&controller?.pose){current.style.left=controller.pose.x*60+'px';current.style.top=controller.pose.y*40+'px';}else{current.style.left=next.style.left;current.style.top=next.style.top;}current.className=next.className;const bar=current.querySelector('meter'),nextBar=next.querySelector('meter');if(bar&&nextBar){bar.max=nextBar.max;bar.value=nextBar.value;}else if(bar)bar.remove();else if(nextBar)current.append(nextBar);}
  for(const stale of old.values())stale.remove();
  for(const next of temp.querySelectorAll('[data-rw-slot]')){const current=[...plane.querySelectorAll('[data-rw-slot]')].find(el=>el.dataset.rwSlot===next.dataset.rwSlot);if(current&&current.outerHTML!==next.outerHTML)current.replaceWith(next);}
  }paintCamera();}
@@ -66,12 +66,69 @@ function paint(){paintWorld();paintHud();}
 function feedback(s){const el=rootRef?.querySelector('.rw-feedback');if(!el)return;el.textContent=s;el.classList.add('show');clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>el.classList.remove('show'),3300);}
 async function send(input){const session=controller,callbacks=handlers;if(!session||session.commandBusy)return;session.commandBusy=true;try{const d=await callbacks.sendAction(input);if(controller!==session)return;if(d){dataRef=d;if(d.liveWorld){paint();}}const message=d?._worldResult?.message||d?.liveWorld?.lastResult?.message;if(message)feedback(message);return d;}catch(e){feedback(e.message||'A ordem não foi aceita.');return null;}finally{session.commandBusy=false;}}
 function direction(){return {dx:Number(keys.has('d')||keys.has('arrowright')||keys.has('right'))-Number(keys.has('a')||keys.has('arrowleft')||keys.has('left')),dy:Number(keys.has('s')||keys.has('arrowdown')||keys.has('down'))-Number(keys.has('w')||keys.has('arrowup')||keys.has('up'))};}
+function isBlocked(){
+ if(!dataRef?.liveWorld)return true;
+ const p=dataRef.liveWorld.player;
+ if(dataRef.liveWorld.activeRoom||p.hp<=0||document.hidden)return true;
+ if(document.querySelector('dialog[open],.game-modal:not([hidden])'))return true;
+ const v=document.querySelector('.install-veil');
+ if(v&&!v.hidden&&v.offsetParent!==null&&v.style.display!=='none')return true;
+ return false;
+}
+function dispatchMove(session,dx,dy,elapsedMs,now){
+ const sendMs=Math.max(40,Math.min(250,Math.round(elapsedMs)));session.accumulatedMs=0;session.lastSentAt=now;
+ if(session.inFlight){session.queuedMove={dx,dy,elapsedMs:sendMs};return;}
+ session.inFlight=true;const moveSeq=++seq;
+ handlers.sendAction({type:'world-move',dx,dy,elapsedMs:sendMs,sequence:moveSeq}).then(data=>{
+  if(controller!==session||!data)return;updateRealmWorld(rootRef,data);
+  const sp=data.liveWorld?.player;
+  if(sp){
+   const cur=direction();
+   if(!cur.dx&&!cur.dy&&!session.queuedMove){
+    session.pose.x=sp.x;session.pose.y=sp.y;
+    const self=rootRef?.querySelector('.rw-self');
+    if(self){self.style.left=session.pose.x*60+'px';self.style.top=session.pose.y*40+'px';}
+   }else if(Math.hypot(session.pose.x-sp.x,session.pose.y-sp.y)>3){
+    session.pose.x=sp.x;session.pose.y=sp.y;
+   }
+  }
+ }).catch(e=>{
+  if(controller===session){
+   feedback(e.message||'Movimento não aceito.');
+   const p=dataRef?.liveWorld?.player;
+   if(p)session.pose={x:p.x,y:p.y};
+  }
+ }).finally(()=>{
+  if(controller===session){
+   session.inFlight=false;
+   if(session.queuedMove){
+    const next=session.queuedMove;
+    session.queuedMove=null;
+    dispatchMove(session,next.dx,next.dy,next.elapsedMs,performance.now());
+   }
+  }
+ });
+}
 function loop(now){
- if(!rootRef?.isConnected||!controller){unmountRealmWorld();return;}const session=controller,d=direction(),p=dataRef.liveWorld.player,blocked=!!dataRef.liveWorld.activeRoom||p.hp<=0||document.hidden||!!document.querySelector('dialog[open],.game-modal,.install-veil'),dt=Math.min(40,Math.max(0,now-(lastMove||now)));lastMove=now;
- if((d.dx||d.dy)&&!blocked){const length=Math.hypot(d.dx,d.dy),ms=Math.min(dt,Math.max(0,250-session.predictedMs));session.predictedMs+=ms;session.elapsed=Math.min(250,session.elapsed+dt);session.pose.x=Math.max(1,Math.min(99,session.pose.x+d.dx/length*dataRef.liveWorld.rules.speed*ms/1500));session.pose.y=Math.max(1,Math.min(99,session.pose.y+d.dy/length*dataRef.liveWorld.rules.speed*ms/1000));
-  if(session.elapsed>=100&&now-session.lastSent>=160&&!session.moving){const elapsedMs=Math.round(session.elapsed);session.elapsed=0;session.lastSent=now;session.moving=true;handlers.sendAction({type:'world-move',dx:d.dx,dy:d.dy,elapsedMs,sequence:++seq}).then(data=>{if(controller!==session||!data)return;updateRealmWorld(rootRef,data);session.pose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};session.predictedMs=0;}).catch(e=>{if(controller===session){keys.clear();feedback(e.message);session.pose={x:p.x,y:p.y};}}).finally(()=>{session.moving=false;});}
-  const self=rootRef.querySelector('.rw-self');if(self){self.style.left=session.pose.x*60+'px';self.style.top=session.pose.y*40+'px';}camera.x=dimensions().w*.45-session.pose.x*60*camera.z;camera.y=dimensions().h*.45-session.pose.y*40*camera.z;clampCamera();paintCamera();
- }else if(!session.moving){session.elapsed=0;session.predictedMs=0;session.pose={x:p.x,y:p.y};}
+ if(!rootRef?.isConnected||!controller){unmountRealmWorld();return;}
+ const session=controller,d=direction(),blocked=isBlocked(),dt=Math.min(50,Math.max(0,now-(lastMove||now)));lastMove=now;
+ if((d.dx||d.dy)&&!blocked){
+  const len=Math.hypot(d.dx,d.dy),rules=dataRef.liveWorld.rules,speed=rules.speed||22,aspect=rules.aspect||1.5;
+  session.pose.x=Math.max(1,Math.min(99,session.pose.x+(d.dx/len*speed*(dt/1000))/aspect));
+  session.pose.y=Math.max(1,Math.min(99,session.pose.y+(d.dy/len*speed*(dt/1000))));
+  session.accumulatedMs=Math.min(250,session.accumulatedMs+dt);
+  session.lastDir={dx:d.dx,dy:d.dy};
+  if(session.accumulatedMs>=100&&(now-session.lastSentAt)>=120&&!session.inFlight){
+   dispatchMove(session,d.dx,d.dy,session.accumulatedMs,now);
+  }
+  const self=rootRef.querySelector('.rw-self');if(self){self.style.left=session.pose.x*60+'px';self.style.top=session.pose.y*40+'px';}
+  camera.x=dimensions().w*.5-session.pose.x*60*camera.z;camera.y=dimensions().h*.5-session.pose.y*40*camera.z;clampCamera();paintCamera();
+ }else{
+  if(session.accumulatedMs>0&&(session.lastDir.dx||session.lastDir.dy)&&!blocked){
+   dispatchMove(session,session.lastDir.dx,session.lastDir.dy,session.accumulatedMs,now);
+  }
+  session.accumulatedMs=0;session.lastDir={dx:0,dy:0};
+ }
  frame=requestAnimationFrame(loop);
 }
 function slotIdFromButton(b){return b?.dataset.rwSlot||b?.dataset.rwBuild||b?.dataset.rwPlace&&slotTarget||slotTarget;}
@@ -103,17 +160,51 @@ async function click(e){const b=e.target.closest('button');if(!b)return;
  if(b.hasAttribute('data-rw-clear')){selectedTarget=null;slotTarget=null;showHelp=false;paintHud();return;}
  if(b.dataset.rwDir)return;
 }
-function keydown(e){if(!rootRef?.isConnected||document.querySelector('dialog[open],.game-modal'))return;const k=e.key.toLowerCase();if(['w','a','s','d','arrowup','arrowleft','arrowdown','arrowright'].includes(k)){if(['input','textarea','select'].includes(document.activeElement?.tagName?.toLowerCase()))return;keys.add(k);e.preventDefault();}if(k==='home')focusPlayer(true);if(!e.repeat&&['e',' '].includes(k)&&!['input','textarea','select','button'].includes(document.activeElement?.tagName?.toLowerCase())){e.preventDefault();const w=dataRef.liveWorld,a=w.actors.find(a=>a.id===selectedTarget)||nearest(w);if(a){if(k===' ')send({type:'world-attack',targetId:a.id});else if(a.arenaKind)handlers.openEncounter(a.id);else send({type:'world-interact',targetId:slotTarget||a.id});}}}
+function keydown(e){
+ if(!rootRef?.isConnected)return;
+ if(document.querySelector('dialog[open],.game-modal:not([hidden])'))return;
+ const k=e.key.toLowerCase();
+ if(['w','a','s','d','arrowup','arrowleft','arrowdown','arrowright'].includes(k)){
+  if(['input','textarea','select'].includes(document.activeElement?.tagName?.toLowerCase()))return;
+  keys.add(k);e.preventDefault();
+ }
+ if(k==='home')focusPlayer(true);
+ if(!e.repeat&&['e',' '].includes(k)&&!['input','textarea','select','button'].includes(document.activeElement?.tagName?.toLowerCase())){
+  e.preventDefault();const w=dataRef.liveWorld,a=w.actors.find(a=>a.id===selectedTarget)||nearest(w);
+  if(a){if(k===' ')send({type:'world-attack',targetId:a.id});else if(a.arenaKind)handlers.openEncounter(a.id);else send({type:'world-interact',targetId:slotTarget||a.id});}
+ }
+}
 function keyup(e){keys.delete(e.key.toLowerCase());}
 function wheel(e){if(!rootRef?.querySelector('.rw-viewport')?.contains(e.target))return;e.preventDefault();const r=rootRef.querySelector('.rw-viewport').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,ratio=e.deltaY<0?1.13:.88;camera.z*=ratio;camera.x=x-(x-camera.x)*ratio;camera.y=y-(y-camera.y)*ratio;clampCamera();paintCamera();}
-function pointerdown(e){if(controller)controller.pointerHeld=true;const dir=e.target.closest('[data-rw-dir]');if(dir){e.preventDefault();keys.add(dir.dataset.rwDir);dir.setPointerCapture(e.pointerId);drag={direction:dir.dataset.rwDir,id:e.pointerId};return;}const vp=e.target.closest('.rw-viewport');if(!vp||e.target.closest('button'))return;drag={x:e.clientX,y:e.clientY,cx:camera.x,cy:camera.y,id:e.pointerId,travel:0};vp.setPointerCapture(e.pointerId);}
+function pointerdown(e){
+ if(controller)controller.pointerHeld=true;
+ const dir=e.target.closest('[data-rw-dir]');
+ if(dir){
+  e.preventDefault();const d=dir.dataset.rwDir;
+  keys.add(d);touchPointers.set(e.pointerId,d);
+  try{dir.setPointerCapture(e.pointerId);}catch{}
+  drag={direction:d,id:e.pointerId};
+  return;
+ }
+ const vp=e.target.closest('.rw-viewport');if(!vp||e.target.closest('button'))return;
+ drag={x:e.clientX,y:e.clientY,cx:camera.x,cy:camera.y,id:e.pointerId,travel:0};
+ try{vp.setPointerCapture(e.pointerId);}catch{}
+}
 function pointermove(e){if(!drag||drag.direction)return;drag.travel=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);if(drag.travel>5){camera.x=drag.cx+e.clientX-drag.x;camera.y=drag.cy+e.clientY-drag.y;clampCamera();paintCamera();}}
-function pointerup(e){if(controller)controller.pointerHeld=false;if(drag?.direction)keys.delete(drag.direction);if(drag?.id===e.pointerId)drag=null;}
+function pointerup(e){
+ if(controller)controller.pointerHeld=false;
+ if(touchPointers.has(e.pointerId)){
+  const d=touchPointers.get(e.pointerId);touchPointers.delete(e.pointerId);
+  if(![...touchPointers.values()].includes(d))keys.delete(d);
+ }
+ if(drag?.direction)keys.delete(drag.direction);
+ if(drag?.id===e.pointerId)drag=null;
+}
 function bind(){rootRef.addEventListener('click',click);rootRef.addEventListener('wheel',wheel,{passive:false});rootRef.addEventListener('pointerdown',pointerdown);rootRef.addEventListener('pointermove',pointermove);window.addEventListener('pointerup',pointerup);window.addEventListener('pointercancel',pointerup);document.addEventListener('keydown',keydown);document.addEventListener('keyup',keyup);window.addEventListener('blur',clearKeys);window.addEventListener('resize',resize);}
-function clearKeys(){keys.clear();drag=null;if(controller)controller.pointerHeld=false;}
+function clearKeys(){keys.clear();touchPointers.clear();drag=null;if(controller)controller.pointerHeld=false;}
 function resize(){clampCamera();paintCamera();}
 export function renderRealmWorld(data){dataRef=normalizeData(data);const w=data.liveWorld,p=w.player;if(ownerId!==data.player.publicId){ownerId=data.player.publicId;selected=null;selectedTarget=null;slotTarget=null;seq=p.moveSeq||0;}else seq=Math.max(seq,p.moveSeq||0);return `<main class="rw-world" aria-label="Mundo aberto de Reinos de Véspera"><div class="rw-viewport" tabindex="0" aria-label="Mundo aberto; mova-se com WASD ou setas, arraste para olhar e use o zoom"><div class="rw-plane"></div></div><div class="rw-hud">${hud(w)}</div></main>`;}
-export function mountRealmWorld(root,data,callbacks){const surface=root.querySelector('.rw-world');if(!surface)return;if(rootRef!==surface){unmountRealmWorld();rootRef=surface;handlers=callbacks;controller={lastSent:0,elapsed:0,predictedMs:0,pose:{x:data.liveWorld.player.x,y:data.liveWorld.player.y}};dataRef=normalizeData(data);camera.z=innerWidth<=720?.6:.9;bind();paint();focusPlayer();frame=requestAnimationFrame(loop);}else{handlers=callbacks;updateRealmWorld(surface,data);}}
-export function updateRealmWorld(root,data){if(!data?.liveWorld)return;const old=Number(dataRef?.liveWorld?.player?.moveSeq)||0,next=Number(data.liveWorld.player.moveSeq)||0;if(next<old)return;dataRef=normalizeData(data);if(controller&&!controller.moving)controller.pose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};if(!rootRef?.isConnected)rootRef=root?.querySelector?.('.rw-world')||root;seq=Math.max(seq,next);paint();}
-export function unmountRealmWorld(){if(frame)cancelAnimationFrame(frame);frame=0;keys.clear();clearTimeout(feedbackTimer);if(rootRef){rootRef.removeEventListener('click',click);rootRef.removeEventListener('wheel',wheel);rootRef.removeEventListener('pointerdown',pointerdown);rootRef.removeEventListener('pointermove',pointermove);window.removeEventListener('pointerup',pointerup);window.removeEventListener('pointercancel',pointerup);}document.removeEventListener('keydown',keydown);document.removeEventListener('keyup',keyup);window.removeEventListener('blur',clearKeys);window.removeEventListener('resize',resize);rootRef=null;dataRef=null;controller=null;handlers={};}
+export function mountRealmWorld(root,data,callbacks){const surface=root.querySelector('.rw-world');if(!surface)return;if(rootRef!==surface){unmountRealmWorld();rootRef=surface;handlers=callbacks;controller={lastSentAt:0,accumulatedMs:0,inFlight:false,queuedMove:null,lastDir:{dx:0,dy:0},pose:{x:data.liveWorld.player.x,y:data.liveWorld.player.y}};dataRef=normalizeData(data);camera.z=innerWidth<=720?.6:.9;bind();paint();focusPlayer();frame=requestAnimationFrame(loop);}else{handlers=callbacks;updateRealmWorld(surface,data);}}
+export function updateRealmWorld(root,data){if(!data?.liveWorld)return;const old=Number(dataRef?.liveWorld?.player?.moveSeq)||0,next=Number(data.liveWorld.player.moveSeq)||0;if(next<old)return;dataRef=normalizeData(data);const cur=direction();if(controller&&!controller.inFlight&&!cur.dx&&!cur.dy)controller.pose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};if(!rootRef?.isConnected)rootRef=root?.querySelector?.('.rw-world')||root;seq=Math.max(seq,next);paint();}
+export function unmountRealmWorld(){if(frame)cancelAnimationFrame(frame);frame=0;keys.clear();touchPointers.clear();clearTimeout(feedbackTimer);if(rootRef){rootRef.removeEventListener('click',click);rootRef.removeEventListener('wheel',wheel);rootRef.removeEventListener('pointerdown',pointerdown);rootRef.removeEventListener('pointermove',pointermove);window.removeEventListener('pointerup',pointerup);window.removeEventListener('pointercancel',pointerup);}document.removeEventListener('keydown',keydown);document.removeEventListener('keyup',keyup);window.removeEventListener('blur',clearKeys);window.removeEventListener('resize',resize);rootRef=null;dataRef=null;controller=null;handlers={};}
 export function isRealmWorldMoving(){const d=direction();return !!(d.dx||d.dy);}
