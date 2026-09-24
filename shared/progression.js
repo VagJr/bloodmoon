@@ -1,7 +1,7 @@
 import { CARDS, DECKS } from './cards.js';
 
 export const ECONOMY = {
-  boosterCost: 100,
+  boosterCost: 300,
   boosterSlots: ['common','common','uncommon','premium'],
   premiumOdds: { rare: 78, epic: 19, legendary: 3 },
   boosterGearRarityOdds: { common:60, uncommon:25, rare:12, epic:3, legendary:0 },
@@ -23,9 +23,9 @@ export const ECONOMY = {
 };
 
 export const CONTRACTS = [
-  { id:'matches', name:'O juramento continua', goal:4, reward:{coins:75,gear:'common'}, label:'Conclua 4 caçadas · receba uma peça comum' },
-  { id:'kills', name:'A presa não escapa', goal:5, reward:{coins:50,dust:10}, label:'Abata 5 combatentes rivais' },
-  { id:'wins', name:'Nome escrito em sangue', goal:2, reward:{coins:80,dust:15}, label:'Vença 2 caçadas' }
+  { id:'matches', name:'O juramento continua', goal:8, reward:{coins:75,gear:'common'}, label:'Conclua 8 caçadas · receba uma peça comum' },
+  { id:'kills', name:'A presa não escapa', goal:30, reward:{coins:50,dust:10}, label:'Abata 30 combatentes rivais' },
+  { id:'wins', name:'Nome escrito em sangue', goal:5, reward:{coins:80,dust:15}, label:'Vença 5 caçadas' }
 ];
 
 export function xpThresholdForLevel(level) {
@@ -126,7 +126,7 @@ export function reconcileDepletedGear(profile) {
       const usable=ownedCardCount(cardId,profile.collection,profile.items),current=countCards(deck.cards)[cardId]||0;
       let missing=Math.max(0,current-usable);
       while(missing>0){
-        const candidates=Object.values(CARDS).filter(card=>card.type==='unit'&&card.faction===deck.faction&&card.cost<=2)
+        const candidates=Object.values(CARDS).filter(card=>card.type==='unit'&&card.faction===deck.faction)
           .sort((a,b)=>a.cost-b.cost||b.health-a.health||a.name.localeCompare(b.name));
         const replacement=candidates.find(card=>{
           const copies=countCards(deck.cards)[card.id]||0;
@@ -161,22 +161,22 @@ export function grantStarter(profile,faction='vampire',createId=defaultId) {
   if(!profile.starterGranted){
     const deck=starterDeck(faction);deck.id=createId();
     for(const [id,count] of Object.entries(countCards(deck.cards))){if(CARDS[id].type==='equipment'){for(let i=0;i<count;i++)profile.items.push(makeItem(id,createId,'starter'));}else profile.collection[id]=(profile.collection[id]||0)+count;}
-    profile.decks.push(deck);profile.activeDecks[faction]=deck.id;profile.coins+=300;profile.starterFaction=faction;profile.starterGranted=true;changed=true;
+    profile.decks.push(deck);profile.activeDecks[faction]=deck.id;profile.coins+=profile.journey?.version===1?60:300;profile.starterFaction=faction;profile.starterGranted=true;changed=true;
   }
   return changed;
 }
 
 // Grants the other starter once, without replenishing currency or worn equipment.
 export function grantSecondLineage(profile,createId=defaultId) {
-  if(profile.dualStartersGranted)return false;
+  if(profile.dualStartersGranted||(profile.journey?.version===1&&(profile.matches||0)<12))return false;
   const other=profile.starterFaction==='vampire'?'werewolf':'vampire';
   profile.decks||=[];profile.activeDecks||={};profile.collection||={};profile.items||=[];
   if(!profile.decks.some(d=>d.faction===other)) {
     const deck=starterDeck(other);deck.id=createId();
     for(const [id,count] of Object.entries(countCards(deck.cards))) {
       if(CARDS[id].type==='equipment') {
-        const usable=profile.items.filter(i=>i.cardId===id&&i.durability>0&&!i.listingId).length;
-        for(let i=usable;i<count;i++)profile.items.push(makeItem(id,createId,'starter'));
+        const owned=profile.items.filter(i=>i.cardId===id).length;
+        for(let i=owned;i<count;i++)profile.items.push(makeItem(id,createId,'starter'));
       } else profile.collection[id]=Math.max(profile.collection[id]||0,count);
     }
     profile.decks.push(deck);profile.activeDecks[other]=deck.id;

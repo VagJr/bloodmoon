@@ -1,4 +1,6 @@
+import {realmStream,realmPulse} from './realm-stream.js';
 import {AVATAR_IDS,ORIGINS} from '../shared/battle-design.js';
+import {applyDoctrine} from '../shared/expedition-doctrines.js';
 import http from 'node:http';
 import { createReadStream } from 'node:fs';
 import { randomBytes, randomUUID, randomInt } from 'node:crypto';
@@ -12,6 +14,10 @@ import { createGame, replaceOpeningDeck, applyAction, botAction, publicView, Rul
 import { RIVALS, buildRivalDeck, practiceRival, campaignRival } from '../shared/rivals.js';
 import { CARDS, DECKS } from '../shared/cards.js';
 import { ECONOMY, CONTRACTS, grantStarter, grantSecondLineage, validateDeck, countCards, cardLimit, makeItem, applyDurabilityWear, deckCollection, reconcileDepletedGear, restoreReplacedGear, accountLevelForXP, xpThresholdForLevel } from '../shared/progression.js';
+import {suggestLoadout,reserveSlots} from '../shared/loadout.js';
+import {transferVault} from '../shared/vault.js';
+import {featureOpen,featureRequirement,JOURNEY_LESSONS,lessonFeature} from '../shared/player-journey.js';
+import {placeOrder,cancelOrder,fillOrder} from '../shared/purchase-orders.js';
 import { createWorld, enterRealms, realmView, realmAction, prepareEncounter, settleEncounter, expirePolitics, REGIONS } from '../shared/realms.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -74,7 +80,8 @@ function identity(req) {
 }
 function view(room, id) {
   const seat=room.seats.indexOf(id),reward=room.rewards?.[seat];
-  return { roomId: room.id, mode: room.mode, encounter:room.encounter||null, opponent:room.opponent||null, battlefield:room.battlefield||'court-board', riskMode:room.riskMode||'covenant', rewards:reward?{...reward,items:reward.items?.length||0}: {}, waiting: room.seats.length < 2, ...publicView(room.game, seat) };
+  const lootCards=(reward?.items||[]).map(itemId=>profiles.get(id)?.items?.find(i=>i.id===itemId)).filter(Boolean).map(({cardId,rarity,durability,maxDurability,source})=>({cardId,rarity,durability,maxDurability,source}));
+  return { roomId: room.id, mode: room.mode, encounter:room.encounter||null, opponent:room.opponent||null, battlefield:room.battlefield||'court-board', riskMode:room.riskMode||'covenant', rewards:reward?{...reward,items:reward.items?.length||0,lootCards}: {}, waiting: room.seats.length < 2, ...publicView(room.game, seat) };
 }
 async function prepareProfile(profile,faction='vampire') {
   let changed=grantStarter(profile,faction,randomUUID);
@@ -89,6 +96,8 @@ function activeDeck(profile,faction) {
   const id=profile.activeDecks?.[faction],deck=profile.decks?.find(d=>d.id===id&&d.faction===faction);
   return deck||null;
 }
+function activeRoomFor(id){return [...rooms.values()].find(r=>r.game.phase==='playing'&&r.seats.includes(id));}
+function requireFreePlayer(id){if(activeRoomFor(id))throw new RuleError('Retome ou conclua sua partida em andamento antes de iniciar outra.');}
 function validateOwnedDeck(cards,faction,profile,autoRefills=[]) {
   try{return validateDeck(cards,faction,deckCollection(profile.collection,autoRefills),profile.items);}catch(e){throw new RuleError(e.message);}
 }
@@ -123,7 +132,9 @@ function readinessFor(profile,faction) {
     equipment.push({cardId,name:CARDS[cardId].name,required,available,damaged:owned.filter(item=>item.durability<=0).length,listed:owned.filter(item=>!!item.listingId).length,reserved:owned.filter(item=>item.durability>0&&!item.listingId&&itemLocks.has(item.id)).length});
   }
   const missing=equipment.filter(item=>item.available<item.required);
-  return {faction,canStart:!!deck&&!deckError&&!missing.length,deck:deck?{id:deck.id,name:deck.name,cards:deck.cards.length,autoRefills:deck.autoRefills||[]}:null,deckError,missing,equipment,inventory,rules:{deckSize:20,maxEquipment:6}};
+  const active=activeRoomFor(profile.id);
+  if(active)deckError='Você tem uma partida em andamento. Retome a mesa antes de iniciar outra; não é necessário repor equipamentos.';
+  return {faction,activeRoom:active?{id:active.id,mode:active.mode,round:active.game.round}:null,canStart:!active&&!!deck&&!deckError&&!missing.length,deck:deck?{id:deck.id,name:deck.name,cards:deck.cards.length,autoRefills:deck.autoRefills||[]}:null,deckError,missing,equipment,inventory,rules:{deckSize:20,maxEquipment:6}};
 }
 function pruneRooms(now=Date.now()) {
   const deleteRooms=[],expiredIds=new Set();
@@ -265,8 +276,10 @@ const server = http.createServer(async (req,res) => {
         if(account)throw new RuleError('Não foi possível criar esta conta. Confira os dados ou entre com sua conta existente.');
         const passwordHash=await hashPassword(input.password);
         const legacy=identity(req);
-        profile=input.claimLegacy&&legacy&&!legacy.accountId?structuredClone(legacy):{id:randomUUID(),name:'Caçador',xp:0,level:1,wins:0,matches:0,trophies:[]};
-        if(!profile.dualStartersGranted)profile.onboardingComplete=false;
+        const isLegacy=Boolean(input.claimLegacy&&legacy&&!legacy.accountId);
+        const name=typeof input.name==='string'&&input.name.trim()?input.name.trim().slice(0,24):'Caçador';
+        profile=isLegacy?structuredClone(legacy):{id:randomUUID(),name,xp:0,level:1,wins:0,matches:0,trophies:[]};
+        if(!isLegacy){profile.onboardingComplete=false;profile.journey={version:1,lessons:{},createdAt:Date.now()};}
         account={id:randomUUID(),email,passwordHash,profileId:profile.id,createdAt:Date.now()};profile.accountId=account.id;
       }else{
         // A dummy derivation keeps the missing-account path comparable to a bad password.
@@ -293,8 +306,10 @@ const server = http.createServer(async (req,res) => {
     if (url.pathname.startsWith('/api/')) {
       const profile = identity(req);
       if (!profile) return json(res,401,{ error: 'Crie um perfil local para entrar.' });
+      if(profile.onboardingComplete!==false) await prepareProfile(profile,profile.starterFaction||'vampire');
+      if (req.method === 'GET' && url.pathname === '/api/profile') return json(res,200,profile);
       if(url.pathname==='/api/onboarding'&&req.method==='POST'){
-        const input=await body(req),name=String(input.name||'').trim();
+        const input=await body(req),name=String(input.name||profile.name||'Viajante').trim();
         if(name.length<2||name.length>24)throw new RuleError('O nome do personagem deve ter entre 2 e 24 caracteres.');
         if(!['vampire','werewolf'].includes(input.faction))throw new RuleError('Escolha seu primeiro deck.');
         if(profile.onboardingComplete===false){
@@ -305,7 +320,16 @@ const server = http.createServer(async (req,res) => {
         return json(res,200,{profile});
       }
       if(profile.onboardingComplete===false)throw new RuleError('Conclua a apresentação do seu personagem para começar.');
-      await prepareProfile(profile,profile.starterFaction||'vampire');
+      if(url.pathname==='/api/journey/lesson'&&req.method==='POST'){
+        const input=await body(req),lesson=input.id==='combat'?{steps:Array(9)}:Object.hasOwn(JOURNEY_LESSONS,input.id)?JOURNEY_LESSONS[input.id]:null;
+        if(!lesson||!Number.isInteger(input.step)||input.step<0||input.step>lesson.steps.length)throw new RuleError('Etapa de orientação inválida.');
+        const feature=lessonFeature(input.id);if(feature&&!featureOpen(profile,feature))return json(res,403,{error:featureRequirement(profile,feature)});
+        profile.journey||={version:0,lessons:{}};profile.journey.lessons||={};
+        profile.journey.lessons[input.id]={step:input.step,complete:input.step===lesson.steps.length,updatedAt:Date.now()};
+        await persist({profiles:[profile]});return json(res,200,{journey:profile.journey});
+      }
+      const gate=url.pathname.startsWith('/api/realms')?'realms':url.pathname==='/api/matchmaking'&&req.method==='POST'?'duel':url.pathname==='/api/boosters/open'?'boosters':url.pathname==='/api/cards/craft'?'forge':url.pathname==='/api/decks'&&req.method==='POST'?'decks':url.pathname==='/api/vault/transfer'?'vault':url.pathname.startsWith('/api/market')&&req.method==='POST'?'market':null;
+      if(gate&&!featureOpen(profile,gate))return json(res,403,{error:featureRequirement(profile,gate),feature:gate});
       if(url.pathname==='/api/character'&&req.method==='POST'){
         const input=await body(req),name=String(input.name||'').trim();
         if(name.length<2||name.length>24||!AVATAR_IDS.includes(input.avatar)||!Object.hasOwn(ORIGINS,input.origin))throw new RuleError('Escolha nome, retrato e origem válidos.');
@@ -316,21 +340,47 @@ const server = http.createServer(async (req,res) => {
       if(url.pathname==='/api/decks/loadout'&&req.method==='POST'){
         const input=await body(req),deck=profile.decks.find(d=>d.id===input.deckId);
         if(!deck)throw new RuleError('Deck não encontrado.');
+        if(deck.faction!==profile.starterFaction&&!featureOpen(profile,'lineage'))throw new RuleError(featureRequirement(profile,'lineage'));
         if([...rooms.values()].some(r=>r.game.phase==='playing'&&r.seats.includes(profile.id)))throw new RuleError('Conclua a partida antes de alterar equipamentos.');
+        if(input.auto){
+          if(JSON.stringify(input.expectedCards)!==JSON.stringify(deck.cards))throw new RuleError('Seu deck mudou. Reabra a preparação para conferir a nova sugestão.');
+          const plan=suggestLoadout({...profile,items:profile.items.map(i=>({...i,locked:itemLocks.has(i.id)}))},deck);
+          if(!plan.ready)throw new RuleError(plan.error);
+          if(JSON.stringify(input.expectedResult)!==JSON.stringify(plan.cards))throw new RuleError('As peças disponíveis mudaram. Confira a sugestão novamente.');
+          deck.cards=plan.cards;deck.autoRefills=plan.autoRefills;profile.activeDecks[deck.faction]=deck.id;profile.selectedFaction=deck.faction;matchQueue.remove(profile.id);
+          await persist({profiles:[profile]});return json(res,200,{profile,deck,changes:plan.changes});
+        }
         const index=Number(input.index),card=CARDS[input.cardId];
         if(!Number.isInteger(index)||index<0||index>=deck.cards.length||card?.type!=='equipment')throw new RuleError('Escolha uma posição e equipamento válidos.');
         if(input.expectedCardId!==deck.cards[index])throw new RuleError('Seu deck foi atualizado. Reabra Equipamento Rápido e selecione a posição novamente.');
         const available=profile.items.filter(i=>i.cardId===card.id&&i.durability>0&&!i.listingId&&!itemLocks.has(i.id)).length;
         const draft=[...deck.cards],removed=draft[index];draft[index]=card.id;
         if((countCards(draft)[card.id]||0)>available)throw new RuleError('Todas as peças desta relíquia estão em uso, anunciadas ou danificadas.');
-        const refills=structuredClone(deck.autoRefills||[]),replacement=refills.findIndex(r=>r.replacementId===removed);
+        const reservedSlot=reserveSlots(deck).get(index),refills=structuredClone(deck.autoRefills||[]),replacement=reservedSlot?(deck.autoRefills||[]).indexOf(reservedSlot):-1;
         if(replacement>=0)refills.splice(replacement,1);
         validateOwnedDeck(draft,deck.faction,profile,refills);
         deck.cards=draft;deck.autoRefills=refills;matchQueue.remove(profile.id);
         await persist({profiles:[profile]});return json(res,200,{profile,deck});
       }
+      if(url.pathname==='/api/market/orders'&&req.method==='GET')return json(res,200,{orders:(world.purchaseOrders||[]).map(o=>({id:o.id,cardId:o.cardId,price:o.price,createdAt:o.createdAt,mine:o.buyerId===profile.id,buyerName:profiles.get(o.buyerId)?.name||'Viajante'}))});
+      if(url.pathname==='/api/market/orders'&&req.method==='POST'){
+        const input=await body(req);try{placeOrder(world,profile,input,randomUUID());}catch(error){throw new RuleError(error.message);}
+        await persist({profiles:[profile],world:true});return json(res,200,{profile});
+      }
+      const orderRoute=url.pathname.match(/^\/api\/market\/orders\/([\da-f-]+)\/(cancel|fill)$/i);
+      if(orderRoute&&req.method==='POST'){
+        const input=await body(req),order=(world.purchaseOrders||[]).find(o=>o.id===orderRoute[1]),buyer=order&&profiles.get(order.buyerId);if(!buyer)throw new RuleError('Encomenda não encontrada.');
+        let receipt;try{if(orderRoute[2]==='cancel')cancelOrder(world,profile,order.id);else receipt=fillOrder(world,profile,buyer,{orderId:order.id,itemId:input.itemId},itemLocks);}catch(error){throw new RuleError(error.message);}
+        reconcileDepletedGear(profile);if(buyer!==profile)reconcileDepletedGear(buyer);
+        await persist({profiles:buyer===profile?[profile]:[profile,buyer],world:true});return json(res,200,{profile,receipt});
+      }
+      if(url.pathname==='/api/vault/transfer'&&req.method==='POST'){
+        const input=await body(req);try{transferVault(profile,input);}catch(error){throw new RuleError(error.message);}
+        await persist({profiles:[profile]});return json(res,200,{profile,vault:profile.vault});
+      }
       if(url.pathname==='/api/decks/select'&&req.method==='POST'){
         const input=await body(req);if(!activeDeck(profile,input.faction))throw new RuleError('Ative um deck válido no Arsenal.');
+        if(input.faction!==profile.starterFaction&&!featureOpen(profile,'lineage'))throw new RuleError(featureRequirement(profile,'lineage'));
         if(profile.realm?.activeRoom||[...rooms.values()].some(r=>r.game.phase==='playing'&&r.seats.includes(profile.id)))throw new RuleError('Conclua sua partida antes de trocar o deck.');
         matchQueue.remove(profile.id);profile.selectedFaction=input.faction;await persist({profiles:[profile]});return json(res,200,{profile});
       }
@@ -339,12 +389,15 @@ const server = http.createServer(async (req,res) => {
         const input=await body(req),faction=input.faction||profile.selectedFaction||profile.starterFaction;
         const existing=[...rooms.values()].find(r=>r.matchmade&&r.game.phase==='playing'&&r.seats.includes(profile.id));
         if(existing){matchQueue.remove(profile.id);return json(res,200,{state:'matched',roomId:existing.id});}
+        requireFreePlayer(profile.id);
         if(!['vampire','werewolf'].includes(faction))throw new RuleError('Escolha uma linhagem válida.');
         const ready=readinessFor(profile,faction);if(!ready.canStart){matchQueue.remove(profile.id);throw new RuleError(ready.deckError||'Prepare seus equipamentos antes de buscar um adversário.');}
         const {entry,candidates}=matchQueue.join(profile,faction);
         for(const ticket of candidates){
           const rival=profiles.get(ticket.id);if(!rival){matchQueue.remove(ticket.id);continue;}
           await prepareProfile(rival,ticket.faction);
+          const current=activeRoomFor(profile.id);if(current){matchQueue.remove(profile.id);if(current.matchmade)return json(res,200,{state:'matched',roomId:current.id});throw new RuleError('Conclua sua partida em andamento.');}
+          if(activeRoomFor(rival.id)){matchQueue.remove(rival.id);continue;}
           if(!readinessFor(rival,ticket.faction).canStart){matchQueue.remove(rival.id);continue;}
           if(rooms.size>=500)throw new RuleError('Todas as mesas estão ocupadas. Tente novamente em instantes.');
           const id=randomBytes(5).toString('hex').toUpperCase();let one,two;
@@ -361,17 +414,22 @@ const server = http.createServer(async (req,res) => {
         const requested=url.searchParams.get('faction'),faction=['vampire','werewolf'].includes(requested)?requested:(profile.selectedFaction||profile.starterFaction||'vampire');
         return json(res,200,readinessFor(profile,faction));
       }
+      if(url.pathname==='/api/realms/events'&&req.method==='GET'){return realmStream(profile,req,res);}
       if(url.pathname==='/api/realms'&&req.method==='GET'){
         if(enterRealms(profile,randomUUID))await persist({profiles:[profile]});
         return json(res,200,realmView(world,profile,profiles,Date.now(),false));
       }
       if(url.pathname==='/api/realms/actions'&&req.method==='POST'){
-        const input=await body(req),worldVersion=world.version;enterRealms(profile,randomUUID);realmAction(world,profile,input,randomUUID);await persist({profiles:[profile],world:world.version!==worldVersion});return json(res,200,realmView(world,profile,profiles));
+        const input=await body(req),worldVersion=world.version;
+        if(['found','join','propose','war','donate','vote','table-siege','table-influence'].includes(input.type)&&!featureOpen(profile,'politics'))throw new RuleError(featureRequirement(profile,'politics'));
+        enterRealms(profile,randomUUID);realmAction(world,profile,input,randomUUID);await persist({profiles:[profile],world:world.version!==worldVersion});realmPulse();return json(res,200,realmView(world,profile,profiles));
       }
       if(url.pathname==='/api/realms/encounter'&&req.method==='POST'){
         const input=await body(req);enterRealms(profile,randomUUID);
+        requireFreePlayer(profile.id);matchQueue.remove(profile.id);
         if(input.version!==profile.realm.version)throw new RuleError('Seu mapa mudou. Atualize e tente novamente.');
         const encounter=prepareEncounter(world,profile),faction=profile.selectedFaction||profile.starterFaction,deck=activeDeck(profile,faction);
+        encounter.doctrine=profile.realm.expedition?.doctrine||profile.realm.doctrine||'standard';
         if(!deck)throw new RuleError('Equipe um deck válido da sua linhagem no Arsenal.');
         validateOwnedDeck(deck.cards,faction,profile,deck.autoRefills);
         const id=randomBytes(5).toString('hex').toUpperCase(),reserved=reserveDeck(profile,deck.cards,id);
@@ -379,10 +437,10 @@ const server = http.createServer(async (req,res) => {
         encounter.rivalId=rival.id;encounter.rivalName=rival.name;encounter.rivalStyle=rival.style;
         const game=createGame(faction,Math.random,boss?'dungeon':'practice',{[faction]:reserved.cards},{...rival,deck:buildRivalDeck(rival.id)});
         game.players[1].health=game.players[1].maxHealth=boss?36:22+encounter.difficulty*2+encounter.stage*2;
+        applyDoctrine(game,encounter.doctrine);
         const room={id,mode:'realm',encounter,opponent:{id:rival.id,name:rival.name,title:rival.title,style:rival.style,avatar:rival.avatar},battlefield:encounter.board,riskMode:'covenant',game,seats:[profile.id,'bot'],rewarded:false,createdAt:Date.now(),lockedItems:[reserved.itemIds],gearEvents:[]};
         rooms.set(id,room);profile.realm.activeRoom=id;profile.realm.provisions-=2;profile.realm.version++;await persist({profiles:[profile],rooms:[room]});return json(res,201,view(room,profile.id));
       }
-      if (req.method === 'GET' && url.pathname === '/api/profile') return json(res,200,profile);
       if (req.method === 'POST' && url.pathname === '/api/boosters/open') {
         if(profile.coins<ECONOMY.boosterCost)throw new RuleError('Marcas insuficientes. Conclua caçadas ou contratos para ganhar mais.');
         profile.coins-=ECONOMY.boosterCost;
@@ -421,7 +479,9 @@ const server = http.createServer(async (req,res) => {
       }
       const deckRoute=url.pathname.match(/^\/api\/decks\/([\da-f-]+)(?:\/(activate))?$/i);
       if(deckRoute){
+        if(!featureOpen(profile,'decks'))throw new RuleError(featureRequirement(profile,'decks'));
         const deck=profile.decks.find(d=>d.id===deckRoute[1]);if(!deck)throw new RuleError('Deck não encontrado.');
+        if(deck.faction!==profile.starterFaction&&!featureOpen(profile,'lineage'))throw new RuleError(featureRequirement(profile,'lineage'));
         if(req.method==='POST'&&deckRoute[2]==='activate'){validateOwnedDeck(deck.cards,deck.faction,profile,deck.autoRefills);profile.activeDecks[deck.faction]=deck.id;profile.selectedFaction=deck.faction;await persist({profiles:[profile]});return json(res,200,{profile,deck});}
         if(req.method==='PUT'&&!deckRoute[2]){const input=await body(req);validateOwnedDeck(input.cards,deck.faction,profile,deck.autoRefills);deck.cards=[...input.cards];const borrowedNeeded={};for(const [id,count] of Object.entries(countCards(deck.cards)))borrowedNeeded[id]=Math.max(0,count-(profile.collection?.[id]||0));deck.autoRefills=(deck.autoRefills||[]).filter(refill=>{if((borrowedNeeded[refill.replacementId]||0)<=0)return false;borrowedNeeded[refill.replacementId]--;return true;});if(input.name)deck.name=String(input.name).trim().slice(0,28);await persist({profiles:[profile]});return json(res,200,{profile,deck});}
       }
@@ -460,7 +520,10 @@ const server = http.createServer(async (req,res) => {
       if (req.method === 'POST' && url.pathname === '/api/rooms') {
         const input = await body(req);
         if (!['practice','duel','dungeon'].includes(input.mode)) throw new RuleError('Modo inválido.');
+        if(input.mode==='dungeon'&&!featureOpen(profile,'dungeon'))throw new RuleError(featureRequirement(profile,'dungeon'));
+        if(input.faction!==profile.starterFaction&&!featureOpen(profile,'lineage'))throw new RuleError(featureRequirement(profile,'lineage'));
         if(input.mode==='duel')throw new RuleError('Duelo online entra pela busca de adversário.');
+        requireFreePlayer(profile.id);matchQueue.remove(profile.id);
         if (rooms.size >= 500) throw new RuleError('Limite de salas atingido. Reinicie o servidor de desenvolvimento.');
         const deck=profile.decks.find(d=>d.id===(input.deckId||profile.activeDecks[input.faction]));
         if(!deck)throw new RuleError('Equipe um deck válido dessa facção antes de iniciar.');
@@ -474,11 +537,13 @@ const server = http.createServer(async (req,res) => {
         if (input.mode !== 'duel') room.seats.push('bot');
         rooms.set(room.id,room); await persist({rooms:[room]});return json(res,201,view(room,profile.id));
       }
-      const match = url.pathname.match(/^\/api\/rooms\/([A-F0-9]{10})(?:\/(actions))?$/);
+      const match = url.pathname.match(/^\/api\/rooms\/([A-F0-9]{10})(?:\/(join|actions))?$/);
       if (match) {
         const room = rooms.get(match[1]);
         if (!room) return json(res,404,{ error: 'Sala não encontrada ou expirada.' });
-        if(room.mode==='duel'&&!room.matchmade&&room.seats.length<2)return json(res,410,{error:'Este convite expirou. Use a busca automática para encontrar um rival.'});
+        if (req.method === 'POST' && match[2] === 'join') {
+          return json(res,410,{error:'Convites foram substituídos pela busca automática de adversário.'});
+        }
         const seat = room.seats.indexOf(profile.id);
         if (seat < 0) return json(res,403,{ error: 'Você não participa desta sala.' });
         if (req.method === 'GET' && !match[2]) return json(res,200,view(room,profile.id));

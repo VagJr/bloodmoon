@@ -1,4 +1,7 @@
+import {tableAction,tableView} from './world-table.js';
 import {legacyClaim} from './legacy.js';
+import {storyAction} from './side-stories.js';
+import {chooseDoctrine} from './expedition-doctrines.js';
 import { RuleError } from './engine.js';
 import { CARDS } from './cards.js';
 import { makeItem } from './progression.js';
@@ -39,6 +42,7 @@ function debit(profile,coins,materials={}){check(profile.coins>=coins,`São nece
 function gainXP(r,amount){r.xp+=amount;r.level=1+Math.floor(r.xp/120);}
 export function expirePolitics(world,now=Date.now()){
   let changed=false;
+  for(const [key,post] of Object.entries(world.tableSlots||{}))if(post.expiresAt<=now){delete world.tableSlots[key];world.version++;changed=true;}
   for(const war of world.wars)if(war.status==='active'&&war.endsAt<=now){war.status='ended';journal(world,'O prazo de uma guerra terminou. As fronteiras conquistadas permanecem.',now);changed=true;}
   for(const h of world.houses)if(h.proposal&&h.proposal.endsAt<=now){h.proposal=null;journal(world,`A votação de ${h.name} encerrou sem quórum.`,now);changed=true;}
   return changed;
@@ -51,7 +55,7 @@ export function realmView(world,profile,profiles,now=Date.now(),includeProfile=t
     if(now-p.realm.seenAt<45000)people.push({id:p.realm.publicId,name:p.name,avatar:p.realm.avatar,location:p.realm.location,level:p.realm.level,faction:p.starterFaction,houseId:p.realm.houseId,busy:!!p.realm.activeRoom});
   }
   const profileView=includeProfile?profile:{id:profile.id,name:profile.name,starterFaction:profile.starterFaction,level:profile.level||1,xp:profile.xp||0,coins:profile.coins||0,dust:profile.dust||0,scrap:profile.scrap||0};
-  return {version:world.version,serverTime:now,player:structuredClone(r),regions:REGIONS,territories:world.territories,houses:world.houses.map(h=>({...h,members:h.members.map(id=>({id,name:byPublicId.get(id)?.name||'Viajante'}))})),wars:world.wars.slice(-30),events:world.events.slice(0,12),online:people,profile:profileView};
+  return {table:tableView(world,r,now),tableCards:Object.keys(profile.collection||{}).filter(id=>CARDS[id]?.type==='unit'&&profile.collection[id]>0).slice(0,60),version:world.version,serverTime:now,player:structuredClone(r),regions:REGIONS,territories:world.territories,houses:world.houses.map(h=>({...h,members:h.members.map(id=>({id,name:byPublicId.get(id)?.name||'Viajante'}))})),wars:world.wars.slice(-30),events:world.events.slice(0,12),online:people,profile:profileView};
 }
 export function realmAction(world,profile,input,createId,now=Date.now()){
   expirePolitics(world,now);
@@ -59,7 +63,10 @@ export function realmAction(world,profile,input,createId,now=Date.now()){
   const here=region(r.location),house=houseOf(world,profile),action=input.type;
   ensureAdventure(r);const adventure=r.adventure;
   check(!r.activeRoom||action==='avatar','Conclua ou abandone o combate antes de agir no mundo.');
-  if(action==='legacy-claim'){const reward=legacyClaim(r,input.id);profile.coins+=reward.coins;profile.scrap=(profile.scrap||0)+reward.scrap;adventureJournal(r,reward.name+' · +'+reward.coins+' marcas e +'+reward.scrap+' sucatas.',now);}
+  if(action.startsWith('table-')){tableAction(world,profile,input,here,now);}
+  else if(action==='doctrine'){chooseDoctrine(r,input.id);}
+  else if(action==='story-accept'||action==='story-finish'){const reward=storyAction(r,input);if(reward){profile.coins+=reward.coins;profile.scrap=(profile.scrap||0)+reward.scrap;adventureJournal(r,reward.text,now);}}
+  else if(action==='legacy-claim'){const reward=legacyClaim(r,input.id);profile.coins+=reward.coins;profile.scrap=(profile.scrap||0)+reward.scrap;adventureJournal(r,reward.name+' · +'+reward.coins+' marcas e +'+reward.scrap+' sucatas.',now);}
   else if(action==='travel'){
     const destination=region(input.destination);check(destination&&here.links.includes(destination.id),'Viaje por uma rota conectada.');check(r.level>=destination.level,`Esta região exige nível de exploração ${destination.level}.`);check(r.provisions>0,'Reabasteça suas provisões no acampamento.');
     r.provisions--;r.location=destination.id;r.expedition=null;if(!r.visited.includes(destination.id)){r.visited.push(destination.id);gainXP(r,20);}
@@ -116,7 +123,7 @@ export function settleEncounter(world,profile,encounter,won,conceded,now=Date.no
   const r=profile.realm;r.activeRoom=null;r.version++;const n=region(encounter.node),house=houseOf(world,profile),claims=new Set((Array.isArray(capturedLanes)?capturedLanes:[]).filter(id=>['court','crypt','hunt'].includes(id)));const reward={xp:0,coins:0,materials:0,loot:false,message:''};
   if(!won||conceded){r.expedition=null;reward.message='A expedição recuou. Seus territórios e construções permanecem.';return reward;}
   const final=encounter.stage+1>=encounter.stages;
-  r.expedition=final?null:{node:n.id,stage:encounter.stage+1};
+  r.expedition=final?null:{node:n.id,stage:encounter.stage+1,doctrine:encounter.doctrine||'standard'};
   reward.message=final?'Expedição concluída.':'Mesa vencida. A próxima instância está aberta.';
   const key=`${n.id}:${encounter.stage}`,eligible=now-(r.claims[key]||0)>=300000;
   if(eligible){for(const lane of claims)r.adventure.stats.fronts[lane]=(r.adventure.stats.fronts[lane]||0)+1;r.claims[key]=now;reward.xp=30+encounter.difficulty*10;gainXP(r,reward.xp);reward.coins=10+(house?.policy==='commerce'?5:0);profile.coins+=reward.coins;reward.materials=2+(house?.policy==='expedition'?1:0);r.materials[n.resource]+=reward.materials;reward.loot=final;r.adventure.stats.wins++;dailyState(r,now).wins++;if(final&&encounter.stages>1)r.adventure.stats.dungeons++;adventureJournal(r,`Vitória em ${n.name} · ${encounter.stage+1}/${encounter.stages}. +${reward.xp} XP de exploração.`,now);
@@ -124,6 +131,7 @@ export function settleEncounter(world,profile,encounter,won,conceded,now=Date.no
     if(claims.has('hunt')){reward.coins+=10;profile.coins+=10;reward.message+=' Caçada: +10 Marcas de recompensa para financiar a Casa ou a guerra.';}
     if(claims.has('court')){if(house&&house.id===encounter.houseId){house.treasury+=5;reward.treasury=5;reward.message+=' Corte: +5 Marcas ao tesouro da Casa.';}else{reward.coins+=5;profile.coins+=5;reward.message+=' Corte: +5 Marcas em favores políticos.';}}
   }
+  if(eligible&&final){r.adventure.doctrineWins||={};const id=encounter.doctrine||'standard';r.adventure.doctrineWins[id]=(r.adventure.doctrineWins[id]||0)+1;}
   const t=world.territories[n.id];
   if(t&&house&&house.id===encounter.houseId&&eligible){
     if(t.owner!==house.id){

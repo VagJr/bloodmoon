@@ -15,7 +15,7 @@ test('progression: levels up to 10 keep their existing XP thresholds, then grow 
 
 test('progression: the recurring hunt contract pays out a persistent equipment piece',()=>{
   const hunt=CONTRACTS.find(contract=>contract.id==='matches');
-  assert.equal(hunt.goal,4);
+  assert.equal(hunt.goal,8);
   assert.equal(hunt.reward.gear,'common');
 });
 

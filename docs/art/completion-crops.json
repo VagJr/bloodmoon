@@ -1,0 +1,1298 @@
+[
+  {
+    "id": "casketwarden",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      1,
+      1,
+      312,
+      312
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/casketwarden.png",
+    "kind": "card"
+  },
+  {
+    "id": "velvetexecutioner",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      314,
+      1,
+      626,
+      312
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/velvetexecutioner.png",
+    "kind": "card"
+  },
+  {
+    "id": "dukeofhollows",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      628,
+      1,
+      939,
+      312
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/dukeofhollows.png",
+    "kind": "card"
+  },
+  {
+    "id": "keepspeaker",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      941,
+      1,
+      1253,
+      312
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/keepspeaker.png",
+    "kind": "card"
+  },
+  {
+    "id": "paleadvocate",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      1,
+      314,
+      312,
+      626
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/paleadvocate.png",
+    "kind": "card"
+  },
+  {
+    "id": "thirstingacolyte",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      314,
+      314,
+      626,
+      626
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/thirstingacolyte.png",
+    "kind": "card"
+  },
+  {
+    "id": "rosebladecaptain",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      628,
+      314,
+      939,
+      626
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/rosebladecaptain.png",
+    "kind": "card"
+  },
+  {
+    "id": "graveborncourier",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      941,
+      314,
+      1253,
+      626
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/graveborncourier.png",
+    "kind": "card"
+  },
+  {
+    "id": "bloodarchon",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      1,
+      628,
+      312,
+      939
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/bloodarchon.png",
+    "kind": "card"
+  },
+  {
+    "id": "whisperedledger",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      314,
+      628,
+      626,
+      939
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/whisperedledger.png",
+    "kind": "card"
+  },
+  {
+    "id": "rededict",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      628,
+      628,
+      939,
+      939
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/rededict.png",
+    "kind": "card"
+  },
+  {
+    "id": "bloodthread",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      941,
+      628,
+      1253,
+      939
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/bloodthread.png",
+    "kind": "card"
+  },
+  {
+    "id": "quenchedpulse",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      1,
+      941,
+      312,
+      1253
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/quenchedpulse.png",
+    "kind": "card"
+  },
+  {
+    "id": "ravensummons",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      314,
+      941,
+      626,
+      1253
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/ravensummons.png",
+    "kind": "card"
+  },
+  {
+    "id": "quietus",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      628,
+      941,
+      939,
+      1253
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/quietus.png",
+    "kind": "card"
+  },
+  {
+    "id": "duskwell",
+    "source": "client\\assets\\sheets\\completion-1.png",
+    "bounds": [
+      941,
+      941,
+      1253,
+      1253
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/duskwell.png",
+    "kind": "card"
+  },
+  {
+    "id": "nightfallambush",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      1,
+      1,
+      312,
+      295
+    ],
+    "size": [
+      311,
+      294
+    ],
+    "path": "/assets/cards/nightfallambush.png",
+    "kind": "card"
+  },
+  {
+    "id": "ancestralclaim",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      314,
+      1,
+      626,
+      295
+    ],
+    "size": [
+      312,
+      294
+    ],
+    "path": "/assets/cards/ancestralclaim.png",
+    "kind": "card"
+  },
+  {
+    "id": "ashwoodbuckler",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      628,
+      1,
+      939,
+      295
+    ],
+    "size": [
+      311,
+      294
+    ],
+    "path": "/assets/cards/ashwoodbuckler.png",
+    "kind": "card"
+  },
+  {
+    "id": "crimsonlariat",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      941,
+      1,
+      1253,
+      295
+    ],
+    "size": [
+      312,
+      294
+    ],
+    "path": "/assets/cards/crimsonlariat.png",
+    "kind": "card"
+  },
+  {
+    "id": "wolfsilvergorget",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      1,
+      297,
+      312,
+      599
+    ],
+    "size": [
+      311,
+      302
+    ],
+    "path": "/assets/cards/wolfsilvergorget.png",
+    "kind": "card"
+  },
+  {
+    "id": "votivedagger",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      314,
+      297,
+      626,
+      599
+    ],
+    "size": [
+      312,
+      302
+    ],
+    "path": "/assets/cards/votivedagger.png",
+    "kind": "card"
+  },
+  {
+    "id": "blackglasskite",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      628,
+      297,
+      939,
+      599
+    ],
+    "size": [
+      311,
+      302
+    ],
+    "path": "/assets/cards/blackglasskite.png",
+    "kind": "card"
+  },
+  {
+    "id": "chainofninevows",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      941,
+      297,
+      1253,
+      599
+    ],
+    "size": [
+      312,
+      302
+    ],
+    "path": "/assets/cards/chainofninevows.png",
+    "kind": "card"
+  },
+  {
+    "id": "mourningspurs",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      1,
+      601,
+      312,
+      897
+    ],
+    "size": [
+      311,
+      296
+    ],
+    "path": "/assets/cards/mourningspurs.png",
+    "kind": "card"
+  },
+  {
+    "id": "quarrygauntlet",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      314,
+      601,
+      626,
+      897
+    ],
+    "size": [
+      312,
+      296
+    ],
+    "path": "/assets/cards/quarrygauntlet.png",
+    "kind": "card"
+  },
+  {
+    "id": "cindermantle",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      628,
+      601,
+      939,
+      897
+    ],
+    "size": [
+      311,
+      296
+    ],
+    "path": "/assets/cards/cindermantle.png",
+    "kind": "card"
+  },
+  {
+    "id": "thornring",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      941,
+      601,
+      1253,
+      897
+    ],
+    "size": [
+      312,
+      296
+    ],
+    "path": "/assets/cards/thornring.png",
+    "kind": "card"
+  },
+  {
+    "id": "oldmoontalisman",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      1,
+      899,
+      312,
+      1253
+    ],
+    "size": [
+      311,
+      354
+    ],
+    "path": "/assets/cards/oldmoontalisman.png",
+    "kind": "card"
+  },
+  {
+    "id": "gravekey",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      314,
+      899,
+      626,
+      1253
+    ],
+    "size": [
+      312,
+      354
+    ],
+    "path": "/assets/cards/gravekey.png",
+    "kind": "card"
+  },
+  {
+    "id": "ironrootbracer",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      628,
+      899,
+      939,
+      1253
+    ],
+    "size": [
+      311,
+      354
+    ],
+    "path": "/assets/cards/ironrootbracer.png",
+    "kind": "card"
+  },
+  {
+    "id": "bloodcoin",
+    "source": "client\\assets\\sheets\\completion-2.png",
+    "bounds": [
+      941,
+      899,
+      1253,
+      1253
+    ],
+    "size": [
+      312,
+      354
+    ],
+    "path": "/assets/cards/bloodcoin.png",
+    "kind": "card"
+  },
+  {
+    "id": "seraphpins",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      1,
+      1,
+      312,
+      300
+    ],
+    "size": [
+      311,
+      299
+    ],
+    "path": "/assets/cards/seraphpins.png",
+    "kind": "card"
+  },
+  {
+    "id": "tallowcrown",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      314,
+      1,
+      626,
+      300
+    ],
+    "size": [
+      312,
+      299
+    ],
+    "path": "/assets/cards/tallowcrown.png",
+    "kind": "card"
+  },
+  {
+    "id": "hollowshield",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      628,
+      1,
+      939,
+      300
+    ],
+    "size": [
+      311,
+      299
+    ],
+    "path": "/assets/cards/hollowshield.png",
+    "kind": "card"
+  },
+  {
+    "id": "briarhook",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      941,
+      1,
+      1253,
+      300
+    ],
+    "size": [
+      312,
+      299
+    ],
+    "path": "/assets/cards/briarhook.png",
+    "kind": "card"
+  },
+  {
+    "id": "bonesash",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      1,
+      302,
+      312,
+      583
+    ],
+    "size": [
+      311,
+      281
+    ],
+    "path": "/assets/cards/bonesash.png",
+    "kind": "card"
+  },
+  {
+    "id": "wolfhoundlocket",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      314,
+      302,
+      626,
+      583
+    ],
+    "size": [
+      312,
+      281
+    ],
+    "path": "/assets/cards/wolfhoundlocket.png",
+    "kind": "card"
+  },
+  {
+    "id": "redwidowneedle",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      628,
+      302,
+      939,
+      583
+    ],
+    "size": [
+      311,
+      281
+    ],
+    "path": "/assets/cards/redwidowneedle.png",
+    "kind": "card"
+  },
+  {
+    "id": "ebonparry",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      941,
+      302,
+      1253,
+      583
+    ],
+    "size": [
+      312,
+      281
+    ],
+    "path": "/assets/cards/ebonparry.png",
+    "kind": "card"
+  },
+  {
+    "id": "feastchalice",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      1,
+      585,
+      312,
+      897
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/feastchalice.png",
+    "kind": "card"
+  },
+  {
+    "id": "kingsbane",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      314,
+      585,
+      626,
+      897
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/kingsbane.png",
+    "kind": "card"
+  },
+  {
+    "id": "moonshotbow",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      628,
+      585,
+      939,
+      897
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/moonshotbow.png",
+    "kind": "card"
+  },
+  {
+    "id": "ashenchasuble",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      941,
+      585,
+      1253,
+      897
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/ashenchasuble.png",
+    "kind": "card"
+  },
+  {
+    "id": "duskcompass",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      1,
+      899,
+      250,
+      1253
+    ],
+    "size": [
+      249,
+      354
+    ],
+    "path": "/assets/cards/duskcompass.png",
+    "kind": "card"
+  },
+  {
+    "id": "packhowlhorn",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      252,
+      899,
+      501,
+      1253
+    ],
+    "size": [
+      249,
+      354
+    ],
+    "path": "/assets/cards/packhowlhorn.png",
+    "kind": "card"
+  },
+  {
+    "id": "thornmail",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      503,
+      899,
+      752,
+      1253
+    ],
+    "size": [
+      249,
+      354
+    ],
+    "path": "/assets/cards/thornmail.png",
+    "kind": "card"
+  },
+  {
+    "id": "barrowboots",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      754,
+      899,
+      1004,
+      1253
+    ],
+    "size": [
+      250,
+      354
+    ],
+    "path": "/assets/cards/barrowboots.png",
+    "kind": "card"
+  },
+  {
+    "id": "rivenmirror",
+    "source": "client\\assets\\sheets\\completion-3.png",
+    "bounds": [
+      1006,
+      899,
+      1253,
+      1253
+    ],
+    "size": [
+      247,
+      354
+    ],
+    "path": "/assets/cards/rivenmirror.png",
+    "kind": "card"
+  },
+  {
+    "id": "wraiththread",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      1,
+      1,
+      312,
+      312
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/wraiththread.png",
+    "kind": "card"
+  },
+  {
+    "id": "elderroot",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      314,
+      1,
+      626,
+      312
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/elderroot.png",
+    "kind": "card"
+  },
+  {
+    "id": "scarletseal",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      628,
+      1,
+      939,
+      312
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/scarletseal.png",
+    "kind": "card"
+  },
+  {
+    "id": "sovereignfang",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      941,
+      1,
+      1253,
+      312
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/sovereignfang.png",
+    "kind": "card"
+  },
+  {
+    "id": "moonsplitedge",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      1,
+      314,
+      312,
+      626
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/moonsplitedge.png",
+    "kind": "card"
+  },
+  {
+    "id": "mordrathheart",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      314,
+      314,
+      626,
+      626
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/mordrathheart.png",
+    "kind": "card"
+  },
+  {
+    "id": "covenantlens",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      628,
+      314,
+      939,
+      626
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/covenantlens.png",
+    "kind": "card"
+  },
+  {
+    "id": "ruptureglaive",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      941,
+      314,
+      1253,
+      626
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/ruptureglaive.png",
+    "kind": "card"
+  },
+  {
+    "id": "emberboundspurs",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      1,
+      628,
+      312,
+      939
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/emberboundspurs.png",
+    "kind": "card"
+  },
+  {
+    "id": "vesperveil",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      314,
+      628,
+      626,
+      939
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/vesperveil.png",
+    "kind": "card"
+  },
+  {
+    "id": "packfirepennon",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      628,
+      628,
+      939,
+      939
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/packfirepennon.png",
+    "kind": "card"
+  },
+  {
+    "id": "oathbreakerhook",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      941,
+      628,
+      1253,
+      939
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/oathbreakerhook.png",
+    "kind": "card"
+  },
+  {
+    "id": "dawnlessmace",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      1,
+      941,
+      312,
+      1253
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/dawnlessmace.png",
+    "kind": "card"
+  },
+  {
+    "id": "crownlessaegis",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      314,
+      941,
+      626,
+      1253
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/crownlessaegis.png",
+    "kind": "card"
+  },
+  {
+    "id": "eclipseduelists",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      628,
+      941,
+      939,
+      1253
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/eclipseduelists.png",
+    "kind": "card"
+  },
+  {
+    "id": "silkwidowcloak",
+    "source": "client\\assets\\sheets\\completion-4.png",
+    "bounds": [
+      941,
+      941,
+      1253,
+      1253
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/cards/silkwidowcloak.png",
+    "kind": "card"
+  },
+  {
+    "id": "redhollowscripture",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      1,
+      1,
+      312,
+      312
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/redhollowscripture.png",
+    "kind": "card"
+  },
+  {
+    "id": "heartoffirstpack",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      314,
+      1,
+      626,
+      312
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/heartoffirstpack.png",
+    "kind": "card"
+  },
+  {
+    "id": "mawofgloam",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      628,
+      1,
+      939,
+      312
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/cards/mawofgloam.png",
+    "kind": "card"
+  },
+  {
+    "id": "bloodmoontorque",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      941,
+      1,
+      1253,
+      312
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/cards/bloodmoontorque.png",
+    "kind": "card"
+  },
+  {
+    "id": "gloamkingsplate",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      1,
+      314,
+      312,
+      626
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/cards/gloamkingsplate.png",
+    "kind": "card"
+  },
+  {
+    "id": "coin-pouch",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      314,
+      314,
+      626,
+      626
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/market/coin-pouch.png",
+    "kind": "prop"
+  },
+  {
+    "id": "treasure-chest",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      628,
+      314,
+      939,
+      626
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/market/treasure-chest.png",
+    "kind": "prop"
+  },
+  {
+    "id": "merchant-scales",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      941,
+      314,
+      1253,
+      626
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/market/merchant-scales.png",
+    "kind": "prop"
+  },
+  {
+    "id": "anvil",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      1,
+      628,
+      312,
+      939
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/market/anvil.png",
+    "kind": "prop"
+  },
+  {
+    "id": "ledger",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      314,
+      628,
+      626,
+      939
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/market/ledger.png",
+    "kind": "prop"
+  },
+  {
+    "id": "vault-door",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      628,
+      628,
+      939,
+      939
+    ],
+    "size": [
+      311,
+      311
+    ],
+    "path": "/assets/market/vault-door.png",
+    "kind": "prop"
+  },
+  {
+    "id": "trade-seal",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      941,
+      628,
+      1253,
+      939
+    ],
+    "size": [
+      312,
+      311
+    ],
+    "path": "/assets/market/trade-seal.png",
+    "kind": "prop"
+  },
+  {
+    "id": "forge-fire",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      1,
+      941,
+      312,
+      1253
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/market/forge-fire.png",
+    "kind": "prop"
+  },
+  {
+    "id": "gemstones",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      314,
+      941,
+      626,
+      1253
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/market/gemstones.png",
+    "kind": "prop"
+  },
+  {
+    "id": "lantern",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      628,
+      941,
+      939,
+      1253
+    ],
+    "size": [
+      311,
+      312
+    ],
+    "path": "/assets/market/lantern.png",
+    "kind": "prop"
+  },
+  {
+    "id": "guild-bell",
+    "source": "client\\assets\\sheets\\completion-5.png",
+    "bounds": [
+      941,
+      941,
+      1253,
+      1253
+    ],
+    "size": [
+      312,
+      312
+    ],
+    "path": "/assets/market/guild-bell.png",
+    "kind": "prop"
+  }
+]

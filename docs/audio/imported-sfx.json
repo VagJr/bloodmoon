@@ -1,0 +1,176 @@
+{
+  "selection": "Classificação pelos nomes dos arquivos fornecidos",
+  "files": [
+    {
+      "id": "vampire-hiss-1",
+      "file": "/assets/sfx/vampire-hiss-1.mp3",
+      "source": "alesiadavina-female-vampire-attack-hiss-sound-effect-dark-sfx-552126.mp3",
+      "bytes": 74396,
+      "sha256": "e93fb054eedad0209787ca477428d6d9035f6e93372a75998495f1977b8fcabd"
+    },
+    {
+      "id": "vampire-hiss-2",
+      "file": "/assets/sfx/vampire-hiss-2.mp3",
+      "source": "alesiadavina-female-vampire-attack-hiss-sound-effect-dark-sfx-552127.mp3",
+      "bytes": 78576,
+      "sha256": "56f56d40c8e1c49ad540efd07cd0e557688b2cb028043d67fa019cf079f62d2a"
+    },
+    {
+      "id": "vampire-hiss-3",
+      "file": "/assets/sfx/vampire-hiss-3.mp3",
+      "source": "alesiadavina-female-vampire-attack-hiss-sound-effect-dark-sfx-552131.mp3",
+      "bytes": 97802,
+      "sha256": "2e48dcef1f1e20ecdf61db3b47f9309d443bcecc3b3af31d355c9a689186a960"
+    },
+    {
+      "id": "vampire-shriek",
+      "file": "/assets/sfx/vampire-shriek.mp3",
+      "source": "alesiadavina-female-vampire-attack-shriek-dark-supernatural-sfx-552130.mp3",
+      "bytes": 92787,
+      "sha256": "4bdaac4e338a272e721a20c344889b8fb375ad1296224a19dc4714a7fb281a63"
+    },
+    {
+      "id": "card-invocation",
+      "file": "/assets/sfx/card-invocation.mp3",
+      "source": "card_invocation.mp3",
+      "bytes": 13824,
+      "sha256": "730280d513c9772db807bf6afdf52603e0d1e86e13e67f27c6b5de7a064cdefb"
+    },
+    {
+      "id": "steel-impact",
+      "file": "/assets/sfx/steel-impact.mp3",
+      "source": "daviddumaisaudio-sword-slash-with-metallic-impact-185435.mp3",
+      "bytes": 52224,
+      "sha256": "ea2ed6bc3c19e37b6fdd2c2850fc630bcb173f3db94d878a87f481db13e47876"
+    },
+    {
+      "id": "wolf-growl",
+      "file": "/assets/sfx/wolf-growl.mp3",
+      "source": "dragon-studio-werewolf-growl-511303.mp3",
+      "bytes": 67584,
+      "sha256": "1d54b47caac8f4bdcc77a7df2fb5f7c4c5bf2f6545ca19a74944f66d05bcb332"
+    },
+    {
+      "id": "monster-attack",
+      "file": "/assets/sfx/monster-attack.mp3",
+      "source": "freesound_community-monster-attack-100270.mp3",
+      "bytes": 43008,
+      "sha256": "91cc714de4b8178974523dcf7f246b0d364b4aa96446270f81a9ce20f7846d09"
+    },
+    {
+      "id": "gold",
+      "file": "/assets/sfx/gold.mp3",
+      "source": "freesound_gamestudio-material-gold-394476.mp3",
+      "bytes": 44928,
+      "sha256": "5ce97f1008d8b2acde3571c9f43fcd334fd4514ec1423690634fc45af94382be"
+    },
+    {
+      "id": "shield",
+      "file": "/assets/sfx/shield.mp3",
+      "source": "gargamel10-shielding-game-sound-effect-379733.mp3",
+      "bytes": 50991,
+      "sha256": "a0b357f6a2499ef6d5d1130774aff21d816ae27323a149d6bf8637343994e753"
+    },
+    {
+      "id": "sword-slash-1",
+      "file": "/assets/sfx/sword-slash-1.mp3",
+      "source": "gargamel10-sword-slashing-game-sound-effect-1-379228.mp3",
+      "bytes": 50991,
+      "sha256": "24fbf8bc3a346decc4cd33cf98d0f8187d6e2097f94ca3abe77759fc8c412ee8"
+    },
+    {
+      "id": "sword-slash-2",
+      "file": "/assets/sfx/sword-slash-2.mp3",
+      "source": "gargamel10-sword-slashing-game-sound-effect-2-379229.mp3",
+      "bytes": 50991,
+      "sha256": "3e2699f4906eb33f9923421f5e5bb8cee038e2d76cf031eb1744a3d2818393d7"
+    },
+    {
+      "id": "teleport",
+      "file": "/assets/sfx/teleport.mp3",
+      "source": "gargamel10-teleport-game-sound-effect-379236.mp3",
+      "bytes": 50991,
+      "sha256": "365505d2669849062825f73a74f5e643d6ac5330af3e4a1627c2d64fe63cd070"
+    },
+    {
+      "id": "wolf-howl",
+      "file": "/assets/sfx/wolf-howl.mp3",
+      "source": "jetsetjack-werewolf-howl-437495.mp3",
+      "bytes": 264150,
+      "sha256": "12d8610ecdc3041fdcd94579b7d930685465914850c1eb5d1841b30041dcbcb4"
+    },
+    {
+      "id": "fighter-grunt",
+      "file": "/assets/sfx/fighter-grunt.mp3",
+      "source": "phatphrogstudio-male-fighter-voice-heavy-attack-grunt-544355.mp3",
+      "bytes": 22272,
+      "sha256": "f8bd59772484b0cfc0e502a7196c50bfa89d81dc3d1035035c76be9831715fcc"
+    },
+    {
+      "id": "unsheath",
+      "file": "/assets/sfx/unsheath.mp3",
+      "source": "poorartistt-fantasy-sword-unsheath-sfx-type-02-566458.mp3",
+      "bytes": 65280,
+      "sha256": "d45750db08a6f29fe2b9736f0fffc1f89cf1ce1cd9abd340bb763b73c049e428"
+    },
+    {
+      "id": "ui-click",
+      "file": "/assets/sfx/ui-click.mp3",
+      "source": "skyscraper_seven-click-buttons-ui-menu-sounds-effects-button-6-203600.mp3",
+      "bytes": 65201,
+      "sha256": "68d8910cfd69b7e272ee28dae18282345070bc659bcd4e3ad05e296566434bdd"
+    },
+    {
+      "id": "magic-spell",
+      "file": "/assets/sfx/magic-spell.mp3",
+      "source": "soumages-magic-spell-333896.mp3",
+      "bytes": 259134,
+      "sha256": "797c65f7fb3b29b3ca087b36e12a839cf91456be675e223bd5da01220f6b07ce"
+    },
+    {
+      "id": "start-button",
+      "file": "/assets/sfx/start-button.mp3",
+      "source": "start_button_sfx.mp3",
+      "bytes": 102528,
+      "sha256": "62200001514e1edaec2c04655b08bdb0d45548b55258d5ce0b0f317305dd2d80"
+    },
+    {
+      "id": "flesh-impact",
+      "file": "/assets/sfx/flesh-impact.mp3",
+      "source": "universfield-sword-blade-slicing-flesh-352708.mp3",
+      "bytes": 39936,
+      "sha256": "e026bc6d36a046a89fb65e172209dea98f40173a37f97ace9a55dfc97ed37d9d"
+    },
+    {
+      "id": "beast-roar",
+      "file": "/assets/sfx/beast-roar.mp3",
+      "source": "yodguard-powerful-bear-attack-with-roar-1-482524.mp3",
+      "bytes": 96768,
+      "sha256": "365d1ae5dec5b3e66cd046721e167d5ee32f7b02b45f48e5a38eac6c5822a2ca"
+    },
+    {
+      "id": "claw-1",
+      "file": "/assets/sfx/claw-1.mp3",
+      "source": "yodguard-scorpion-claw-attack-1-482515.mp3",
+      "bytes": 96768,
+      "sha256": "d9e63d100fe3b61681dd6561a1afa977ce071044ac6d3350dc56a1ee8a382f61"
+    },
+    {
+      "id": "claw-2",
+      "file": "/assets/sfx/claw-2.mp3",
+      "source": "yodguard-scorpion-claw-attack-2-482516.mp3",
+      "bytes": 96768,
+      "sha256": "2736657206c24ada713aa2fa77e5e602c5c594bd5fdfef09697946966da6e06d"
+    },
+    {
+      "id": "claw-3",
+      "file": "/assets/sfx/claw-3.mp3",
+      "source": "yodguard-scorpion-claw-attack-4-482507 (1).mp3",
+      "bytes": 96768,
+      "sha256": "b7099e5497e94ed9b5cac231d61370234c422e1d41a12ec3d94e96a95a800ce1"
+    }
+  ],
+  "duplicates": [
+    "yodguard-scorpion-claw-attack-4-482507.mp3"
+  ]
+}

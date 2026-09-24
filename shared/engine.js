@@ -177,12 +177,13 @@ export function applyAction(original,actor,action,{visuals=false}={}) {
   if(action.type==='pass'){p.passed=true;g.log.push(`Combatente ${actor+1} encerrou a rodada.`);}
   else if(action.type==='campaign'){
     const {category,tactic}=action,order=ORDERS[tactic];
-    check(order&&order.category===category,'Ordem de campanha inválida.');p.ordersUsed||={};check(!p.ordersUsed[category],'Você já emitiu uma ordem desta frente nesta rodada.');check((p[order.resource]||0)>=order.cost,'Recursos de campanha insuficientes.');p.ordersUsed[category]=true;
+    check(order&&order.category===category,'Ordem de campanha inválida.');p.ordersUsed||={};check(!p.ordersUsed[category]&&!Object.keys(ORDERS).some(id=>ORDERS[id].category===category&&p.ordersUsed[id]),'Você já emitiu uma ordem desta frente nesta rodada.');p.ordersUsed[category]=true;
     check(['court','hunt','crypt'].includes(category),'Categoria de campanha inválida.');
     if(category==='court'){
       if(tactic==='tribute'){
+        check((p.favors||0)>=order.cost,'Favores políticos insuficientes.');
         check(!g.players[1-actor].tributeActive&&!g.players[1-actor].passed,'O rival já está tributado ou encerrou a rodada.');
-        p.favors-=2;
+        p.favors-=order.cost;
         g.players[1-actor].tributeActive=true;
         emit(g,'campaign-action',{seat:actor,category:'court',tactic:'tribute',label:'EDITO DE TRIBUTO'});
         g.log.push(`Combatente ${actor+1} aprova Edito de Tributo: a próxima carta do rival custa +1 nesta rodada.`);
@@ -334,9 +335,9 @@ export function botAction(g) {
       if(['damage','execute','rend','drain'].includes(card.effect)&&!foes.some(unit=>unit.uid===action.target))return;
     }
     if(action.type==='campaign'){
-      const order=ORDERS[action.tactic];if(!order||p.ordersUsed?.[action.category]||(p[order.resource]||0)<order.cost)return;
+      const order=ORDERS[action.tactic];if(!order||p.ordersUsed?.[action.category]||Object.keys(ORDERS).some(id=>ORDERS[id].category===action.category&&p.ordersUsed?.[id])||(p[order.resource]||0)<order.cost)return;
       if(action.category==='court'){
-        if(action.tactic==='tribute'&&((p.favors||0)<2||enemy.tributeActive||enemy.passed))return;
+        if(action.tactic==='tribute'&&((p.favors||0)<ORDERS.tribute.cost||enemy.tributeActive||enemy.passed))return;
         if(action.tactic==='bribe'&&(p.favors||0)<1)return;
         if(action.tactic==='immunity'&&((p.favors||0)<2||!p.lanes[action.lane]?.some(u=>u.uid===action.target&&!u.guard&&u.guardUntilRound!==g.round)))return;
       }
@@ -396,7 +397,7 @@ export function botAction(g) {
     }
   }
   if((p.supplies||0)>=2&&p.hand.length<=2&&p.deck.length)consider({type:'campaign',category:'crypt',tactic:'rations'},4.2);
-  if((p.favors||0)>=2&&!enemy.tributeActive&&!enemy.passed&&enemy.energy>=3)consider({type:'campaign',category:'court',tactic:'tribute'},3.5);
+  if((p.favors||0)>=ORDERS.tribute.cost&&!enemy.tributeActive&&!enemy.passed&&enemy.energy>=3)consider({type:'campaign',category:'court',tactic:'tribute'},3.5);
   if((p.favors||0)>=1)consider({type:'campaign',category:'court',tactic:'bribe',lane:'court'},2.5+laneBias('court'));
   if((p.siege||0)>=1){
     for(const bl of LANES){const bfoes=enemy.lanes[bl.id]||[];const btarget=bfoes.find(u=>u.health<=2);if(btarget){consider({type:'campaign',category:'hunt',tactic:'breach',lane:bl.id,target:btarget.uid},4.4);break;}}

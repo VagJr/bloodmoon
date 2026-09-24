@@ -1,8 +1,11 @@
 import {legacyUI} from '/legacy-ui.js';
+import {sideStoriesUI} from '/side-stories-ui.js';
+import {expeditionUI} from '/expedition-ui.js';
 import {CHAPTERS,TALENTS,chapterProgress,talentPoints} from '/shared/adventure.js';
 import {campaignRival} from '/shared/rivals.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function adventureUI(data,disabled){
+export function adventureUI(data,disabled){const markup=adventureCore(data,disabled);return markup.replace('<section class="personal-journal">',expeditionUI(data,disabled)+sideStoriesUI(data.player,disabled)+'<section class="personal-journal">');}
+function adventureCore(data,disabled){
  const r=data.player,a=r.adventure;if(!a)return '';
  const rival=campaignRival(data.profile?.starterFaction||'vampire',r.location,r.expedition?.node===r.location?r.expedition.stage:0);
  const progress=chapterProgress(r),chapter=progress.chapter,points=talentPoints(r),today=new Date(data.serverTime).toISOString().slice(0,10),daily=a.daily.day===today?a.daily:{gathers:0,wins:0,claimed:false};

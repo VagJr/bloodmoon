@@ -1,0 +1,20 @@
+.refuge-wallet>div,.refuge-xp-block{position:relative}
+.resource-help{position:absolute;right:5px;top:5px;width:22px;height:22px;padding:0;border:1px solid #cbb17a55;border-radius:50%;background:#111821aa;color:#d2bb87;font:12px Georgia;display:grid;place-items:center}
+.refuge-xp-block>.resource-help{top:-2px;right:42px}
+.refuge-wallet>div{padding-right:29px}
+.forge-summary>.codex-context{display:flex!important;flex:0 1 auto!important;gap:6px!important;justify-content:flex-start!important;align-items:center;width:auto!important;max-width:100%;margin:0!important;padding:0!important}
+.forge-summary{display:flex;flex-wrap:wrap;justify-content:flex-start!important;align-items:center;gap:10px!important}
+.forge-summary .codex-context>button{flex:0 0 auto!important;min-width:0;margin:0;padding:7px 9px!important}
+.forge-summary .codex-context .keyword-seal{width:22px;height:25px}
+.forge-summary .codex-context span{font-size:10px}
+.vault-treasure{position:relative;align-self:stretch;display:flex;flex-direction:column;justify-content:center;min-width:0;background:radial-gradient(ellipse at 50% 75%,#bb7c2526,transparent 70%)}
+.vault-treasure header{text-align:center;color:#e9c889}.vault-treasure header>small{font:9px Arial;letter-spacing:3px}.vault-treasure strong{display:block;font:42px Georgia;text-shadow:0 3px 8px #000}.vault-treasure strong span{display:block;font:8px Arial;letter-spacing:2px}
+.vault-treasure canvas{display:block;width:100%;aspect-ratio:8/5;touch-action:none;cursor:grab;outline-offset:-6px;user-select:none}
+.vault-treasure canvas.grabbing{cursor:grabbing}.vault-treasure canvas:focus-visible{outline:1px solid #d6b36e}
+.vault-touch-hint{text-align:center;color:#e3c990;font:9px Arial;letter-spacing:1px}.vault-touch-hint span{display:block;margin-top:8px;font:9px/1.4 Arial;color:#9d9e9d;letter-spacing:0}
+.vault-transfer-balances{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#080f18;padding:14px;border:1px solid #ac905b44}.vault-transfer-balances span{font:8px Arial;color:#c6b38d;letter-spacing:1px}.vault-transfer-balances b{display:block;font:25px Georgia;color:#f1d29a;margin-top:4px}.vault-transfer-balances i{font-style:normal;color:#b49b64}.vault-console .vault-quick-amounts{gap:6px;margin:8px 0}.vault-quick-amounts button{flex:1;min-height:32px;padding:6px;background:#151e27}
+.trade-wayfinding{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:9px 12px;margin:-5px 0 14px;border-left:2px solid #b89b63;background:linear-gradient(90deg,#101a24ee,transparent);color:#baa98b}.trade-wayfinding b{font:10px Georgia;letter-spacing:1px;color:#e3c990}.trade-wayfinding span{font:11px/1.4 Arial}
+.trade-item-stats{display:grid;grid-template-columns:repeat(3,1fr)}.trade-item-stats span{text-align:center}.trade-item-stats small{display:block;font:7px Arial;letter-spacing:1px;color:#a8a99c;margin-top:4px}
+.trade-item-actions button{border-bottom-width:3px}.trade-item-actions button:disabled{opacity:.45}.trade-plinth.selected{box-shadow:inset 0 -2px #eed08b,0 8px 16px #0005}.trade-plinth>button:last-child{min-height:50px}.trade-plinth small{font-size:9px}
+@media(max-width:760px){.vault-chamber{gap:16px;min-height:0}.vault-treasure{max-width:480px;width:100%;margin:auto}.vault-treasure strong{font-size:30px}.vault-treasure canvas{max-height:250px}.vault-console h3{font-size:20px}.trade-wayfinding{gap:4px;margin-bottom:10px}.trade-wayfinding span{font-size:10px}.forge-summary>.codex-context{flex-basis:100%!important;justify-content:center!important}.resource-help{width:24px;height:24px}.trade-item-actions{grid-template-columns:1fr}.vault-console>div>button{flex:1}}
+@media(prefers-reduced-motion:reduce){.vault-treasure *{transition:none!important}}

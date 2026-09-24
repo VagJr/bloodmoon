@@ -1,6 +1,6 @@
 import {cardEffect,cardSignature} from '/card-fx.js';
 import {savageImpact} from '/visceral.js';
-import {richSound,unlockSoundscape} from '/soundscape.js';
+import {richSound,unlockSoundscape,muteSoundscape} from '/soundscape.js';
 let enabled=localStorage.getItem('bloodmoon.sound')!=='false',context;
 const musicTracks={
   title:'/music/song1.mp3',
@@ -59,6 +59,7 @@ function fadeMusic(target,duration){
 }
 export function toggleSound(){
   enabled=!enabled;localStorage.setItem('bloodmoon.sound',String(enabled));
+  muteSoundscape(!enabled);
   if(enabled){unlockSoundscape();if(musicScene)setMusicScene(musicScene);playSound('start');}
   else{musicTransition++;clearInterval(musicFade);if(musicAudio){fadeMusic(0,180);setTimeout(()=>{if(!enabled)musicAudio?.pause();},200);}}
 }
@@ -212,7 +213,9 @@ export async function animateEvents(events,seat,frame,{speed=1}={}){
       const targetR=e.target==='hero'?rect(findHero(1-e.seat))||frame?.positions?.heroes?.[1-e.seat]:rect(findUnit(e.target))||frame?.positions?.units?.[e.target]||eventTargetRect({...e,seat:1-e.seat},seat,frame);
       const ghost=frame?.sourceFlight?.cloneNode?.(true)||cloneForFlight(source,'fighter',sourceR);
       if(ghost)ghost.classList.add('attack-flight');
-      if(!reduce&&ghost&&sourceR&&targetR){playSound('attack');await fly(ghost,sourceR,targetR,root,arenaRect,{duration:330,scale:.82,arc:e.seat===seat?-26:26});}
+      const attackStyle=cardSignature(e.cardId||source?.dataset.preview).style;
+      playSound(attackStyle==='steel'?'attack-steel':source?.classList.contains('werewolf')?'attack-werewolf':'attack-vampire');
+      if(!reduce&&ghost&&sourceR&&targetR){await fly(ghost,sourceR,targetR,root,arenaRect,{duration:330,scale:.82,arc:e.seat===seat?-26:26});}
       if(targetR){const p=overlayPoint(targetR,arenaRect);cardEffect(root,p,e.cardId||source?.dataset.preview,'impact');const trail=document.createElement('i');trail.className='strike-flash';trail.style.left=`${p.x}px`;trail.style.top=`${p.y}px`;root.append(trail);setTimeout(()=>trail.remove(),320);}
     }
     if(e.type==='heal'&&e.drain){
@@ -220,6 +223,7 @@ export async function animateEvents(events,seat,frame,{speed=1}={}){
       const source=e.source==='hero'?findHero(e.sourceSeat):findUnit(e.source),from=rect(source)||(e.source==='hero'?frame?.positions?.heroes?.[e.sourceSeat]:frame?.positions?.units?.[e.source]),to=rect(findHero(e.seat)),target=document.querySelector(`[data-hero="${e.seat}"] .hero-portrait`);
       if(from&&to&&!reduce)await appendBloodSiphon(root,{left:from.left,top:from.top,width:from.width,height:from.height,element:source?.querySelector?.('.hero-portrait')||source},{left:to.left,top:to.top,width:to.width,height:to.height,element:target},speed);
     }
+    if(e.type==='skill')playSound('skill');
     if(e.type==='damage'||e.type==='heal'){
       if(e.type==='heal'&&!e.drain)playSound('heal');
       const target=e.target==='hero'?findHero(e.seat):findUnit(e.target);
@@ -236,21 +240,24 @@ export async function animateEvents(events,seat,frame,{speed=1}={}){
         const fighter=target?.closest('.fighter');fighter?.classList.add(e.type==='damage'?'unit-damaged':'unit-healed');setTimeout(()=>fighter?.classList.remove('unit-damaged','unit-healed'),560);
         const stat=fighter?.querySelector('.fighter-health');if(stat){stat.classList.add('health-changed');setTimeout(()=>stat.classList.remove('health-changed'),650);}
       }
-      if(e.type==='damage')playSound('damage');
+      if(e.type==='damage'){if(e.blocked)playSound('shield');if(e.amount>0)playSound(e.amount>=4?'damage-heavy':'damage');}
     }
     if(['level','equip','loot','claim','death','synergy','status','item-loot','item-break','campaign'].includes(e.type)){
       const r=eventTargetRect(e,seat,frame),point=overlayPoint(r,arenaRect),fx=document.createElement('span');
       fx.className=`floating ${e.type}`;fx.textContent=e.type==='death'?'☠':e.label;fx.style.left=`${point.x}px`;fx.style.top=`${point.y}px`;root.append(fx);setTimeout(()=>fx.remove(),1250);
-      if(e.type==='death'&&r&&!reduce){const burst=document.createElement('i');burst.className='death-burst';burst.style.left=`${point.x}px`;burst.style.top=`${point.y}px`;root.append(burst);setTimeout(()=>burst.remove(),620);playSound('death');}
-      if(['item-break','item-loot'].includes(e.type)&&r&&!reduce){const burst=document.createElement('i');burst.className=e.type==='item-break'?'gear-shatter':'gear-recovered';burst.style.left=`${point.x}px`;burst.style.top=`${point.y}px`;root.append(burst);setTimeout(()=>burst.remove(),720);playSound(e.type==='item-break'?'damage':'loot');}
+      if(e.type==='death')playSound('death');
+      if(e.type==='death'&&r&&!reduce){const burst=document.createElement('i');burst.className='death-burst';burst.style.left=`${point.x}px`;burst.style.top=`${point.y}px`;root.append(burst);setTimeout(()=>burst.remove(),620);}
+      if(['item-break','item-loot'].includes(e.type))playSound(e.type==='item-break'?'item-break':'loot');
+      if(['item-break','item-loot'].includes(e.type)&&r&&!reduce){const burst=document.createElement('i');burst.className=e.type==='item-break'?'gear-shatter':'gear-recovered';burst.style.left=`${point.x}px`;burst.style.top=`${point.y}px`;root.append(burst);setTimeout(()=>burst.remove(),720);}
       if(e.type==='loot'||e.type==='campaign')playSound('loot');
       if(e.type==='synergy')playSound('synergy');
+      if(e.type==='equip'||e.type==='level')playSound(e.type);
       const lane=e.lane&&document.querySelector(`[data-zone="${e.lane}"]`);if(e.type==='claim'&&lane){lane.classList.add('lane-claimed');setTimeout(()=>lane.classList.remove('lane-claimed'),900);}
     }
     if(['ultimate','combo','round','clash','curse','campaign-action'].includes(e.type)){
       const banner=document.createElement('div');banner.className=`combat-banner ${e.type}`;banner.textContent=e.label;root.append(banner);setTimeout(()=>banner.remove(),1300);
       if(['ultimate','clash','curse'].includes(e.type)&&!reduce){try{arena.animate([{transform:'translate(0)'},{transform:'translate(-6px,3px)'},{transform:'translate(5px,-3px)'},{transform:'translate(-2px,1px)'},{transform:'translate(0)'}],{duration:e.type==='ultimate'?430:290,easing:'ease-out'});}catch{}}
-      playSound(e.type==='campaign-action'?'start':e.type);
+      playSound(e.type==='campaign-action'?'start':e.type==='ultimate'&&document.querySelector(`[data-hero="${e.seat}"]`)?.classList.contains('werewolf')?'ultimate-werewolf':e.type);
     }
     if(['equip','skill','ultimate','synergy','summon'].includes(e.type)&&!reduce){const r=eventTargetRect(e,seat,frame);if(r){const point=overlayPoint(r,arenaRect);cardEffect(root,point,e.cardId||findUnit(e.target)?.dataset.preview,e.type==='summon'?'summon':'cast');const ring=document.createElement('i');ring.className='ritual-ring '+e.type;ring.style.left=point.x+'px';ring.style.top=point.y+'px';root.append(ring);setTimeout(()=>ring.remove(),800);}}
     if(e.type==='summon'){

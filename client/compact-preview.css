@@ -1,0 +1,82 @@
+/* One concise reading surface; descriptions never sit on the card artwork. */
+.battle-keyboard-help{width:min(460px,calc(100vw - 28px));max-height:calc(100dvh - 32px);overflow:auto;box-sizing:border-box;padding:22px;color:#e7d6b7;background:linear-gradient(135deg,#20252b,#0b1118);border:1px solid #b89b62;box-shadow:inset 0 0 0 4px #080c12,0 20px 60px #000b}
+.battle-keyboard-help::backdrop{background:#03070bb3}
+.battle-keyboard-help header{display:flex;justify-content:space-between;align-items:center;gap:12px}.battle-keyboard-help h2{font:24px Georgia;margin:6px 0}.battle-keyboard-help small{font:8px Arial;letter-spacing:2px;color:#c7aa71}.battle-keyboard-help header button{width:36px;height:36px;background:#151d25;border:1px solid #89734e;color:#e9d3a3;font-size:22px}
+.battle-keyboard-help dl>div{display:grid;grid-template-columns:86px 1fr;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #c7a35f22}.battle-keyboard-help dd{margin:0;font:12px/1.5 Arial}.battle-keyboard-help kbd{display:inline-block;padding:5px 8px;border:1px solid #a9926166;border-bottom:3px solid #635236;border-radius:3px;background:#161e27;color:#e6c78b;font:10px Arial}.battle-keyboard-help p{font:11px/1.6 Arial;color:#b5b6ae}
+.keyboard-help-button{display:none}
+@media(hover:hover) and (pointer:fine){.keyboard-help-button{display:block}.arena .end-turn[data-key-hint]:after{content:attr(data-key-hint);font:8px Arial;letter-spacing:1px;color:#d9c799}.arena .hand-fan [data-hand-key]:before{content:attr(data-hand-key);position:absolute;top:5px;right:5px;z-index:8;display:grid;place-items:center;width:16px;height:18px;background:#090e19d9;border:1px solid #cfb27b80;border-radius:3px;font:10px Arial;color:#eed7a8;pointer-events:none}}
+/* Touch and hold share one reading panel anchored above the hand. */
+#touch-card-preview.touch-card-preview{
+ top:auto!important;bottom:var(--peek-bottom,180px);
+ max-height:min(360px,var(--peek-space,55dvh))!important;
+}
+#touch-card-preview .touch-preview-copy{
+ max-height:calc(min(360px,var(--peek-space,55dvh)) - 22px)!important;
+}
+/* Keep the battlefield visible through the reading plate, not through its text. */
+#touch-card-preview .touch-preview-copy{
+ background:linear-gradient(115deg,#101921b8,#14101a8c)!important;
+ text-shadow:0 1px 3px #000,0 0 6px #000;
+}
+#touch-card-preview .touch-preview-copy:before{
+ background:none!important;box-shadow:inset 0 0 0 1px #d9b77b88,inset 0 0 0 4px #b6904f22!important;
+}
+/* Separate silhouettes preserve the hover bridge without painting its empty space. */
+#card-preview.card-preview,#touch-card-preview.touch-card-preview{
+ background:none!important;border:0!important;box-shadow:none!important;
+ backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:0;overflow:visible;
+ filter:drop-shadow(0 9px 12px #000a);
+}
+#card-preview .preview-card-face,#touch-card-preview .touch-preview-face{
+ position:relative;isolation:isolate;align-self:center;
+}
+#card-preview .preview-card-face:before,#touch-card-preview .touch-preview-face:before{
+ content:'';position:absolute;inset:-5px;z-index:-1;pointer-events:none;
+ border:1px solid #b99c6055;border-radius:9px 3px;
+ background:linear-gradient(#e5c58a,#e5c58a) left top/22px 2px no-repeat,
+ linear-gradient(#e5c58a,#e5c58a) left top/2px 22px no-repeat,
+ linear-gradient(#b68b51,#b68b51) right bottom/22px 2px no-repeat,
+ linear-gradient(#b68b51,#b68b51) right bottom/2px 22px no-repeat;
+ box-shadow:0 0 0 2px #090e13aa,0 4px 16px #0008;
+}
+#card-preview .preview-card-copy,#touch-card-preview .touch-preview-copy{
+ position:relative;isolation:isolate;align-self:center;box-sizing:border-box;
+ padding:17px 12px 14px!important;border:0;
+ clip-path:polygon(12px 0,calc(100% - 17px) 0,100% 17px,100% calc(100% - 12px),calc(100% - 12px) 100%,17px 100%,0 calc(100% - 17px),0 12px);
+ background:linear-gradient(135deg,#edce91 0%,#665131 27%,#b5955c 49%,#3b3430 72%,#caa566 100%);
+ scrollbar-width:thin;scrollbar-color:#9c8051 #10141b;
+}
+#card-preview .preview-card-copy:before,#touch-card-preview .touch-preview-copy:before{
+ content:'';position:absolute;inset:1px;z-index:-1;pointer-events:none;
+ clip-path:polygon(12px 0,calc(100% - 17px) 0,100% 17px,100% calc(100% - 12px),calc(100% - 12px) 100%,17px 100%,0 calc(100% - 17px),0 12px);
+ background:linear-gradient(115deg,#20262b,#0c1119 45%,#1c1019);
+ box-shadow:inset 0 0 0 3px #090c13,inset 0 0 0 4px #ac8c4930;
+}
+#card-preview .preview-card-copy:after,#touch-card-preview .touch-preview-copy:after{
+ content:'◆';position:absolute;top:3px;left:18px;right:18px;pointer-events:none;
+ color:#c4a36c;text-align:center;font:7px/9px Georgia;
+ background:linear-gradient(90deg,transparent,#bb985d66 35%,transparent 35%,transparent 65%,#bb985d66 65%,transparent) center/100% 1px no-repeat;
+}
+#card-preview.card-preview{width:min(470px,calc(100vw - 24px))!important;grid-template-columns:min(210px,38vw,calc((100dvh - 60px)*.68)) minmax(0,1fr);gap:13px;padding:13px;max-height:min(410px,calc(100dvh - 24px));box-sizing:border-box}
+#card-preview .preview-card-face>.game-card{--card-w:min(210px,38vw,calc((100dvh - 60px)*.68));--card-h:calc(var(--card-w)*1.46)}
+#card-preview .preview-card-copy{max-height:min(380px,calc(100dvh - 52px));overflow-wrap:anywhere;white-space:normal}
+#card-preview .preview-card-copy>strong{display:block;font:18px/1.15 Georgia;margin:5px 0}
+#card-preview .preview-card-copy>small{font:8px/1.4 Arial;letter-spacing:.6px}
+#card-preview .preview-card-copy>p{font:11px/1.5 Arial;margin:7px 0}
+#card-preview .preview-card-copy>span{font:10px/1.4 Arial;color:#d5bb8b}
+#card-preview .keyword-scripture,#touch-card-preview .keyword-scripture{margin-top:8px;padding-top:7px;border-top:1px solid #c5a36240}
+#card-preview .keyword-glance,#touch-card-preview .keyword-glance{padding:3px 0;margin:3px 0;border:0;background:none;gap:6px}
+#card-preview .keyword-glance .keyword-seal,#touch-card-preview .keyword-glance .keyword-seal{width:20px;height:23px;flex:0 0 20px}
+#card-preview .keyword-glance p,#touch-card-preview .keyword-glance p{font:10px/1.35 Arial!important;gap:2px;min-width:0}
+#card-preview .keyword-glance b,#touch-card-preview .keyword-glance b{font:12px/1.15 Georgia}
+#touch-card-preview.touch-card-preview{width:min(440px,calc(100vw - 20px));max-height:min(360px,calc(100dvh - 190px));grid-template-columns:clamp(105px,30vw,132px) minmax(0,1fr);gap:10px;padding:10px;top:max(12px,env(safe-area-inset-top));box-sizing:border-box;align-items:start;pointer-events:none}
+#touch-card-preview .touch-preview-face>.game-card{--card-w:clamp(105px,30vw,132px)!important;--card-h:calc(var(--card-w)*1.46)!important;transform:none!important}
+#touch-card-preview .touch-preview-copy{max-height:calc(min(360px,100dvh - 190px) - 22px);overflow-y:auto;white-space:normal;overflow-wrap:anywhere}
+#touch-card-preview .touch-preview-copy>strong{font:16px/1.15 Georgia;margin:4px 0}
+#touch-card-preview .touch-preview-copy>p{display:block;font:11px/1.4 Arial;margin:5px 0;overflow:visible;-webkit-line-clamp:unset}
+#touch-card-preview .touch-preview-copy>span{font:9px/1.4 Arial}
+#touch-card-preview .keyword-glance:nth-of-type(n+3){display:flex}
+#touch-card-preview .keyword-glance span{display:block;overflow:visible;-webkit-line-clamp:unset}
+@media(hover:none){#card-preview.card-preview{display:none!important}}
+@media(max-height:500px){#touch-card-preview.touch-card-preview{max-height:calc(100dvh - 120px);width:340px;grid-template-columns:85px 1fr;top:8px}#touch-card-preview .touch-preview-copy{max-height:calc(100dvh - 150px)}#touch-card-preview .touch-preview-face>.game-card{--card-w:85px!important}}
+@media(max-width:760px){.vault-physical{min-height:160px}.vault-door{width:130px;height:110px;left:calc(50% - 77px);border-width:8px}.vault-coins{height:65px;bottom:31px}.vault-coins i{width:32px;height:32px}.vault-physical>strong{font-size:25px}.vault-physical>strong small{font-size:7px}.vault-console{padding:14px}.vault-console h3{font-size:19px;margin:8px 0}.vault-console p{font-size:11px;margin:8px 0}.trade-landmarks b{font-size:10px}.trade-renown{font-size:9px;flex-wrap:wrap}}

@@ -1,16 +1,19 @@
-let context,master,noise,room,compressor;
+import {createRecordedSfx} from '/recorded-sfx.js';
+let context,master,noise,room,compressor,recordings;
+export function muteSoundscape(value){recordings?.setMuted(value);if(master){master.gain.cancelScheduledValues(context.currentTime);master.gain.setTargetAtTime(value?0:.42,context.currentTime,.025);}}
 let lastSound=0,activeVoices=0;
 function engine(){
  if(context){if(context.state==='suspended')context.resume().catch(()=>{});return context;}
  const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)throw new Error('Web Audio indisponível');
  context=new AudioContextClass();if(context.state==='suspended')context.resume().catch(()=>{});master=context.createGain();master.gain.value=.42;
  compressor=context.createDynamicsCompressor();compressor.threshold.value=-18;compressor.ratio.value=5;compressor.attack.value=.004;compressor.release.value=.16;master.connect(compressor);const limiter=context.createDynamicsCompressor();limiter.threshold.value=-3;limiter.knee.value=0;limiter.ratio.value=20;limiter.attack.value=.001;limiter.release.value=.09;const rumble=context.createBiquadFilter();rumble.type='highpass';rumble.frequency.value=28;compressor.connect(rumble);rumble.connect(limiter);limiter.connect(context.destination);
- const length=context.sampleRate;noise=context.createBuffer(1,length,context.sampleRate);const channel=noise.getChannelData(0);for(let i=0;i<length;i++)channel[i]=Math.random()*2-1;
+ const length=context.sampleRate;noise=context.createBuffer(1,length*2,context.sampleRate);const channel=noise.getChannelData(0);let brown=0;for(let i=0;i<channel.length;i++){const white=Math.random()*2-1;brown=(brown+.025*white)/1.025;channel[i]=white*.65+brown*2.1;}
  room=context.createConvolver();const impulse=context.createBuffer(2,Math.floor(length*.65),context.sampleRate);for(let ch=0;ch<2;ch++){const data=impulse.getChannelData(ch);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,3)*.16;}room.buffer=impulse;const wet=context.createGain();wet.gain.value=.16;room.connect(wet);wet.connect(master);return context;
 }
 export function unlockSoundscape(){
  try{
   const c=engine();
+  recordings||=createRecordedSfx(c,master);recordings.warm();
   if(c.state==='suspended')c.resume().catch(()=>{});
   const buf=c.createBuffer(1,1,22050);
   const src=c.createBufferSource();
@@ -30,8 +33,41 @@ function voice({frequency=120,end=frequency,at=0,duration=.3,volume=.2,type='sin
 }
 export function richSound(type,pan=0){
  try{
+  const c=engine();recordings||=createRecordedSfx(c,master);recordings.warm();
+  if(type==='start-button'){void recordings.playReady(type,pan);return;}
+  if(type==='hero-shatter'){recordings.play(type,pan,.46);}
+  else if(recordings.play(type,pan)){
+   if(type==='attack-vampire')recordings.play('voice-vampire',pan);
+   if(type==='attack-werewolf')recordings.play('voice-wolf',pan);
+   return;
+  }
   const now=performance.now();if(type==='select'&&now-lastSound<55)return;lastSound=now;
-  if(['moon','court','grave','steel','flame','blood','claw'].includes(type)){
+  if(['navigate','close','card','select'].includes(type)){
+   const page=type==='card'||type==='select';
+   voice({texture:true,duration:page?.19:.085,volume:page?.055:.04,filter:page?2300:4700,pan:-.12});
+   voice({texture:true,at:.028,duration:page?.14:.06,volume:.035,filter:page?900:1700,pan:.12});
+   voice({frequency:type==='close'?160:220,end:75,duration:.11,volume:.035,type:'triangle',filter:600});
+   if(!page)voice({frequency:1320,end:1190,at:.018,duration:.13,volume:.018,type:'sine',space:true});
+  }else if(type==='coins'){
+   [0,.045,.11,.18,.28].forEach((at,i)=>{
+    voice({texture:true,at,duration:.018,filter:7800,volume:.025,pan:(i-2)*.15});
+    [1,1.47,2.09].forEach((ratio,j)=>voice({frequency:(1550+i*73)*ratio,end:(1540+i*73)*ratio,at,duration:.24+j*.08,volume:.037/(j+1),type:'sine',filter:8500,pan:(i-2)*.15,space:true}));
+   });
+   voice({frequency:125,end:54,at:.04,duration:.2,volume:.075,filter:700});
+  }else if(type==='forge'||type==='repair'){
+   const times=type==='forge'?[0,.19,.48]:[0,.14];
+   times.forEach((at,i)=>{voice({texture:true,at,duration:.035,filter:7800,volume:.15,pan:(i-1)*.2});voice({frequency:145,end:43,at,duration:.24,volume:.16,filter:900});[631,1121,1733,2719].forEach((f,j)=>voice({frequency:f,end:f*.985,at:at+.012,duration:.3+j*.08,volume:.036/(j+1),type:'triangle',filter:6200,space:true,pan:(j-1.5)*.15}));});
+   voice({texture:true,at:type==='forge'?.68:.3,duration:.5,filter:2600,volume:.065,space:true});
+  }else if(type==='hero-shatter'){
+   voice({frequency:48,end:180,duration:.48,volume:.13,type:'sawtooth',filter:480,space:true});
+   voice({texture:true,duration:.48,filter:1500,volume:.09,space:true});
+   voice({frequency:95,end:26,at:.46,duration:1.15,volume:.3,filter:400,space:true});
+   voice({texture:true,at:.46,duration:.09,filter:7200,volume:.23});
+   voice({texture:true,at:.48,duration:.9,filter:2200,volume:.17,space:true});
+   [613,947,1429,2137,3181].forEach((frequency,i)=>voice({frequency,end:frequency*.38,at:.49+i*.045,duration:.6+i*.1,volume:.045,type:'triangle',filter:5000,space:true,pan:(i%2?1:-1)*.65}));
+   [0,.12,.27,.43,.61].forEach((at,i)=>voice({texture:true,at:.65+at,duration:.15+i*.05,filter:4200-i*500,volume:.065-i*.007,space:true,pan:(i%2?1:-1)*.8}));
+   voice({frequency:39,end:28,at:.7,duration:1.2,volume:.13,space:true});
+  }else if(['moon','court','grave','steel','flame','blood','claw'].includes(type)){
    const tone={moon:392,court:294,grave:58,steel:860,flame:120,blood:84,claw:155}[type];
    voice({frequency:tone,end:tone*(type==='moon'||type==='court'?1.5:.35),duration:.48,volume:.11,type:type==='steel'?'triangle':'sine',space:true,pan});
    voice({texture:true,duration:.32,filter:type==='steel'?6200:type==='flame'?3400:900,volume:.09,pan});

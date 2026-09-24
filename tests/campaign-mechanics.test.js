@@ -15,19 +15,18 @@ test('Campanha Política (Corte): acúmulo de Favores e execução de Decretos',
   assert.equal(g.players[0].favors, 2);
 
   // Na rodada 2, g.turn é 1. Vamos passar o jogador 1 para a vez voltar ao jogador 0
-  g = applyAction(g, 1, { type: 'pass' });
+  g = applyAction(g, 1, { type: 'play',uid:g.players[1].hand[0].uid,lane:'crypt' });
 
-  // Executar Edito de Tributo (gasta 1 Favor)
+  // Tributo custa dois Favores e exige adversário ativo.
   const currentFavors = g.players[0].favors;
   g = applyAction(g, 0, { type: 'campaign', category: 'court', tactic: 'tribute' });
-  assert.equal(g.players[0].favors, currentFavors - 1);
+  assert.equal(g.players[0].favors, currentFavors - 2);
   assert.equal(g.players[1].tributeActive, true);
 
   // Executar Suborno de Fronteira na frente de Caçada (gasta 1 Favor)
-  const initialBoost = g.players[0].boosts.hunt;
-  g = applyAction(g, 0, { type: 'campaign', category: 'court', tactic: 'bribe', lane: 'hunt' });
-  assert.equal(g.players[0].favors, 0);
-  assert.equal(g.players[0].boosts.hunt, initialBoost + 2);
+  g = applyAction(g,1,{type:'pass'});
+  g.players[0].favors=1;
+  assert.throws(()=>applyAction(g,0,{type:'campaign',category:'court',tactic:'bribe',lane:'hunt'}),/ordem desta frente/);
 });
 
 test('Guerra (Caçada): acúmulo de Cerco e Ruptura de Linha', () => {
@@ -77,9 +76,11 @@ test('Economia e Logística (Catacumbas): Suprimentos, remanejamento e rações'
   // Testar Rações de Guerra (compra de carta com 2 suprimentos)
   g.players[0].supplies = 2;
   const handBefore = g.players[0].hand.length;
-  g = applyAction(g, 0, { type: 'campaign', category: 'crypt', tactic: 'rations' });
+  assert.throws(()=>applyAction(g,0,{type:'campaign',category:'crypt',tactic:'rations'}),/ordem desta frente/);
+  g=applyAction(g,0,{type:'pass'});
+  g=applyAction(g,0,{type:'campaign',category:'crypt',tactic:'rations'});
   assert.equal(g.players[0].supplies, 0);
-  assert.equal(g.players[0].hand.length, handBefore + 1);
+  assert.equal(g.players[0].hand.length, handBefore + 2);
 });
 
 test('Ações de campanha rejeitam comandos sem recursos suficientes', () => {

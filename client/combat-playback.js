@@ -1,8 +1,9 @@
 import {tearCombatant} from '/visceral.js';
+import {shatterDefeatedHeroes} from '/hero-finale.js';
 import { animateEvents,captureCombatFrame,playSound } from '/effects.js';
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 export async function playCombatSequence({before,after,events,frame,render,cardHTML,speed=1}){
-  if(!events.length){render(after);return;}
+  if(!events.length){if(after.phase==='finished'&&before.phase!=='finished'){render({...after,phase:'playing',winner:null});await shatterDefeatedHeroes(before,after,{speed});}render(after);return;}
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let visible=structuredClone(before),pendingFlight=frame;
   const dead=new Set();
@@ -33,6 +34,10 @@ export async function playCombatSequence({before,after,events,frame,render,cardH
     }
     if(!['summon','equip','round','synergy','claim','level','loot','settled'].includes(e.type))apply(e);
     if(!reduced&&e.type==='settled')await wait(110/speed);
+  }
+  if(after.phase==='finished'&&before.phase!=='finished'){
+    render({...after,phase:'playing',winner:null});
+    await shatterDefeatedHeroes(before,after,{speed});
   }
   render(after);playSound(after.phase==='finished'?(after.winner===after.seat?'victory':'defeat'):'select');
 }

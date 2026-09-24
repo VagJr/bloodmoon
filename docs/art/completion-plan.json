@@ -1,0 +1,447 @@
+[
+  {
+    "id": "completion-1",
+    "cards": [
+      {
+        "id": "casketwarden",
+        "name": "Sentinela dos Sete Caixões",
+        "type": "unit",
+        "text": "Guarda: reduz em 1 o primeiro dano que receber a cada rodada."
+      },
+      {
+        "id": "velvetexecutioner",
+        "name": "Carrasca do Manto Negro",
+        "type": "unit",
+        "text": "Transbordo: dano excedente ao abater um inimigo atinge o líder rival."
+      },
+      {
+        "id": "dukeofhollows",
+        "name": "Duque dos Salões Ocos",
+        "type": "unit",
+        "text": "Sinergia: na primeira morte inimiga nesta frente a cada rodada, recebe +1 ataque."
+      },
+      {
+        "id": "keepspeaker",
+        "name": "Porta-Voz da Fortaleza Velha",
+        "type": "unit",
+        "text": "Sinergia: ao equipar um aliado nesta frente, compre 1 carta."
+      },
+      {
+        "id": "paleadvocate",
+        "name": "Advogada Pálida",
+        "type": "unit",
+        "text": "Sinergia: o primeiro ritual nesta frente concede +1 influência."
+      },
+      {
+        "id": "thirstingacolyte",
+        "name": "Acólita da Sede Longa",
+        "type": "unit",
+        "text": "Drenar: seu líder recupera vida pelo dano causado ao atacar."
+      },
+      {
+        "id": "rosebladecaptain",
+        "name": "Capitã da Lâmina Rosa",
+        "type": "unit",
+        "text": "Sinergia: o primeiro ataque aliado nesta frente lhe concede +1 ataque."
+      },
+      {
+        "id": "graveborncourier",
+        "name": "Mensageiro Nascido da Cripta",
+        "type": "unit",
+        "text": "Sinergia: na primeira invocação vampírica nesta frente, compre 1 carta."
+      },
+      {
+        "id": "bloodarchon",
+        "name": "Arquiduque das Feridas",
+        "type": "unit",
+        "text": "Sinergia: quando um rival começa a sangrar nesta frente, recebe +1 ataque."
+      },
+      {
+        "id": "whisperedledger",
+        "name": "Livro dos Sussurros Devidos",
+        "type": "spell",
+        "text": "Compre 2 cartas."
+      },
+      {
+        "id": "rededict",
+        "name": "Édito da Câmara Escarlate",
+        "type": "spell",
+        "text": "Conceda +3 poder de conquista à frente nesta rodada."
+      },
+      {
+        "id": "bloodthread",
+        "name": "Fio Rubro",
+        "type": "spell",
+        "text": "Cause 1 dano a um inimigo. Se sobreviver, aplique Sangramento."
+      },
+      {
+        "id": "quenchedpulse",
+        "name": "Pulso Reaceso",
+        "type": "spell",
+        "text": "Recupere 3 de vida."
+      },
+      {
+        "id": "ravensummons",
+        "name": "Convocação dos Corvos",
+        "type": "spell",
+        "text": "Um aliado ganha +2 ataque e pode atacar novamente."
+      },
+      {
+        "id": "quietus",
+        "name": "Quietude Final",
+        "type": "spell",
+        "text": "Cause 4 de dano a um inimigo escolhido."
+      },
+      {
+        "id": "duskwell",
+        "name": "Poço do Crepúsculo",
+        "type": "spell",
+        "text": "Cause 2 de dano a um inimigo escolhido."
+      }
+    ]
+  },
+  {
+    "id": "completion-2",
+    "cards": [
+      {
+        "id": "nightfallambush",
+        "name": "Emboscada da Noite Longa",
+        "type": "spell",
+        "text": "Cause 4 de dano a um inimigo escolhido."
+      },
+      {
+        "id": "ancestralclaim",
+        "name": "Reivindicação Ancestral",
+        "type": "spell",
+        "text": "Conceda +4 poder de conquista à frente nesta rodada."
+      },
+      {
+        "id": "ashwoodbuckler",
+        "name": "Broquel de Freixo",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      },
+      {
+        "id": "crimsonlariat",
+        "name": "Laço Carmesim",
+        "type": "equipment",
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas."
+      },
+      {
+        "id": "wolfsilvergorget",
+        "name": "Gorgete de Prata Fria",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      },
+      {
+        "id": "votivedagger",
+        "name": "Adaga Votiva",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado."
+      },
+      {
+        "id": "blackglasskite",
+        "name": "Escudo de Vidro Negro",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano."
+      },
+      {
+        "id": "chainofninevows",
+        "name": "Corrente dos Nove Votos",
+        "type": "equipment",
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano."
+      },
+      {
+        "id": "mourningspurs",
+        "name": "Esporas de Luto",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional."
+      },
+      {
+        "id": "quarrygauntlet",
+        "name": "Manopla da Pedreira",
+        "type": "equipment",
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista."
+      },
+      {
+        "id": "cindermantle",
+        "name": "Manto de Brasa Fria",
+        "type": "equipment",
+        "text": "Depois de atacar ou usar habilidade, cure 1 de vida do aliado equipado e do líder."
+      },
+      {
+        "id": "thornring",
+        "name": "Anel de Espinhos Jurados",
+        "type": "equipment",
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas."
+      },
+      {
+        "id": "oldmoontalisman",
+        "name": "Talismã da Lua Morta",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional."
+      },
+      {
+        "id": "gravekey",
+        "name": "Chave do Ossuário Sul",
+        "type": "equipment",
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano."
+      },
+      {
+        "id": "ironrootbracer",
+        "name": "Braçadeira de Raiz de Ferro",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      },
+      {
+        "id": "bloodcoin",
+        "name": "Moeda do Dízimo Rubro",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado."
+      }
+    ]
+  },
+  {
+    "id": "completion-3",
+    "cards": [
+      {
+        "id": "seraphpins",
+        "name": "Alfinetes do Coro Mudo",
+        "type": "equipment",
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano."
+      },
+      {
+        "id": "tallowcrown",
+        "name": "Coroa de Sebo Negro",
+        "type": "equipment",
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista."
+      },
+      {
+        "id": "hollowshield",
+        "name": "Escudo do Nicho Vazio",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      },
+      {
+        "id": "briarhook",
+        "name": "Gancho da Urze",
+        "type": "equipment",
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas."
+      },
+      {
+        "id": "bonesash",
+        "name": "Faixa de Ossos Alvos",
+        "type": "equipment",
+        "text": "Depois de atacar ou usar habilidade, cure 1 de vida do aliado equipado e do líder."
+      },
+      {
+        "id": "wolfhoundlocket",
+        "name": "Relicário do Cão-Lobo",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional."
+      },
+      {
+        "id": "redwidowneedle",
+        "name": "Agulha da Viúva Rubra",
+        "type": "equipment",
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas."
+      },
+      {
+        "id": "ebonparry",
+        "name": "Manopla de Aparar Ébano",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      },
+      {
+        "id": "feastchalice",
+        "name": "Cálice do Banquete Velado",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado."
+      },
+      {
+        "id": "kingsbane",
+        "name": "Lâmina Mata-Reis",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano."
+      },
+      {
+        "id": "moonshotbow",
+        "name": "Arco de Chifre Lunar",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional."
+      },
+      {
+        "id": "ashenchasuble",
+        "name": "Sobrepeliz das Cinzas",
+        "type": "equipment",
+        "text": "Depois de atacar ou usar habilidade, cure 1 de vida do aliado equipado e do líder."
+      },
+      {
+        "id": "duskcompass",
+        "name": "Bússola do Ocaso",
+        "type": "equipment",
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano."
+      },
+      {
+        "id": "packhowlhorn",
+        "name": "Berrante da Alcateia Velada",
+        "type": "equipment",
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista."
+      },
+      {
+        "id": "thornmail",
+        "name": "Cota de Espinhos Profundos",
+        "type": "equipment",
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas."
+      },
+      {
+        "id": "barrowboots",
+        "name": "Botas da Colina Tumular",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional."
+      }
+    ]
+  },
+  {
+    "id": "completion-4",
+    "cards": [
+      {
+        "id": "rivenmirror",
+        "name": "Espelho Partido de Véspera",
+        "type": "equipment",
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano."
+      },
+      {
+        "id": "wraiththread",
+        "name": "Fio da Donzela Espectral",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado."
+      },
+      {
+        "id": "elderroot",
+        "name": "Broquel da Raiz Anciã",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      },
+      {
+        "id": "scarletseal",
+        "name": "Selo da Câmara Escarlate",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano."
+      },
+      {
+        "id": "sovereignfang",
+        "name": "Presa da Soberana Noturna",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado."
+      },
+      {
+        "id": "moonsplitedge",
+        "name": "Fio da Lua Partida",
+        "type": "equipment",
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas."
+      },
+      {
+        "id": "mordrathheart",
+        "name": "Coração de Mordrath",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      },
+      {
+        "id": "covenantlens",
+        "name": "Lente do Pacto Profundo",
+        "type": "equipment",
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano."
+      },
+      {
+        "id": "ruptureglaive",
+        "name": "Glaive da Ruptura",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano."
+      },
+      {
+        "id": "emberboundspurs",
+        "name": "Esporas Presas à Brasa",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional."
+      },
+      {
+        "id": "vesperveil",
+        "name": "Véu de Vesper",
+        "type": "equipment",
+        "text": "Depois de atacar ou usar habilidade, cure 1 de vida do aliado equipado e do líder."
+      },
+      {
+        "id": "packfirepennon",
+        "name": "Estandarte do Fogo da Matilha",
+        "type": "equipment",
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista."
+      },
+      {
+        "id": "oathbreakerhook",
+        "name": "Gancho do Quebra-Juramentos",
+        "type": "equipment",
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas."
+      },
+      {
+        "id": "dawnlessmace",
+        "name": "Maça da Aurora Negada",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado."
+      },
+      {
+        "id": "crownlessaegis",
+        "name": "Égide Sem Coroa",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      },
+      {
+        "id": "eclipseduelists",
+        "name": "Par de Lâminas do Eclipse",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder causam +1 dano."
+      }
+    ]
+  },
+  {
+    "id": "completion-5",
+    "cards": [
+      {
+        "id": "silkwidowcloak",
+        "name": "Manto de Seda da Viúva",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder curam você pelo dano causado."
+      },
+      {
+        "id": "redhollowscripture",
+        "name": "Escritura do Vazio Rubro",
+        "type": "equipment",
+        "text": "Em criatura, concede +1 influência; no líder, habilidades causam +1 dano."
+      },
+      {
+        "id": "heartoffirstpack",
+        "name": "Coração da Primeira Matilha",
+        "type": "equipment",
+        "text": "Ataques da criatura equipada e habilidades do líder geram +1 Frenesi adicional."
+      },
+      {
+        "id": "mawofgloam",
+        "name": "Mandíbula do Crepúsculo",
+        "type": "equipment",
+        "text": "Ataques de uma criatura equipada aplicam Sangramento se o alvo sobreviver; habilidades do líder também podem abrir feridas."
+      },
+      {
+        "id": "bloodmoontorque",
+        "name": "Torque do Sangue Lunar",
+        "type": "equipment",
+        "text": "Ao equipar uma criatura, ela recebe +1 ataque nesta rodada; no líder, a frente recebe +1 poder de conquista."
+      },
+      {
+        "id": "gloamkingsplate",
+        "name": "Placa do Rei do Gloaming",
+        "type": "equipment",
+        "text": "A criatura ou o líder equipado reduz em 1 o primeiro dano recebido a cada rodada."
+      }
+    ]
+  }
+]
