@@ -1,12 +1,13 @@
 import {realmSanctum} from '/realm-sanctum.js';
 import {renderWorldTable} from '/world-table.js';
+import {renderRealmWorld} from '/realm-world-ui.js';
 import {CHAPTERS} from '/shared/adventure.js';
 import {adventureUI} from '/adventure-ui.js';
 import {REGIONS,MATERIALS,POLICIES,AVATARS} from '/shared/realms.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const kinds={sanctuary:'SANTUÁRIO',fortress:'FORTALEZA',capital:'CAPITAL',mine:'MINA',wilds:'TERRAS SELVAGENS',dungeon:'DUNGEON · 3 MESAS'};
 export function renderRealms(data,focus,tab='map',busy=false){
- if(data&&tab==='map')return renderWorldTable(data,focus,busy);
+ if(data&&tab==='map')return data.liveWorld?renderRealmWorld(data,focus,busy):renderWorldTable(data,focus,busy);
  if(!data)return '<main class="realm-loading"><h1>Os portões de Véspera se abrem…</h1></main>';
  if(data&&tab!=='map')return realmSanctum(data,tab,tab==='camp'?'':tab==='journey'?adventureUI(data,busy||data.player.activeRoom?'disabled':''):houses(data,data.houses.find(h=>h.id===data.player.houseId),busy||data.player.activeRoom?'disabled':''),busy);
  const p=data.player,here=REGIONS.find(n=>n.id===p.location),node=REGIONS.find(n=>n.id===focus)||here,house=data.houses.find(h=>h.id===p.houseId),territory=data.territories[node.id],owner=data.houses.find(h=>h.id===territory?.owner),locked=busy||!!p.activeRoom,disabled=locked?'disabled':'',canTravel=here.links.includes(node.id)&&p.level>=node.level;

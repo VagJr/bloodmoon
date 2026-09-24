@@ -21,6 +21,10 @@ function show(){
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();nativePrompt=event;document.querySelectorAll('[data-install-app]').forEach(button=>button.classList.add('install-ready'));if(location.pathname.startsWith('/play')&&!installed()&&Date.now()-Number(localStorage.getItem(dismissKey)||0)>30*24*60*60*1000)setTimeout(show,1200);});
 window.addEventListener('appinstalled',()=>{nativePrompt=null;localStorage.removeItem(dismissKey);close();});
 document.addEventListener('click',event=>{if(event.target.closest('[data-install-app]')){event.preventDefault();show();}});
-if('serviceWorker'in navigator&&(/https:$/.test(location.protocol)||['localhost','127.0.0.1'].includes(location.hostname)))navigator.serviceWorker.register('/service-worker.js',{scope:'/'}).catch(()=>{});
+if('serviceWorker'in navigator&&(/https:$/.test(location.protocol)||['localhost','127.0.0.1'].includes(location.hostname))){
+ const hadController=!!navigator.serviceWorker.controller;let reloading=false;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadController&&!reloading){reloading=true;location.reload();}});
+ navigator.serviceWorker.register('/service-worker.js',{scope:'/',updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
+}
 const recent=Number(localStorage.getItem(dismissKey)||0),mobileInstallable=isiOS||isAndroid;
 if(location.pathname.startsWith('/play')&&!installed()&&Date.now()-recent>30*24*60*60*1000&&(nativePrompt||mobileInstallable))setTimeout(show,1600);

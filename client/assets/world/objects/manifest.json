@@ -1,0 +1,367 @@
+{
+  "sheet": "/assets/world/realm-sheet-6x6.png",
+  "columns": 6,
+  "sprites": [
+    {
+      "id": "dead-tree",
+      "width": 209,
+      "y": 0,
+      "column": 0,
+      "x": 0,
+      "height": 209,
+      "row": 0.0,
+      "src": "/assets/world/objects/dead-tree.png"
+    },
+    {
+      "id": "mossy-boulder",
+      "width": 209,
+      "y": 0,
+      "column": 1,
+      "x": 209,
+      "height": 209,
+      "row": 0.0,
+      "src": "/assets/world/objects/mossy-boulder.png"
+    },
+    {
+      "id": "ruined-arch",
+      "width": 209,
+      "y": 0,
+      "column": 2,
+      "x": 418,
+      "height": 209,
+      "row": 0.0,
+      "src": "/assets/world/objects/ruined-arch.png"
+    },
+    {
+      "id": "gravestones",
+      "width": 209,
+      "y": 0,
+      "column": 3,
+      "x": 627,
+      "height": 209,
+      "row": 0.0,
+      "src": "/assets/world/objects/gravestones.png"
+    },
+    {
+      "id": "broken-pillar",
+      "width": 209,
+      "y": 0,
+      "column": 4,
+      "x": 836,
+      "height": 209,
+      "row": 0.0,
+      "src": "/assets/world/objects/broken-pillar.png"
+    },
+    {
+      "id": "moon-mushrooms",
+      "width": 209,
+      "y": 0,
+      "column": 5,
+      "x": 1045,
+      "height": 209,
+      "row": 0.0,
+      "src": "/assets/world/objects/moon-mushrooms.png"
+    },
+    {
+      "id": "river-reeds",
+      "width": 209,
+      "y": 209,
+      "column": 0,
+      "x": 0,
+      "height": 209,
+      "row": 1.0,
+      "src": "/assets/world/objects/river-reeds.png"
+    },
+    {
+      "id": "evergreen-trees",
+      "width": 209,
+      "y": 209,
+      "column": 1,
+      "x": 209,
+      "height": 209,
+      "row": 1.0,
+      "src": "/assets/world/objects/evergreen-trees.png"
+    },
+    {
+      "id": "monster-bones",
+      "width": 209,
+      "y": 209,
+      "column": 2,
+      "x": 418,
+      "height": 209,
+      "row": 1.0,
+      "src": "/assets/world/objects/monster-bones.png"
+    },
+    {
+      "id": "stone-bridge",
+      "width": 209,
+      "y": 209,
+      "column": 3,
+      "x": 627,
+      "height": 209,
+      "row": 1.0,
+      "src": "/assets/world/objects/stone-bridge.png"
+    },
+    {
+      "id": "ruined-stairs",
+      "width": 209,
+      "y": 209,
+      "column": 4,
+      "x": 836,
+      "height": 209,
+      "row": 1.0,
+      "src": "/assets/world/objects/ruined-stairs.png"
+    },
+    {
+      "id": "iron-fence",
+      "width": 209,
+      "y": 209,
+      "column": 5,
+      "x": 1045,
+      "height": 209,
+      "row": 1.0,
+      "src": "/assets/world/objects/iron-fence.png"
+    },
+    {
+      "id": "brazier",
+      "width": 209,
+      "y": 418,
+      "column": 0,
+      "x": 0,
+      "height": 209,
+      "row": 2.0,
+      "src": "/assets/world/objects/brazier.png"
+    },
+    {
+      "id": "lantern",
+      "width": 209,
+      "y": 418,
+      "column": 1,
+      "x": 209,
+      "height": 209,
+      "row": 2.0,
+      "src": "/assets/world/objects/lantern.png"
+    },
+    {
+      "id": "signpost",
+      "width": 209,
+      "y": 418,
+      "column": 2,
+      "x": 418,
+      "height": 209,
+      "row": 2.0,
+      "src": "/assets/world/objects/signpost.png"
+    },
+    {
+      "id": "barrel",
+      "width": 209,
+      "y": 418,
+      "column": 3,
+      "x": 627,
+      "height": 209,
+      "row": 2.0,
+      "src": "/assets/world/objects/barrel.png"
+    },
+    {
+      "id": "supply-crates",
+      "width": 209,
+      "y": 418,
+      "column": 4,
+      "x": 836,
+      "height": 209,
+      "row": 2.0,
+      "src": "/assets/world/objects/supply-crates.png"
+    },
+    {
+      "id": "stone-well",
+      "width": 209,
+      "y": 418,
+      "column": 5,
+      "x": 1045,
+      "height": 209,
+      "row": 2.0,
+      "src": "/assets/world/objects/stone-well.png"
+    },
+    {
+      "id": "watchtower",
+      "width": 209,
+      "y": 627,
+      "column": 0,
+      "x": 0,
+      "height": 209,
+      "row": 3.0,
+      "src": "/assets/world/objects/watchtower.png"
+    },
+    {
+      "id": "windmill",
+      "width": 209,
+      "y": 627,
+      "column": 1,
+      "x": 209,
+      "height": 209,
+      "row": 3.0,
+      "src": "/assets/world/objects/windmill.png"
+    },
+    {
+      "id": "blacksmith",
+      "width": 209,
+      "y": 627,
+      "column": 2,
+      "x": 418,
+      "height": 209,
+      "row": 3.0,
+      "src": "/assets/world/objects/blacksmith.png"
+    },
+    {
+      "id": "farm",
+      "width": 209,
+      "y": 627,
+      "column": 3,
+      "x": 627,
+      "height": 209,
+      "row": 3.0,
+      "src": "/assets/world/objects/farm.png"
+    },
+    {
+      "id": "fortified-gate",
+      "width": 209,
+      "y": 627,
+      "column": 4,
+      "x": 836,
+      "height": 209,
+      "row": 3.0,
+      "src": "/assets/world/objects/fortified-gate.png"
+    },
+    {
+      "id": "barracks",
+      "width": 209,
+      "y": 627,
+      "column": 5,
+      "x": 1045,
+      "height": 209,
+      "row": 3.0,
+      "src": "/assets/world/objects/barracks.png"
+    },
+    {
+      "id": "vampire-crest",
+      "width": 209,
+      "y": 836,
+      "column": 0,
+      "x": 0,
+      "height": 209,
+      "row": 4.0,
+      "src": "/assets/world/objects/vampire-crest.png"
+    },
+    {
+      "id": "wolf-crest",
+      "width": 209,
+      "y": 836,
+      "column": 1,
+      "x": 209,
+      "height": 209,
+      "row": 4.0,
+      "src": "/assets/world/objects/wolf-crest.png"
+    },
+    {
+      "id": "twin-moon-crest",
+      "width": 209,
+      "y": 836,
+      "column": 2,
+      "x": 418,
+      "height": 209,
+      "row": 4.0,
+      "src": "/assets/world/objects/twin-moon-crest.png"
+    },
+    {
+      "id": "war-emblem",
+      "width": 209,
+      "y": 836,
+      "column": 3,
+      "x": 627,
+      "height": 209,
+      "row": 4.0,
+      "src": "/assets/world/objects/war-emblem.png"
+    },
+    {
+      "id": "peace-emblem",
+      "width": 209,
+      "y": 836,
+      "column": 4,
+      "x": 836,
+      "height": 209,
+      "row": 4.0,
+      "src": "/assets/world/objects/peace-emblem.png"
+    },
+    {
+      "id": "crown-emblem",
+      "width": 209,
+      "y": 836,
+      "column": 5,
+      "x": 1045,
+      "height": 209,
+      "row": 4.0,
+      "src": "/assets/world/objects/crown-emblem.png"
+    },
+    {
+      "id": "metal-corner",
+      "width": 209,
+      "y": 1045,
+      "column": 0,
+      "x": 0,
+      "height": 209,
+      "row": 5.0,
+      "src": "/assets/world/objects/metal-corner.png"
+    },
+    {
+      "id": "compass",
+      "width": 209,
+      "y": 1045,
+      "column": 1,
+      "x": 209,
+      "height": 209,
+      "row": 5.0,
+      "src": "/assets/world/objects/compass.png"
+    },
+    {
+      "id": "portrait-frame",
+      "width": 209,
+      "y": 1045,
+      "column": 2,
+      "x": 418,
+      "height": 209,
+      "row": 5.0,
+      "src": "/assets/world/objects/portrait-frame.png"
+    },
+    {
+      "id": "life-jewel",
+      "width": 209,
+      "y": 1045,
+      "column": 3,
+      "x": 627,
+      "height": 209,
+      "row": 5.0,
+      "src": "/assets/world/objects/life-jewel.png"
+    },
+    {
+      "id": "vigor-jewel",
+      "width": 209,
+      "y": 1045,
+      "column": 4,
+      "x": 836,
+      "height": 209,
+      "row": 5.0,
+      "src": "/assets/world/objects/vigor-jewel.png"
+    },
+    {
+      "id": "coin-pile",
+      "width": 209,
+      "y": 1045,
+      "column": 5,
+      "x": 1045,
+      "height": 209,
+      "row": 5.0,
+      "src": "/assets/world/objects/coin-pile.png"
+    }
+  ],
+  "rows": 6
+}

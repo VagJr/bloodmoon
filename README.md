@@ -1,5 +1,7 @@
 # Bloodmoon · Sangue & Fúria
 
+Reinos agora possui exploração com movimento por WASD, setas e toque, população autônoma, cartas posicionadas no terreno e combate local em tempo real. Chefes, dungeons e duelos consensuais abrem a Arena completa. Casas, política, economia e progressão continuam integradas ao mundo. Consulte [Reinos de Véspera — mundo aberto](docs/REALMS-OPEN-WORLD.md) para controles, arquitetura e limites de escala.
+
 TCG de combate e RPG em fantasia sombria medieval. A versão 0.4 combina arena 2.5D, confrontos por frente, sinergias, coleção, editor de decks e um relicário com equipamentos persistentes, risco compartilhado e mercado local — sem compras com dinheiro real.
 
 ## Jogar
@@ -81,7 +83,7 @@ Para testar duas pessoas, use navegadores/perfis diferentes (uma janela anônima
 
 ## Limites
 
-Protótipo, não serviço comercial. Perfis usam uma credencial local sem login real. MongoDB Atlas guarda a persistência, mas o estado de trabalho é mantido em memória por um único processo; não aumente o número de instâncias sem adicionar coordenação distribuída. Ainda não há matchmaking, ranking, trocas, campanha com várias salas ou recuperação completa após falha do servidor. O índice de deck é uma régua de autoria, não um MMR ou ajuste oculto. Arte por atlas pode ser refinada por carta; áudio sintetizado, sem trilha gravada. Animações representam eventos confirmados pelo motor, sem replay quadro a quadro. Combate alterna ações; não é tempo real.
+Protótipo, não serviço comercial. Perfis usam uma credencial local sem login real. MongoDB Atlas guarda a persistência, mas o estado de trabalho é mantido em memória por um único processo; não aumente o número de instâncias sem adicionar coordenação distribuída. Ainda não há matchmaking, ranking, trocas, campanha com várias salas ou recuperação completa após falha do servidor. O índice de deck é uma régua de autoria, não um MMR ou ajuste oculto. Arte por atlas pode ser refinada por carta; áudio sintetizado, sem trilha gravada. Animações representam eventos confirmados pelo motor, sem replay quadro a quadro. A Arena alterna ações; os confrontos locais do mapa de Reinos avançam em tempo real.
 
 Balanceamento e diversão exigem sessões humanas; simulações verificam consistência. Melhor experiência em desktop ou tablet horizontal. Em telas verticais pequenas, elementos são compactados e a arena pode exigir rolagem vertical em alturas abaixo de 730 px.
 

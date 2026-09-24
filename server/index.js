@@ -1,4 +1,4 @@
-import {realmStream,realmPulse} from './realm-stream.js';
+import {realmStream,realmPulse,realmLivePulse,closeRealmStreams} from './realm-stream.js';
 import {AVATAR_IDS,ORIGINS} from '../shared/battle-design.js';
 import {applyDoctrine} from '../shared/expedition-doctrines.js';
 import http from 'node:http';
@@ -19,6 +19,7 @@ import {transferVault} from '../shared/vault.js';
 import {featureOpen,featureRequirement,JOURNEY_LESSONS,lessonFeature} from '../shared/player-journey.js';
 import {placeOrder,cancelOrder,fillOrder} from '../shared/purchase-orders.js';
 import { createWorld, enterRealms, realmView, realmAction, prepareEncounter, settleEncounter, expirePolitics, REGIONS } from '../shared/realms.js';
+import { ensureRealmWorld, ensureWorldPlayer, advanceRealmWorld, realmWorldView, realmWorldAction, prepareWorldEncounter, settleWorldEncounter } from '../shared/realm-world.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rooms = new Map();
@@ -26,6 +27,9 @@ const profiles = new Map();
 const accounts=new Map(),sessions=new Map();
 const matchQueue=new MatchQueue();
 const itemLocks = new Map();
+const worldChallenges = new Map();
+const worldDirtyProfiles = new Set();
+let worldDirty = false, worldLastSaved = Date.now();
 const dataDir=process.env.DATA_DIR || path.join(root,'data');
 const profileFile = path.join(dataDir, 'state.json');
 let world=createWorld();
@@ -81,7 +85,7 @@ function identity(req) {
 function view(room, id) {
   const seat=room.seats.indexOf(id),reward=room.rewards?.[seat];
   const lootCards=(reward?.items||[]).map(itemId=>profiles.get(id)?.items?.find(i=>i.id===itemId)).filter(Boolean).map(({cardId,rarity,durability,maxDurability,source})=>({cardId,rarity,durability,maxDurability,source}));
-  return { roomId: room.id, mode: room.mode, encounter:room.encounter||null, opponent:room.opponent||null, battlefield:room.battlefield||'court-board', riskMode:room.riskMode||'covenant', rewards:reward?{...reward,items:reward.items?.length||0,lootCards}: {}, waiting: room.seats.length < 2, ...publicView(room.game, seat) };
+  return { roomId: room.id, mode: room.mode, encounter:room.encounter||room.worldEncounter||null, opponent:room.opponent||null, battlefield:room.battlefield||'court-board', riskMode:room.riskMode||'covenant', rewards:reward?{...reward,items:reward.items?.length||0,lootCards}: {}, waiting: room.seats.length < 2, ...publicView(room.game, seat) };
 }
 async function prepareProfile(profile,faction='vampire') {
   let changed=grantStarter(profile,faction,randomUUID);
@@ -220,6 +224,13 @@ async function reward(room) {
     if(room.matchmade){const opponent=profiles.get(room.seats[1-seat]),expected=1/(1+10**(((room.startRatings?.[1-seat]||opponent?.rating||1000)-(room.startRatings?.[seat]||p.rating||1000))/400));p.rating=Math.max(100,Math.round((p.rating||1000)+24*((room.game.winner===-1?.5:won?1:0)-expected)));}
     const broken=room.game.events.filter(e=>e.type==='item-break'&&e.seat===seat),looted=room.game.events.filter(e=>e.type==='item-loot'&&e.seat===seat);
     room.rewards||={};room.rewards[seat]={xp:0,coins:0,dust:0,scrap:0,items:[],broken:broken.map(e=>e.label),looted:looted.map(e=>e.label),wornOut:gearOutcomes[seat]?.wornOut||[],substitutions:gearOutcomes[seat]?.substitutions||[]};
+    if(room.worldEncounter){
+      if(room.worldEncounter.kind==='pvp'){
+        p.realm.activeRoom=null;p.realm.version++;
+        room.rewards[seat].realm={message:won?'Seu estandarte venceu o duelo.':'Você retorna ao mundo após o duelo.',coins:0};
+      }else if(seat===0){const expedition=settleWorldEncounter(world,p,room.worldEncounter,won,player.conceded,REGIONS,Date.now(),Object.keys(player.laneClaims||{}).filter(lane=>player.laneClaims[lane]>0));room.rewards[seat].realm=expedition;if(expedition.loot){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===(room.worldEncounter.stages===3?'rare':'common'));const item=makeItem(pool[randomInt(pool.length)].id,randomUUID,'realm');p.items.push(item);room.rewards[seat].items.push(item.id);}}
+      worldDirty=true;worldDirtyProfiles.add(p.id);
+    }
     if(room.encounter&&seat===0){const expedition=settleEncounter(world,p,room.encounter,won,player.conceded,Date.now(),Object.keys(player.laneClaims||{}).filter(lane=>player.laneClaims[lane]>0));room.rewards[seat].realm=expedition;if(expedition.loot){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===(room.encounter.stages===3?'rare':'common')),card=pool[randomInt(pool.length)],item=makeItem(card.id,randomUUID,'realm');p.items.push(item);room.rewards[seat].items.push(item.id);}}
     if(player.conceded)return;
     p.matches++;if(won)p.wins++;
@@ -254,6 +265,27 @@ function runBot(room) {
 }
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webmanifest':'application/manifest+json; charset=utf-8', '.png':'image/png', '.webp':'image/webp', '.mp3':'audio/mpeg', '.mp4':'video/mp4' };
 let requestQueue=Promise.resolve();
+async function exclusiveWorldTask(task) {
+  let release;
+  const previous=requestQueue;
+  requestQueue=new Promise(resolve=>{release=resolve;});
+  await previous;
+  try{return await task();}finally{release();}
+}
+function liveWorldFor(profile,now=Date.now()) {
+  const snapshot=realmWorldView(world,profile,profiles,REGIONS,now);
+  snapshot.activeRoom=profile.realm?.activeRoom||null;
+  snapshot.challenges=[...worldChallenges.values()].filter(c=>c.to===profile.id&&c.expiresAt>now).map(c=>({playerId:profiles.get(c.from)?.realm?.publicId,name:profiles.get(c.from)?.name||'Viajante',expiresAt:c.expiresAt}));
+  return snapshot;
+}
+function markWorldDirty(profile) {worldDirty=true;if(profile)worldDirtyProfiles.add(profile.id);}
+async function flushRealmWorld(force=false) {
+  if(!worldDirty||(!force&&Date.now()-worldLastSaved<5000))return;
+  const changed=[...worldDirtyProfiles].map(id=>profiles.get(id)).filter(Boolean);
+  await persist({profiles:changed,world:true});
+  worldDirtyProfiles.clear();worldDirty=false;worldLastSaved=Date.now();
+}
+function worldDistance(a,b){return Math.hypot((a.x-b.x)*1.5,a.y-b.y);}
 const server = http.createServer(async (req,res) => {
   let release;
   if(req.url.startsWith('/api/')&&req.method!=='GET'&&!req.url.startsWith('/api/health')){const previous=requestQueue;requestQueue=new Promise(resolve=>{release=resolve;});await previous;}
@@ -414,15 +446,91 @@ const server = http.createServer(async (req,res) => {
         const requested=url.searchParams.get('faction'),faction=['vampire','werewolf'].includes(requested)?requested:(profile.selectedFaction||profile.starterFaction||'vampire');
         return json(res,200,readinessFor(profile,faction));
       }
-      if(url.pathname==='/api/realms/events'&&req.method==='GET'){return realmStream(profile,req,res);}
+      if(url.pathname==='/api/realms/events'&&req.method==='GET'){
+        enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);markWorldDirty(profile);
+        return realmStream(profile,req,res,{snapshot:()=>liveWorldFor(profile),authorized:()=>{if(identity(req)?.id!==profile.id)return false;profile.realm.seenAt=Date.now();return true;}});
+      }
+      if(url.pathname==='/api/realms/world'&&req.method==='GET'){
+        enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);profile.realm.seenAt=Date.now();markWorldDirty(profile);
+        return json(res,200,{liveWorld:liveWorldFor(profile)});
+      }
+      if(url.pathname==='/api/realms/world/action'&&req.method==='POST'){
+        const input=await body(req);enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);
+        if(!input||typeof input!=='object'||Array.isArray(input))throw new RuleError('Ação de mundo inválida.');
+        requireFreePlayer(profile.id);
+        const result=realmWorldAction(world,profile,input,REGIONS,Date.now());markWorldDirty(profile);
+        const moving=input.type==='world-move';
+        if(!moving)await flushRealmWorld(true);
+        return json(res,200,{liveWorld:liveWorldFor(profile),result,...(!moving?{profile}:{})});
+      }
+      if(url.pathname==='/api/realms/world/encounter'&&req.method==='POST'){
+        const input=await body(req);enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);
+        if(!input||typeof input!=='object'||Array.isArray(input))throw new RuleError('Encontro de mundo inválido.');
+        requireFreePlayer(profile.id);
+        if(rooms.size>=500)throw new RuleError('Todas as mesas estão ocupadas. Tente novamente em instantes.');
+        const now=Date.now(),faction=profile.selectedFaction||profile.starterFaction,deck=activeDeck(profile,faction);
+        if(!deck)throw new RuleError('Equipe um deck válido da sua linhagem no Arsenal.');
+        validateOwnedDeck(deck.cards,faction,profile,deck.autoRefills);
+        if(input.playerId){
+          const opponent=[...profiles.values()].find(p=>p.realm?.publicId===input.playerId);
+          if(!opponent||opponent.id===profile.id||!opponent.realm.roaming)throw new RuleError('Escolha outro viajante no mapa.');
+          requireFreePlayer(opponent.id);
+          const here=profile.realm.roaming,there=opponent.realm.roaming;
+          if(here.hp<=0||there.hp<=0||here.downUntil>now||there.downUntil>now)throw new RuleError('Ambos precisam estar recuperados para duelar.');
+          if(worldDistance(here,there)>4.2)throw new RuleError('Aproxime-se do viajante para propor um duelo.');
+          if(now-(opponent.realm.seenAt||0)>60000)throw new RuleError('Esse viajante não está presente no mundo.');
+          const challengeKey=`${opponent.id}:${profile.id}`,invitation=worldChallenges.get(challengeKey);
+          if(!invitation||invitation.expiresAt<=now){
+            for(const [key,c]of worldChallenges)if(c.expiresAt<=now)worldChallenges.delete(key);
+            if([...worldChallenges.values()].some(c=>c.from===profile.id&&now-c.createdAt<3000))throw new RuleError('Aguarde um instante antes de enviar outro desafio.');
+            for(const [key,c]of worldChallenges)if(c.from===profile.id)worldChallenges.delete(key);
+            worldChallenges.set(`${profile.id}:${opponent.id}`,{from:profile.id,to:opponent.id,createdAt:now,expiresAt:now+30000});
+            realmLivePulse(id=>{const p=profiles.get(id);return p?.realm?liveWorldFor(p):null;});
+            return json(res,202,{challenge:{playerId:opponent.realm.publicId,name:opponent.name,expiresAt:now+30000},liveWorld:liveWorldFor(profile)});
+          }
+          const otherFaction=opponent.selectedFaction||opponent.starterFaction,otherDeck=activeDeck(opponent,otherFaction);
+          if(!otherDeck)throw new RuleError('O desafiante precisa preparar seu deck.');
+          validateOwnedDeck(otherDeck.cards,otherFaction,opponent,otherDeck.autoRefills);
+          const id=randomBytes(5).toString('hex').toUpperCase();let one,two;
+          const previousRooms=[opponent.realm.activeRoom,profile.realm.activeRoom];
+          try{
+            one=reserveDeck(opponent,otherDeck.cards,id);two=reserveDeck(profile,deck.cards,id);
+            let game=createGame(otherFaction,Math.random,'duel',{[otherFaction]:one.cards});game=replaceOpeningDeck(game,1,two.cards);game.players[1].faction=faction;
+            const room={id,mode:'duel',worldEncounter:{kind:'pvp',title:'Duelo de estandartes',node:profile.realm.location},riskMode:'covenant',battlefield:'siege-board',game,seats:[opponent.id,profile.id],rewarded:false,createdAt:now,lockedItems:[one.itemIds,two.itemIds],gearEvents:[]};
+            rooms.set(id,room);opponent.realm.activeRoom=id;profile.realm.activeRoom=id;opponent.realm.version++;profile.realm.version++;
+            await persist({profiles:[profile,opponent],rooms:[room],world:true});
+            worldChallenges.delete(challengeKey);matchQueue.remove(profile.id);matchQueue.remove(opponent.id);
+            realmLivePulse(pid=>{const p=profiles.get(pid);return p?.realm?liveWorldFor(p):null;});
+            return json(res,201,view(room,profile.id));
+          }catch(error){
+            rooms.delete(id);opponent.realm.activeRoom=previousRooms[0];profile.realm.activeRoom=previousRooms[1];
+            for(const itemId of [...(one?.itemIds||[]),...(two?.itemIds||[])])itemLocks.delete(itemId);
+            throw error;
+          }
+        }
+        const encounter=prepareWorldEncounter(world,profile,input,REGIONS,now),id=randomBytes(5).toString('hex').toUpperCase();
+        let reserved;const previousRoom=profile.realm.activeRoom,previousProvisions=profile.realm.provisions;
+        try{
+          reserved=reserveDeck(profile,deck.cards,id);
+          const rival=campaignRival(faction,encounter.node,encounter.stage||0),boss=encounter.kind==='boss'||(encounter.stages===3&&encounter.stage===2);
+          const game=createGame(faction,Math.random,boss?'dungeon':'practice',{[faction]:reserved.cards},{...rival,deck:buildRivalDeck(rival.id)});
+          game.players[1].health=game.players[1].maxHealth=boss?36:22+(encounter.difficulty||1)*2+(encounter.stage||0)*2;
+          applyDoctrine(game,profile.realm.doctrine||'standard');
+          const room={id,mode:'realm',worldEncounter:encounter,opponent:{id:rival.id,name:encounter.title||rival.name,title:rival.title,style:rival.style,avatar:rival.avatar},battlefield:encounter.board||'crypt-board',riskMode:'covenant',game,seats:[profile.id,'bot'],rewarded:false,createdAt:now,lockedItems:[reserved.itemIds],gearEvents:[]};
+          rooms.set(id,room);profile.realm.activeRoom=id;profile.realm.provisions-=2;profile.realm.version++;matchQueue.remove(profile.id);
+          await persist({profiles:[profile],rooms:[room],world:true});return json(res,201,view(room,profile.id));
+        }catch(error){rooms.delete(id);profile.realm.activeRoom=previousRoom;profile.realm.provisions=previousProvisions;for(const itemId of reserved?.itemIds||[])itemLocks.delete(itemId);throw error;}
+      }
       if(url.pathname==='/api/realms'&&req.method==='GET'){
         if(enterRealms(profile,randomUUID))await persist({profiles:[profile]});
-        return json(res,200,realmView(world,profile,profiles,Date.now(),false));
+        const state=realmView(world,profile,profiles,Date.now(),false);state.liveWorld=liveWorldFor(profile);
+        return json(res,200,state);
       }
       if(url.pathname==='/api/realms/actions'&&req.method==='POST'){
         const input=await body(req),worldVersion=world.version;
         if(['found','join','propose','war','donate','vote','table-siege','table-influence'].includes(input.type)&&!featureOpen(profile,'politics'))throw new RuleError(featureRequirement(profile,'politics'));
-        enterRealms(profile,randomUUID);realmAction(world,profile,input,randomUUID);await persist({profiles:[profile],world:world.version!==worldVersion});realmPulse();return json(res,200,realmView(world,profile,profiles));
+        enterRealms(profile,randomUUID);realmAction(world,profile,input,randomUUID);await persist({profiles:[profile],world:world.version!==worldVersion});realmPulse();
+        const state=realmView(world,profile,profiles);state.liveWorld=liveWorldFor(profile);return json(res,200,state);
       }
       if(url.pathname==='/api/realms/encounter'&&req.method==='POST'){
         const input=await body(req);enterRealms(profile,randomUUID);
@@ -562,7 +670,7 @@ const server = http.createServer(async (req,res) => {
           const firstEvent=room.game.nextEvent;room.game = applyAction(room.game,seat,input.action,{visuals:true}); runBot(room);room.gearEvents.push(...room.game.events.filter(e=>e.id>=firstEvent&&e.type==='item-lost'));
           const rewarding=room.game.phase==='finished'&&!room.rewarded;await reward(room);
           const changedProfiles=rewarding?room.seats.map(id=>profiles.get(id)).filter(Boolean):[];
-          await persist({rooms:[room],profiles:changedProfiles,world:rewarding&&!!room.encounter});
+          await persist({rooms:[room],profiles:changedProfiles,world:rewarding&&!!(room.encounter||room.worldEncounter)});
           return json(res,200,view(room,profile.id));
         }
       }
@@ -601,11 +709,29 @@ const server = http.createServer(async (req,res) => {
 });
 const port=Number(process.env.PORT||4173);
 const host=process.env.HOST||(process.env.NODE_ENV==='production'?'0.0.0.0':'127.0.0.1');
+ensureRealmWorld(world,REGIONS);
+let worldTickPending=false;
+const worldTimer=setInterval(()=>{
+  if(worldTickPending)return;
+  worldTickPending=true;
+  exclusiveWorldTask(async()=>{
+    const now=Date.now();
+    for(const [key,challenge]of worldChallenges)if(challenge.expiresAt<=now)worldChallenges.delete(key);
+    if(advanceRealmWorld(world,profiles,REGIONS,now)){
+      worldDirty=true;
+      for(const profile of profiles.values())if(profile.realm?.roaming)worldDirtyProfiles.add(profile.id);
+    }
+    realmLivePulse(id=>{const profile=profiles.get(id);return profile?.realm?liveWorldFor(profile,now):null;});
+    await flushRealmWorld();
+  }).catch(error=>console.error('Falha ao atualizar o mundo dos Reinos.',error)).finally(()=>{worldTickPending=false;});
+},500);
+worldTimer.unref();
 server.listen(port,host,() => console.log(`Bloodmoon em http://${host}:${server.address().port} · ${mongoStore?'MongoDB Atlas':'persistência local'}`));
 
 for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{
+  clearInterval(worldTimer);clearInterval(maintenanceTimer);closeRealmStreams();
   server.close(async()=>{
-    try{await saving;await mongoStore?.close();process.exit(0);}
+    try{await exclusiveWorldTask(()=>flushRealmWorld(true));await saving;await mongoStore?.close();process.exit(0);}
     catch{process.exit(1);}
   });
 });

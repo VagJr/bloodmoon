@@ -1,4 +1,5 @@
 import {tableAction,tableView} from './world-table.js';
+import {ensureRealmWorld,ensureWorldPlayer,realmWorldView} from './realm-world.js';
 import {legacyClaim} from './legacy.js';
 import {storyAction} from './side-stories.js';
 import {chooseDoctrine} from './expedition-doctrines.js';
@@ -49,13 +50,15 @@ export function expirePolitics(world,now=Date.now()){
 }
 export function realmView(world,profile,profiles,now=Date.now(),includeProfile=true){
   const r=profile.realm;r.seenAt=now;
+  ensureRealmWorld(world,REGIONS,now);ensureWorldPlayer(profile,REGIONS,now);
   const people=[],byPublicId=new Map();
   for(const p of profiles.values())if(p.realm){
     byPublicId.set(p.realm.publicId,p);
     if(now-p.realm.seenAt<45000)people.push({id:p.realm.publicId,name:p.name,avatar:p.realm.avatar,location:p.realm.location,level:p.realm.level,faction:p.starterFaction,houseId:p.realm.houseId,busy:!!p.realm.activeRoom});
   }
   const profileView=includeProfile?profile:{id:profile.id,name:profile.name,starterFaction:profile.starterFaction,level:profile.level||1,xp:profile.xp||0,coins:profile.coins||0,dust:profile.dust||0,scrap:profile.scrap||0};
-  return {table:tableView(world,r,now),tableCards:Object.keys(profile.collection||{}).filter(id=>CARDS[id]?.type==='unit'&&profile.collection[id]>0).slice(0,60),version:world.version,serverTime:now,player:structuredClone(r),regions:REGIONS,territories:world.territories,houses:world.houses.map(h=>({...h,members:h.members.map(id=>({id,name:byPublicId.get(id)?.name||'Viajante'}))})),wars:world.wars.slice(-30),events:world.events.slice(0,12),online:people,profile:profileView};
+  const worldCards=[...new Set([...Object.keys(profile.collection||{}).filter(id=>CARDS[id]&&CARDS[id].type!=='equipment'&&profile.collection[id]>0),...(profile.items||[]).filter(item=>item.durability>0&&!item.listingId).map(item=>item.cardId)])];
+  return {liveWorld:realmWorldView(world,profile,profiles,REGIONS,now),worldCards,table:tableView(world,r,now),tableCards:Object.keys(profile.collection||{}).filter(id=>CARDS[id]?.type==='unit'&&profile.collection[id]>0).slice(0,60),version:world.version,serverTime:now,player:structuredClone(r),regions:REGIONS,territories:world.territories,houses:world.houses.map(h=>({...h,members:h.members.map(id=>({id,name:byPublicId.get(id)?.name||'Viajante'}))})),wars:world.wars.slice(-30),events:world.events.slice(0,12),online:people,profile:profileView};
 }
 export function realmAction(world,profile,input,createId,now=Date.now()){
   expirePolitics(world,now);
@@ -108,6 +111,7 @@ export function realmAction(world,profile,input,createId,now=Date.now()){
     check(!world.wars.some(w=>w.status==='active'&&[w.attacker,w.defender].includes(house.id)),'Sua Casa já participa de uma guerra.');check(!world.wars.some(w=>w.status==='active'&&[w.attacker,w.defender].includes(rival.id)),'Essa Casa já participa de uma guerra.');check(house.treasury>=50,'A guerra exige 50 Marcas do tesouro.');house.treasury-=50;
     world.wars.push({id:createId(),attacker:house.id,defender:rival.id,status:'active',startsAt:now,endsAt:now+1800000});journal(world,`${house.name} declarou guerra a ${rival.name}. Trinta minutos de disputa.`,now);
   }else throw new RuleError('Ação de reino desconhecida.');
+  if(['travel','retreat'].includes(action)&&r.roaming){const destination=region(r.location);r.roaming.x=destination.x;r.roaming.y=destination.y;r.roaming.moveAt=now;}
   r.version++;r.seenAt=now;return r;
 }
 function resolveVote(house,world,now){const p=house.proposal;if(p.votes.length>=Math.floor(p.eligible.length/2)+1){house.policy=p.policy;house.proposal=null;journal(world,`${house.name} aprovou a política ${POLICIES[p.policy].name}.`,now);}}
