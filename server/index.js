@@ -742,9 +742,8 @@ const server = http.createServer(async (req,res) => {
   } catch (e) { if (!(e instanceof RuleError)) console.error(e); json(res,e instanceof RuleError ? 400 : 500,{ error: e instanceof RuleError ? e.message : 'Falha interna do servidor.' }); }
   finally { release?.(); }
 });
-const production=process.env.NODE_ENV==='production';
-const port=Number(process.env.PORT||(production?10000:4173));
-const host=production?'0.0.0.0':(process.env.HOST||'127.0.0.1');
+const port=Number(process.env.PORT||4173);
+const host=process.env.HOST||(process.env.NODE_ENV==='production'?'0.0.0.0':'127.0.0.1');
 ensureRealmWorld(world,REGIONS);
 let worldTickPending=false;
 const worldTimer=setInterval(()=>{
@@ -765,7 +764,7 @@ const worldTimer=setInterval(()=>{
 },250);
 worldTimer.unref();
 server.once('error',error=>{console.error(`Falha ao abrir o servidor HTTP em ${host}:${port}.`,error);process.exit(1);});
-server.listen({port,host,exclusive:true},() => {
+server.listen(port,host,() => {
   const address=server.address();
   console.log(`Bloodmoon HTTP ativo em ${address.address}:${address.port} (${address.family}) · ${mongoStore?'MongoDB Atlas':'persistência local'}`);
 });
