@@ -790,24 +790,100 @@ const worldTickMs = Number(
 console.log(
   `World tick configurado para ${worldTickMs}ms (${process.env.NODE_ENV || 'development'})`
 );
-let worldTickPending=false;
-const worldTimer=setInterval(()=>{
-  if(worldTickPending)return;
-  worldTickPending=true;
-  exclusiveWorldTask(async()=>{
-    const now=Date.now();
-    for(const [key,challenge]of worldChallenges)if(challenge.expiresAt<=now)worldChallenges.delete(key);
-    if(advanceRealmWorld(world,profiles,REGIONS,now)){
-      markWorldDirty();
-      for(const profile of profiles.values())if(profile.realm?.roaming)worldDirtyProfiles.add(profile.id);
-    }
-    realmLivePulse(id=>{const profile=profiles.get(id);return profile?.realm?liveWorldFor(profile,now):null;});
-  }).catch(error=>console.error('Falha ao atualizar o mundo dos Reinos.',error)).finally(()=>{
-    worldTickPending=false;
-    void flushRealmWorld().catch(error=>console.error('Falha ao salvar o mundo dos Reinos.',error));
-  });
-},worldTickMs);
-worldTimer.unref();
+let worldTickPending = false;
+
+/*
+ * IMPORTANTE:
+ *
+ * A simulacao global de Vespera e pesada demais para a CPU
+ * do Render Free e pode bloquear completamente o event loop,
+ * inclusive /api/health.
+ *
+ * Em desenvolvimento ela continua ligada.
+ *
+ * Em producao pode ser reativada explicitamente com:
+ *
+ * WORLD_SIMULATION_ENABLED=true
+ */
+const worldSimulationEnabled =
+  process.env.NODE_ENV !== 'production' ||
+  process.env.WORLD_SIMULATION_ENABLED === 'true';
+
+let worldTimer = null;
+
+if (worldSimulationEnabled) {
+
+  worldTimer = setInterval(() => {
+
+    if (worldTickPending) return;
+
+    worldTickPending = true;
+
+    exclusiveWorldTask(async () => {
+
+      const now = Date.now();
+
+      for (const [key, challenge] of worldChallenges) {
+        if (challenge.expiresAt <= now) {
+          worldChallenges.delete(key);
+        }
+      }
+
+      if (advanceRealmWorld(world, profiles, REGIONS, now)) {
+
+        markWorldDirty();
+
+        for (const profile of profiles.values()) {
+          if (profile.realm?.roaming) {
+            worldDirtyProfiles.add(profile.id);
+          }
+        }
+      }
+
+      realmLivePulse(id => {
+
+        const profile = profiles.get(id);
+
+        return profile?.realm
+          ? liveWorldFor(profile, now)
+          : null;
+      });
+
+    })
+    .catch(error => {
+      console.error(
+        'Falha ao atualizar o mundo dos Reinos.',
+        error
+      );
+    })
+    .finally(() => {
+
+      worldTickPending = false;
+
+      void flushRealmWorld().catch(error => {
+        console.error(
+          'Falha ao salvar o mundo dos Reinos.',
+          error
+        );
+      });
+
+    });
+
+  }, worldTickMs);
+
+  worldTimer.unref();
+
+  console.log(
+    `Simulacao global ATIVA · tick ${worldTickMs}ms`
+  );
+
+} else {
+
+  console.log(
+    'Simulacao global DESATIVADA no Render para preservar o event loop HTTP.'
+  );
+
+}
 server.once('error', error => {
   console.error('Falha fatal ao iniciar servidor HTTP:', error);
   process.exit(1);
@@ -822,7 +898,7 @@ server.listen(port, host, () => {
 });
 
 for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{
-  clearInterval(worldTimer);clearInterval(maintenanceTimer);closeRealmStreams();
+  if(worldTimer)clearInterval(worldTimer);clearInterval(maintenanceTimer);closeRealmStreams();
   server.close(async()=>{
     try{await exclusiveWorldTask(()=>flushRealmWorld(true));await saving;await mongoStore?.close();process.exit(0);}
     catch{process.exit(1);}
