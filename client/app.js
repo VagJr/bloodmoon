@@ -54,7 +54,7 @@ function applyLiveWorld(next,paint=true){
 }
 async function sendWorldAction(input){
  const owner=realmData?.player?.publicId;
- const response=await api('/realms/world/action','POST',input);
+ const response=await api('/realms/world/action','POST',{...input,snapshotAt:realmData?.liveWorld?.serverTime});
  if(owner!==realmData?.player?.publicId)return realmData;
  if(response.movement){
   const current=realmData.liveWorld?.player,move=response.movement;

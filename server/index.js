@@ -1,5 +1,6 @@
 import {gainRpg} from '../shared/realm-rpg.js';
 import {realmStream,realmPulse,realmLivePulse,closeRealmStreams} from './realm-stream.js';
+import {realmCombatDelta} from '../shared/realm-delta.js';
 import {AVATAR_IDS,ORIGINS} from '../shared/battle-design.js';
 import {applyDoctrine} from '../shared/expedition-doctrines.js';
 import http from 'node:http';
@@ -20,7 +21,7 @@ import {transferVault} from '../shared/vault.js';
 import {featureOpen,featureRequirement,JOURNEY_LESSONS,lessonFeature} from '../shared/player-journey.js';
 import {placeOrder,cancelOrder,fillOrder} from '../shared/purchase-orders.js';
 import { createWorld, enterRealms, realmView, realmAction, prepareEncounter, settleEncounter, expirePolitics, REGIONS } from '../shared/realms.js';
-import { ensureRealmWorld, ensureWorldPlayer, advanceRealmWorld, realmWorldView, realmWorldAction, prepareWorldEncounter, settleWorldEncounter, grantArenaAfterglow } from '../shared/realm-world.js';
+import { WORLD_RULES, ensureRealmWorld, ensureWorldPlayer, advanceRealmWorld, realmWorldView, realmWorldAction, prepareWorldEncounter, settleWorldEncounter, grantArenaAfterglow } from '../shared/realm-world.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rooms = new Map();
@@ -503,7 +504,9 @@ const server = http.createServer(async (req,res) => {
         if(input.type==='world-move'&&profile.realm.location===previousLocation){
           return json(res,200,{movement:{x:result.x,y:result.y,sequence:result.sequence,location:profile.realm.location}});
         }
-        return json(res,200,{liveWorld:liveWorldFor(profile),result,...(!moving?{profile}:{})});
+        const liveWorld=liveWorldFor(profile);
+        const combatResponse=['world-ability','world-attack'].includes(input.type)&&Number.isFinite(input.snapshotAt)&&input.snapshotAt>0;
+        return json(res,200,{liveWorld:combatResponse?realmCombatDelta(liveWorld):liveWorld,result,...(!moving?{profile}:{})});
       }
       if(url.pathname==='/api/realms/world/encounter'&&req.method==='POST'){
         const input=await body(req);enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);
@@ -755,17 +758,19 @@ const host = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0
 ensureRealmWorld(world,REGIONS);
 
 const requestedWorldTickMs=Number(process.env.WORLD_TICK_MS);
-const worldTickMs=Number.isFinite(requestedWorldTickMs)&&requestedWorldTickMs>0
+const idleWorldTickMs=Number.isFinite(requestedWorldTickMs)&&requestedWorldTickMs>0
   ? Math.max(250,Math.min(500,requestedWorldTickMs))
   : process.env.NODE_ENV==='production'?500:250;
 
-console.log(`Simulação global ativa · tick ${worldTickMs}ms (${process.env.NODE_ENV || 'development'})`);
+console.log(`Simulação global ativa · 250ms com jogadores, ${idleWorldTickMs}ms em repouso (${process.env.NODE_ENV || 'development'})`);
 let worldTickPending=false;
 const worldTimer=setInterval(()=>{
   if(worldTickPending)return;
   worldTickPending=true;
   exclusiveWorldTask(()=>{
     const now=Date.now();
+    const activeRealm=[...profiles.values()].some(profile=>profile.realm?.roaming&&!profile.realm.activeRoom&&now-(profile.realm.seenAt||0)<WORLD_RULES.presenceMs);
+    if(!activeRealm&&now-world.realmWorld.lastTick<idleWorldTickMs)return;
     for(const [key,challenge] of worldChallenges)if(challenge.expiresAt<=now)worldChallenges.delete(key);
     if(advanceRealmWorld(world,profiles,REGIONS,now)){
       markWorldDirty();
@@ -777,16 +782,16 @@ const worldTimer=setInterval(()=>{
     },id=>{
       const player=profiles.get(id)?.realm?.roaming;
       if(!player)return 1500;
-      if(now-(player.lastCombatAt||0)<5000||now-(player.moveAt||0)<1000)return 500;
-      const nearThreat=world.realmWorld?.actors?.some(actor=>actor.hp>0&&['hostile','invader','raid'].includes(actor.kind)&&worldDistance(player,actor)<16);
-      return nearThreat?500:1500;
+      if(now-(player.lastCombatAt||0)<5000||now-(player.moveAt||0)<1000)return 250;
+      const nearMotion=world.realmWorld?.actors?.some(actor=>actor.hp>0&&['hostile','invader','raid','patrol','caravan'].includes(actor.kind)&&worldDistance(player,actor)<16);
+      return nearMotion?500:1500;
     },now);
   }).catch(error=>console.error('Falha ao atualizar o mundo dos Reinos.',error))
     .finally(()=>{
       worldTickPending=false;
       void flushRealmWorld().catch(error=>console.error('Falha ao salvar o mundo dos Reinos.',error));
     });
-},worldTickMs);
+},250);
 worldTimer.unref();
 server.once('error', error => {
   console.error('Falha fatal ao iniciar servidor HTTP:', error);

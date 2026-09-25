@@ -42,3 +42,12 @@ export function applyRealmWorldDelta(previous,next){
   delete merged.partial;delete merged.removed;
   return merged;
 }
+
+export function realmCombatDelta(current,radius=25){
+  const near=entry=>Math.hypot((entry.x-current.player.x)*1.5,entry.y-current.player.y)<=radius;
+  const delta={...current,partial:true,removed:{actors:[],slots:[],players:[]}};
+  delta.actors=(current.actors||[]).filter(near);
+  delta.slots=(current.slots||[]).filter(near);
+  for(const key of ['rules','blueprints','slotKinds','continents','cityBuildings'])delete delta[key];
+  return delta;
+}

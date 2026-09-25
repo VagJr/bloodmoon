@@ -39,6 +39,12 @@ test('Mundo online: autenticação, movimento limitado, presença pública, cons
     const initial=(await request('/api/realms/world')).data.liveWorld;
     assert.ok(initial.actors.length>10);assert.ok(initial.slots.length>10);
     assert.ok(!JSON.stringify(initial.players).includes('private-player-'));
+    const defenderView=(await request('/api/realms/world','GET',undefined,b.id)).data.liveWorld;
+    const defended=await request('/api/realms/world/action','POST',{type:'world-ability',ability:'guard',snapshotAt:defenderView.serverTime},b.id);
+    assert.equal(defended.status,200,JSON.stringify(defended.data));
+    assert.equal(defended.data.liveWorld.partial,true);
+    assert.equal(defended.data.liveWorld.rules,undefined);
+    assert.equal(defended.data.liveWorld.rpg.barrier.kind,'guard');
     const moved=await request('/api/realms/world/action','POST',{type:'world-move',dx:1,dy:0,elapsedMs:250,sequence:1});
     assert.equal(moved.status,200,JSON.stringify(moved.data));assert.equal(moved.data.profile,undefined);
     assert.ok(moved.data.movement,'O movimento comum retorna apenas a confirmação de posição.');

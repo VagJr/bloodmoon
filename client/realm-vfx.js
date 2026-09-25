@@ -238,10 +238,15 @@ function drawBarrier(ctx,barrier,world,clock,now,project,zoom,pose){
   const k=i/2;glow(ctx,start.x+(end.x-start.x)*k,start.y+(end.y-start.y)*k-height*.2,3.5*zoom,'#fff3cc',fade*.85);
  }
 }
-function drawProjectile(ctx,shot,clock,snapshotAge,project,zoom,now){
+export function projectilePosition(shot,clock){
+ const updatedAt=finite(shot.updatedAt,clock),extra=Math.max(0,Math.min(clock,shot.expiresAt)-updatedAt)/1000;
+ return {x:shot.x+finite(shot.velocityX)*extra,y:shot.y+finite(shot.velocityY)*extra};
+}
+function drawProjectile(ctx,shot,clock,project,zoom,now){
  if(shot.expiresAt<=clock)return;
- const vx=finite(shot.velocityX),vy=finite(shot.velocityY),extra=Math.min(100,Math.max(0,snapshotAge))/1000;
- const position={x:shot.x+vx*extra,y:shot.y+vy*extra},point=project(position),tail=project({x:position.x-vx*.11,y:position.y-vy*.11});
+ // The server supplies a swept, authoritative trajectory. Continue along it
+ // between snapshots instead of freezing after 100 ms of a 250-500 ms tick.
+ const vx=finite(shot.velocityX),vy=finite(shot.velocityY),position=projectilePosition(shot,clock),point=project(position),tail=project({x:position.x-vx*.11,y:position.y-vy*.11});
  if(!onScreen(ctx,point,100))return;
  const angle=Math.atan2(point.y-tail.y,point.x-tail.x),config=VFX[shot.ability]||(shot.damageType==='physical'?VFX.strike:VFX.bolt);
  const color=shot.reflected?COLOR.magic:shot.damageType==='physical'?'#eec796':config.glow;
@@ -284,5 +289,5 @@ export function drawCombatEntities(ctx,world,now,project,zoom=1,playerPose){
  const age=Math.max(0,Date.now()-finite(world._receivedAt,Date.now())),clock=finite(world.serverTime,Date.now())+age;
  for(const cast of (world.combat.casts||[]).slice(0,32))drawCast(ctx,cast,world,clock,now,project,zoom,playerPose);
  for(const barrier of (world.combat.barriers||[]).slice(0,32))drawBarrier(ctx,barrier,world,clock,now,project,zoom,playerPose);
- for(const shot of (world.combat.projectiles||[]).slice(0,64))drawProjectile(ctx,shot,clock,clock-finite(shot.updatedAt,world.serverTime),project,zoom,now);
+ for(const shot of (world.combat.projectiles||[]).slice(0,64))drawProjectile(ctx,shot,clock,project,zoom,now);
 }

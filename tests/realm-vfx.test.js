@@ -54,14 +54,14 @@ test('launch feedback stays at the caster while projectile travel is owned by li
  assert.ok(arcs.length>0);assert.ok(arcs.every(call=>call.args[0]===origin.x));
 });
 
-test('projectiles have bounded interpolation, respect expiry and leave the server snapshot intact',t=>{
+test('projectiles interpolate through the server interval, respect expiry and leave the snapshot intact',t=>{
  t.mock.method(Date,'now',()=>1250);
- const shot={id:'p1',ability:'bolt',damageType:'magic',x:1,y:2,velocityX:10,velocityY:0,radius:.2,expiresAt:3000};
+ const shot={id:'p1',ability:'bolt',damageType:'magic',x:1,y:2,velocityX:10,velocityY:0,radius:.2,updatedAt:1000,expiresAt:3000};
  const world={serverTime:1000,_receivedAt:1000,combat:{projectiles:[shot]}},before=structuredClone(world),ctx=canvas();
  drawCombatEntities(ctx,world,1000,project,1);
  assert.deepEqual(world,before);
  const cores=ctx.calls.filter(call=>call.method==='arc');assert.ok(cores.length>0);
- assert.ok(cores.some(call=>call.args[0]===120&&call.args[1]===58),'only 100 ms of forward prediction is allowed');
+ assert.ok(cores.some(call=>call.args[0]===210&&call.args[1]===58),'the projectile crosses the full 250 ms gap without freezing');
  const expired=canvas();world.combat.projectiles[0].expiresAt=1100;drawCombatEntities(expired,world,1000,project);
  assert.equal(expired.calls.length,0);
 });
