@@ -11,7 +11,7 @@
     "db:wipe:confirm": "node --env-file-if-exists=.env scripts/wipe-game-data.js --confirm",
     "db:check": "node --env-file-if-exists=.env scripts/check-mongo.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check server/index.js && node --check server/mongo-store.js && node --check scripts/wipe-game-data.js && node --check scripts/check-mongo.js && node --check shared/engine.js && node --check shared/realms.js && node --check shared/realm-world.js && node --check shared/progression.js && node --check shared/art-manifest.js && node --check client/app.js && node --check client/realms-ui.js && node --check client/realm-world-ui.js && node --check client/service-worker.js && node --check client/install-prompt.js && node --check client/effects.js"
+    "check": "node --check server/index.js && node --check server/mongo-store.js && node --check scripts/wipe-game-data.js && node --check scripts/check-mongo.js && node --check shared/engine.js && node --check shared/realms.js && node --check shared/realm-world.js && node --check shared/progression.js && node --check shared/art-manifest.js && node --check client/app.js && node --check client/realms-ui.js && node --check client/realm-world-ui.js && node --check client/service-worker.js && node --check client/install-prompt.js && node --check client/effects.js && node --check shared/realm-rpg.js && node --check shared/realm-campaign.js && node --check shared/realm-action-combat.js && node --check client/realm-action-ui.js"
   },
   "engines": {
     "node": ">=22"

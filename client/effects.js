@@ -1,6 +1,7 @@
 import {cardEffect,cardSignature} from '/card-fx.js';
 import {savageImpact} from '/visceral.js';
 import {richSound,unlockSoundscape,muteSoundscape} from '/soundscape.js';
+import {setAtmosphereScene,setAtmosphereMuted,unlockAtmosphere} from '/atmosphere.js';
 let enabled=localStorage.getItem('bloodmoon.sound')!=='false',context;
 const musicTracks={
   title:'/music/song1.mp3',
@@ -22,8 +23,18 @@ function ensureMusicAudio(){
   return musicAudio;
 }
 export function setMusicScene(scene){
+  if(scene==='realm'){
+    if(musicScene==='realm'){setAtmosphereScene('realm');return;}
+    musicScene='realm';
+    musicTransition++;
+    clearInterval(musicFade);
+    musicAudio?.pause();
+    setAtmosphereScene('realm');
+    return;
+  }
   if(!musicTracks[scene])return;
   musicScene=scene;
+  requestAnimationFrame(()=>setAtmosphereScene(scene==='battle'?'arena':scene==='expedition'?'realm':scene==='ambient'&&document.body.classList.contains('in-realms')?'realm':'quiet'));
   if(!enabled){musicAudio?.pause();return;}
   const audio=ensureMusicAudio();
   const source=new URL(musicTracks[scene],location.href).href;
@@ -59,7 +70,7 @@ function fadeMusic(target,duration){
 }
 export function toggleSound(){
   enabled=!enabled;localStorage.setItem('bloodmoon.sound',String(enabled));
-  muteSoundscape(!enabled);
+  muteSoundscape(!enabled);setAtmosphereMuted(!enabled);
   if(enabled){unlockSoundscape();if(musicScene)setMusicScene(musicScene);playSound('start');}
   else{musicTransition++;clearInterval(musicFade);if(musicAudio){fadeMusic(0,180);setTimeout(()=>{if(!enabled)musicAudio?.pause();},200);}}
 }
@@ -67,7 +78,10 @@ export function playSound(type){if(enabled)richSound(type);}
 function unlockMobilePlayback(){
   if(!enabled)return;
   unlockSoundscape();
+  unlockAtmosphere();
+  if(musicScene==='realm')return;
   if(musicScene){
+    if(!musicTracks[musicScene])return;
     const audio=ensureMusicAudio();
     const source=new URL(musicTracks[musicScene],location.href).href;
     if(audio.src!==source){audio.src=source;try{audio.load();}catch{}}

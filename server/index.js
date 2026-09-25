@@ -1,3 +1,4 @@
+import {gainRpg} from '../shared/realm-rpg.js';
 import {realmStream,realmPulse,realmLivePulse,closeRealmStreams} from './realm-stream.js';
 import {AVATAR_IDS,ORIGINS} from '../shared/battle-design.js';
 import {applyDoctrine} from '../shared/expedition-doctrines.js';
@@ -19,7 +20,7 @@ import {transferVault} from '../shared/vault.js';
 import {featureOpen,featureRequirement,JOURNEY_LESSONS,lessonFeature} from '../shared/player-journey.js';
 import {placeOrder,cancelOrder,fillOrder} from '../shared/purchase-orders.js';
 import { createWorld, enterRealms, realmView, realmAction, prepareEncounter, settleEncounter, expirePolitics, REGIONS } from '../shared/realms.js';
-import { ensureRealmWorld, ensureWorldPlayer, advanceRealmWorld, realmWorldView, realmWorldAction, prepareWorldEncounter, settleWorldEncounter } from '../shared/realm-world.js';
+import { ensureRealmWorld, ensureWorldPlayer, advanceRealmWorld, realmWorldView, realmWorldAction, prepareWorldEncounter, settleWorldEncounter, grantArenaAfterglow } from '../shared/realm-world.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rooms = new Map();
@@ -233,7 +234,11 @@ async function reward(room) {
     }
     if(room.encounter&&seat===0){const expedition=settleEncounter(world,p,room.encounter,won,player.conceded,Date.now(),Object.keys(player.laneClaims||{}).filter(lane=>player.laneClaims[lane]>0));room.rewards[seat].realm=expedition;if(expedition.loot){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===(room.encounter.stages===3?'rare':'common')),card=pool[randomInt(pool.length)],item=makeItem(card.id,randomUUID,'realm');p.items.push(item);room.rewards[seat].items.push(item.id);}}
     if(player.conceded)return;
-    p.matches++;if(won)p.wins++;
+    if(won&&p.realm&&!room.encounter&&(!room.worldEncounter||room.worldEncounter.kind==='pvp')){
+      const afterglow=grantArenaAfterglow(world,p,REGIONS,Date.now());
+      if(afterglow){const previous=room.rewards[seat].realm;room.rewards[seat].realm={...previous,...afterglow,message:[previous?.message,afterglow.message].filter(Boolean).join(' ')};room.realmAfterglow=true;worldDirty=true;worldDirtyProfiles.add(p.id);}
+    }
+    p.matches++;if(won)p.wins++;gainRpg(p,won?45:15,won?'arena':null);if(won&&room.mode==='duel')gainRpg(p,15,'duels');if(won&&room.mode==='dungeon'&&!room.worldEncounter)gainRpg(p,60,'dungeons');
     p.xp += won ? 100 : 50;p.level = Math.max(oldLevel,accountLevelForXP(p.xp));
     const coins=room.mode==='duel'?(won?ECONOMY.rewards.duelWin:ECONOMY.rewards.duelLoss):room.mode==='dungeon'?(won?ECONOMY.rewards.dungeonWin:ECONOMY.rewards.dungeonLoss):(won?ECONOMY.rewards.practiceWin:ECONOMY.rewards.practiceLoss);
     const levelCoins=(p.level-oldLevel)*ECONOMY.rewards.levelCoins;
@@ -459,7 +464,7 @@ const server = http.createServer(async (req,res) => {
         if(!input||typeof input!=='object'||Array.isArray(input))throw new RuleError('Ação de mundo inválida.');
         requireFreePlayer(profile.id);
         const result=realmWorldAction(world,profile,input,REGIONS,Date.now());markWorldDirty(profile);
-        const moving=input.type==='world-move';
+        const moving=input.type==='world-move'||input.type==='world-ability';
         if(!moving)await flushRealmWorld(true);
         return json(res,200,{liveWorld:liveWorldFor(profile),result,...(!moving?{profile}:{})});
       }
@@ -670,7 +675,7 @@ const server = http.createServer(async (req,res) => {
           const firstEvent=room.game.nextEvent;room.game = applyAction(room.game,seat,input.action,{visuals:true}); runBot(room);room.gearEvents.push(...room.game.events.filter(e=>e.id>=firstEvent&&e.type==='item-lost'));
           const rewarding=room.game.phase==='finished'&&!room.rewarded;await reward(room);
           const changedProfiles=rewarding?room.seats.map(id=>profiles.get(id)).filter(Boolean):[];
-          await persist({rooms:[room],profiles:changedProfiles,world:rewarding&&!!(room.encounter||room.worldEncounter)});
+          await persist({rooms:[room],profiles:changedProfiles,world:rewarding&&!!(room.encounter||room.worldEncounter||room.realmAfterglow)});
           return json(res,200,view(room,profile.id));
         }
       }

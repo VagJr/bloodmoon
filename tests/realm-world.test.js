@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createWorld,enterRealms,REGIONS} from '../shared/realms.js';
 import {grantStarter} from '../shared/progression.js';
-import {ensureRealmWorld,ensureWorldPlayer,realmWorldAction,advanceRealmWorld,prepareWorldEncounter,settleWorldEncounter} from '../shared/realm-world.js';
+import {ensureRealmWorld,ensureWorldPlayer,realmWorldAction,advanceRealmWorld,prepareWorldEncounter,settleWorldEncounter,grantArenaAfterglow} from '../shared/realm-world.js';
 const epoch=1800000000000;
 function fixture(){const world=createWorld(),p={id:randomUUID(),name:'Vigília',xp:0,level:1,matches:0,wins:0,trophies:[]};grantStarter(p,'vampire',randomUUID);enterRealms(p,randomUUID,epoch);const w=ensureRealmWorld(world,REGIONS,epoch),s=ensureWorldPlayer(p,REGIONS,epoch);p.realm.materials={timber:40,ore:40,essence:40};p.realm.seenAt=epoch;return {world,w,p,s,act:(action,at=epoch)=>realmWorldAction(world,p,action,REGIONS,at),tick:at=>advanceRealmWorld(world,[p],REGIONS,at)};}
 test('Recursos renovam no local; produção cobra materiais uma vez e coleta não duplica estoque',()=>{
@@ -27,9 +27,15 @@ test('Raid exige participação, compartilha dano e impede repetir o saque',()=>
  const before=f.p.coins;f.act({type:'world-interact',targetId:raid.id},epoch+400);assert.equal(f.p.coins,before+60);assert.throws(()=>f.act({type:'world-interact',targetId:raid.id},epoch+800));assert.equal(f.p.coins,before+60);
  const other=fixture();other.world=f.world;other.w=f.w;Object.assign(other.s,{x:raid.x,y:raid.y});assert.throws(()=>realmWorldAction(f.world,other.p,{type:'world-interact',targetId:raid.id},REGIONS,epoch+1000),/20 de dano/);
 });
-test('Morte gera risco limitado, retorno respeita espera e espólio só é recuperado uma vez',()=>{
- const f=fixture(),a=f.w.actors.find(a=>a.kind==='hostile'&&a.node!=='haven');Object.assign(f.s,{x:a.x,y:a.y,hp:1});a.attackAt=epoch;const coins=f.p.coins;f.tick(epoch+250);assert.equal(f.s.hp,0);const bag=f.w.actors.find(a=>a.kind==='satchel');assert.ok(bag);assert.ok(coins-f.p.coins<=20);
- assert.throws(()=>f.act({type:'world-recover'},epoch+1000));f.act({type:'world-recover'},epoch+13000);assert.equal(f.s.hp,f.s.maxHp);assert.equal(f.p.realm.location,'haven');Object.assign(f.s,{x:bag.x,y:bag.y});f.act({type:'world-interact',targetId:bag.id},epoch+14000);assert.equal(f.p.coins,coins);assert.throws(()=>f.act({type:'world-interact',targetId:bag.id},epoch+14500));
+test('Morte tem retorno automático, pacto pago e espólio recuperável uma vez',t=>{
+ t.mock.method(Math,'random',()=>.8);
+ const f=fixture(),a=f.w.actors.find(a=>a.kind==='hostile'&&a.node!=='haven');Object.assign(f.s,{x:a.x,y:a.y,hp:1});a.attackAt=epoch;const coins=f.p.coins;f.tick(epoch+250);assert.equal(f.s.hp,1);assert.ok(a.windup);f.tick(epoch+1000);assert.equal(f.s.hp,0);const bag=f.w.actors.find(a=>a.kind==='satchel');assert.ok(bag);assert.ok(coins-f.p.coins<=20);
+ f.tick(epoch+13000);assert.equal(f.s.hp,Math.ceil(f.s.maxHp*.35));assert.equal(f.p.realm.location,'haven');assert.equal(f.s.downUntil,0);Object.assign(f.s,{x:bag.x,y:bag.y});f.act({type:'world-interact',targetId:bag.id},epoch+14000);assert.equal(f.p.coins,coins);assert.throws(()=>f.act({type:'world-interact',targetId:bag.id},epoch+14500));
+ const paid=fixture(),beforeCoins=paid.p.coins,beforeEssence=paid.p.realm.materials.essence;paid.s.hp=0;paid.s.downUntil=epoch+12000;paid.act({type:'world-recover'},epoch+1000);assert.equal(paid.s.hp,Math.ceil(paid.s.maxHp*.55));assert.equal(paid.p.coins,beforeCoins-25);assert.equal(paid.p.realm.materials.essence,beforeEssence-1);assert.equal(paid.p.realm.location,'haven');
+});
+test('Vitória na Arena devolve vida e desperta quem caiu no reino',()=>{
+ const f=fixture();f.s.hp=40;let result=grantArenaAfterglow(f.world,f.p,REGIONS,epoch+1000);assert.equal(f.s.hp,65);assert.match(result.message,/25 de vida/);
+ f.s.hp=0;f.s.downUntil=epoch+12000;result=grantArenaAfterglow(f.world,f.p,REGIONS,epoch+2000);assert.equal(f.s.hp,40);assert.equal(f.s.downUntil,0);assert.equal(f.p.realm.location,'haven');assert.match(result.message,/despertou/);
 });
 test('Dungeon progride por três mesas e bloqueia nova recompensa após a conclusão',()=>{
  const f=fixture(),portal=f.w.actors.find(a=>a.kind==='portal');Object.assign(f.s,{x:portal.x,y:portal.y});f.p.realm.level=10;f.p.realm.xp=1080;let encounter;

@@ -87,3 +87,51 @@
   }
 }
 
+/* Keep Reinos' right-side stack clear on PC; long chronicles stay inside their own panel. */
+@media (min-width: 721px) and (min-height: 801px) {
+  .rw-journal { top: 278px; max-height: 92px; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .rw-inspector { top: 386px; bottom: 166px; }
+}
+@media (min-width: 721px) and (max-height: 800px) {
+  .rw-journal { top: 218px; max-height: 86px; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .rw-inspector { top: 318px; bottom: 165px; }
+}
+
+/* A clear, blood-moon return choice prevents a dead character from becoming a dead end. */
+.rw-death { position: absolute; z-index: 40; inset: 0; display: grid; place-items: center; padding: 18px; background: radial-gradient(ellipse at 50% 42%, #40141b6b, #070b10c7 64%), linear-gradient(180deg, #080c10a8, #090e15cf); backdrop-filter: blur(2px) saturate(.76); animation: rw-death-arrive .42s ease-out both; }
+.rw-death-card { position: relative; width: min(100%, 510px); padding: 27px 32px 22px; overflow: hidden; border: 1px solid #d0ab70; outline: 1px solid #584635; outline-offset: 4px; background: linear-gradient(145deg, #1b252cf7, #10151df9 56%, #1d1118f7); box-shadow: inset 0 0 0 3px #070b10, inset 0 0 44px #92222a1c, 0 24px 80px #000d; }
+.rw-death-card:before,.rw-death-card:after { content: ''; position: absolute; pointer-events: none; }
+.rw-death-card:before { inset: 7px; border: 1px solid #c4a36b36; background: linear-gradient(115deg, #9e273019, transparent 35% 67%, #a37d4810); }
+.rw-death-card:after { top: -72px; right: 12%; width: 138px; height: 138px; border: 1px solid #d6505438; border-radius: 50%; box-shadow: 0 0 0 13px #5b161c22, 0 0 50px #d1293828; }
+.rw-death-sigil { position: absolute; z-index: 1; top: 18px; right: 25px; width: 61px; height: 61px; display: grid; place-items: center; border: 1px solid #b3945b88; border-radius: 50%; background: radial-gradient(circle, #38171ccc, #10161be8 68%); box-shadow: 0 0 23px #a5273540, inset 0 0 0 4px #0c1117; }
+.rw-death-sigil i { color: #d9b877; font: 34px Georgia; font-style: normal; text-shadow: 0 0 12px #d53847a8; }
+.rw-death-sigil b { position: absolute; color: #e89b84; font: 18px Georgia; transform: translateY(2px); }
+.rw-death-sigil span { position: absolute; inset: -5px; border: 1px solid #dd776144; border-radius: 50%; animation: rw-death-pulse 2.4s ease-in-out infinite; }
+.rw-death-copy,.rw-death-actions,.rw-death-meter,.rw-death-foot { position: relative; z-index: 2; }
+.rw-death-copy { max-width: 380px; }
+.rw-death-copy>small { color: #d39179; font-size: 8px; letter-spacing: 2.1px; }
+.rw-death-copy h2 { margin: 9px 0 8px; color: #efdbb5; font: 31px/1.15 Georgia,serif; text-shadow: 0 2px 14px #8d222b65; }
+.rw-death-copy p { max-width: 390px; margin: 0; color: #c7c1b6; font: 13px/1.6 Georgia,serif; }
+.rw-death-meter { height: 4px; margin: 21px 0 16px; overflow: hidden; background: #080d12; box-shadow: 0 1px #d1bd8740; }
+.rw-death-meter i { display: block; height: 100%; background: linear-gradient(90deg,#71202b,#df9472,#dbc183); box-shadow: 0 0 12px #d554514f; transition: width .3s linear; }
+.rw-death-actions { display: grid; gap: 8px; }
+.rw-death-actions button { min-height: 47px; padding: 9px 14px; text-align: left; font-size: 10px; letter-spacing: .65px; }
+.rw-death-actions .rw-revive-now { border-color: #c99b5e; background: linear-gradient(105deg,#662d2b,#30232a 55%,#18242a); box-shadow: inset 0 1px #f2d2932c,0 0 20px #a32b3336; }
+.rw-death-actions .rw-revive-now:not(:disabled) { animation: rw-death-pulse 2.4s ease-in-out infinite; }
+.rw-death-actions .rw-death-leave { background: linear-gradient(105deg,#202b30,#121a22); }
+.rw-death-actions button small { display: block; margin-top: 4px; font-size: 8px; letter-spacing: .75px; }
+.rw-death-foot { display: block; margin-top: 13px; color: #c0ad8c; font: 10px/1.5 Georgia,serif; }
+@keyframes rw-death-arrive { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rw-death-pulse { 50% { box-shadow: 0 0 0 5px #b5524120,0 0 24px #c3464c47; } }
+@media (max-width: 720px) {
+  .rw-death { padding: max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom)); }
+  .rw-death-card { width: min(100%,430px); padding: 22px 20px 18px; }
+  .rw-death-sigil { top: 13px; right: 18px; width: 49px; height: 49px; }
+  .rw-death-sigil i { font-size: 28px; }
+  .rw-death-copy { padding-right: 35px; }
+  .rw-death-copy h2 { font-size: 25px; }
+  .rw-death-copy p { font-size: 12px; }
+  .rw-death-actions button { min-height: 48px; }
+}
+@media (prefers-reduced-motion: reduce) { .rw-death,.rw-death-sigil span,.rw-death-actions .rw-revive-now:not(:disabled) { animation: none; } }
+

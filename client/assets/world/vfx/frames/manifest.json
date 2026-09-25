@@ -1,0 +1,260 @@
+{
+  "blood-slash": {
+    "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "source": "client\\assets\\world\\vfx\\blood-slash.webp",
+    "bytes": 199656
+  },
+  "moon-silver": {
+    "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      13,
+      19,
+      25,
+      31
+    ],
+    "source": "client\\assets\\world\\vfx\\moon-silver.webp",
+    "bytes": 377128
+  },
+  "blood-ward": {
+    "cells": [
+      3,
+      9,
+      15,
+      21,
+      27,
+      33
+    ],
+    "source": "client\\assets\\world\\vfx\\blood-ward.webp",
+    "bytes": 197780
+  },
+  "violet-arcana": {
+    "cells": [
+      4,
+      6,
+      10,
+      12,
+      16,
+      18,
+      22,
+      24,
+      28,
+      30,
+      34
+    ],
+    "source": "client\\assets\\world\\vfx\\violet-arcana.webp",
+    "bytes": 300174
+  },
+  "moon-frost": {
+    "cells": [
+      1,
+      7,
+      13,
+      19,
+      25,
+      31
+    ],
+    "source": "client\\assets\\world\\vfx\\moon-frost.webp",
+    "bytes": 200326
+  },
+  "crimson-sigils": {
+    "cells": [
+      0,
+      4
+    ],
+    "source": "client\\assets\\world\\vfx\\crimson-sigils.webp",
+    "bytes": 60018
+  },
+  "blood-orbits": {
+    "cells": [
+      0,
+      4
+    ],
+    "source": "client\\assets\\world\\vfx\\blood-orbits.webp",
+    "bytes": 60642
+  },
+  "ember": {
+    "cells": [
+      2,
+      4
+    ],
+    "source": "client\\assets\\world\\vfx\\ember.webp",
+    "bytes": 67284
+  },
+  "blood-impact": {
+    "cells": [
+      0,
+      1,
+      2,
+      3,
+      5
+    ],
+    "source": "client\\assets\\world\\vfx\\blood-impact.webp",
+    "bytes": 171254
+  },
+  "vampire-omens": {
+    "cells": [
+      0,
+      2,
+      9,
+      10,
+      12,
+      15,
+      16
+    ],
+    "source": "assets_visuais\\Imagem do ChatGPT 24 de set. de 2026, 20_43_51-1.png",
+    "bytes": 248400
+  },
+  "moon-rites": {
+    "cells": [
+      2,
+      5,
+      7,
+      10,
+      11,
+      13,
+      18,
+      21,
+      26,
+      27,
+      30
+    ],
+    "source": "assets_visuais\\Imagem do ChatGPT 24 de set. de 2026, 20_43_52-2.png",
+    "bytes": 379100
+  },
+  "realm-slashes": {
+    "cells": [
+      2,
+      5,
+      8,
+      10,
+      12,
+      14,
+      15,
+      17,
+      20,
+      23,
+      29
+    ],
+    "source": "assets_visuais\\Imagem do ChatGPT 24 de set. de 2026, 20_43_53-3.png",
+    "bytes": 397028
+  },
+  "card-rites": {
+    "cells": [
+      9,
+      13,
+      17,
+      22
+    ],
+    "source": "assets_visuais\\Imagem do ChatGPT 24 de set. de 2026, 20_43_55-4.png",
+    "bytes": 109780
+  },
+  "storm-magic": {
+    "cells": [
+      4,
+      10,
+      14,
+      16
+    ],
+    "source": "assets_visuais\\Imagem do ChatGPT 24 de set. de 2026, 20_43_55-5.png",
+    "bytes": 150376
+  },
+  "gothic-rites": {
+    "cells": [
+      2,
+      7,
+      12,
+      18,
+      20,
+      21,
+      24
+    ],
+    "source": "assets_visuais\\Imagem do ChatGPT 24 de set. de 2026, 20_43_56-6.png",
+    "bytes": 271100
+  },
+  "ability-icons": {
+    "strike": {
+      "cell": 9,
+      "bytes": 40184
+    },
+    "cleave": {
+      "cell": 11,
+      "bytes": 37264
+    },
+    "bolt": {
+      "cell": 13,
+      "bytes": 40170
+    },
+    "dash": {
+      "cell": 6,
+      "bytes": 41336
+    },
+    "guard": {
+      "cell": 4,
+      "bytes": 35458
+    },
+    "mend": {
+      "cell": 2,
+      "bytes": 32578
+    },
+    "frost": {
+      "cell": 3,
+      "bytes": 34832
+    },
+    "drain": {
+      "cell": 0,
+      "bytes": 32328
+    },
+    "tempest": {
+      "cell": 27,
+      "bytes": 38012
+    },
+    "moonfire": {
+      "cell": 28,
+      "bytes": 38324
+    },
+    "howl": {
+      "cell": 14,
+      "bytes": 33262
+    },
+    "renewal": {
+      "cell": 1,
+      "bytes": 33972
+    },
+    "blood": {
+      "cell": 15,
+      "bytes": 38118
+    },
+    "pact": {
+      "cell": 18,
+      "bytes": 33758
+    },
+    "pounce": {
+      "cell": 6,
+      "bytes": 41336
+    },
+    "rend": {
+      "cell": 10,
+      "bytes": 34946
+    },
+    "execution": {
+      "cell": 12,
+      "bytes": 37278
+    }
+  }
+}
