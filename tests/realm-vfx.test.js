@@ -17,7 +17,7 @@ test('compact atlases decode once; individual sprites stay within their source c
  const images=[];
  class ImageMock{
   constructor(){images.push(this);}
-  set src(value){this.url=value;const name=value.split('/').at(-1).replace('.webp','');this.naturalHeight=209;this.naturalWidth=manifest[name].cells.length*209;queueMicrotask(()=>this.onload());}
+  set src(value){this.url=value;const name=new URL(value,'http://local.test').pathname.split('/').at(-1).replace('.webp','');this.naturalHeight=209;this.naturalWidth=manifest[name].cells.length*209;queueMicrotask(()=>this.onload());}
   async decode(){this.decodes=(this.decodes||0)+1;}
  }
  const previous=Object.getOwnPropertyDescriptor(globalThis,'Image');

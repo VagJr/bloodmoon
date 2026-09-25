@@ -499,6 +499,35 @@
   .quick-menu .lobby-bottom nav button > span { font-size: 6px; letter-spacing: 0; }
 }
 
+/* Inspection uses the same card face proportions as the mobile Arsenal grid. */
+@media (max-width: 760px) {
+  .menu-backdrop .card-inspection-modal .full-card-inspect > .game-card {
+    --card-w: min(34vw, 115px) !important;
+    --card-h: calc(var(--card-w) * 1.4957) !important;
+  }
+  .menu-backdrop .card-inspection-modal .full-card-inspect .card-caption {
+    left: 5px; right: 5px; bottom: 6px;
+    min-height: 52px; padding: 6px 2px;
+  }
+  .menu-backdrop .card-inspection-modal .full-card-inspect .card-caption > small { font-size: 5px; }
+  .menu-backdrop .card-inspection-modal .full-card-inspect .card-caption > strong {
+    font-size: 9px; line-height: 1.1; margin: 2px 0 1px;
+  }
+  .menu-backdrop .card-inspection-modal .full-card-inspect .card-caption > span { font-size: 4px; }
+  .menu-backdrop .card-inspection-modal .full-card-inspect .cost-gem {
+    top: -6px; left: -6px; width: 23px; height: 26px; font-size: 17px;
+  }
+  .menu-backdrop .card-inspection-modal .full-card-inspect .card-rarity {
+    top: calc(var(--card-w) - 13px); font-size: 7px;
+  }
+  .menu-backdrop .card-inspection-modal .full-card-inspect .stat {
+    width: 21px; height: 22px; bottom: -6px; font-size: 14px;
+  }
+  .menu-backdrop .card-inspection-modal .full-card-inspect .spell-seal {
+    width: 22px; height: 22px; bottom: -5px; left: calc(50% - 11px); font-size: 13px;
+  }
+}
+
 /* Mobile navigation stays as one compact six-button dock, as in the original game menu. */
 @media (max-width: 760px) {
   .refuge-footer.lobby-bottom,

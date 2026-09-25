@@ -31,3 +31,16 @@ As seis folhas adicionadas em `assets_visuais` foram recortadas sem margens em q
 - `gothic-rites`: selos, correntes e ritos de execução.
 
 O HUD prepara os atlas no início da vigília. Cada ação sobrepõe a arte original compatível com a sua animação (corte, avanço, guarda, cura, projétil ou explosão) e uma marca de impacto, com composição aditiva, deslocamento, rotação, expansão, brilho e dissipação. O d20, os sons de combate e os efeitos táteis continuam ligados ao mesmo evento; resultados de lobisomem puxam a luz para prata e azul, enquanto a magia vampírica mantém o carmesim.
+
+## Nova biblioteca de oito folhas
+
+`scripts/build-realm-sheets2.py` recorta as oito folhas fornecidas em `assets_sheets2/` sem modificar as originais. As tiras compactas em `frames/` e os recortes isolados em `sheet-details/` somam cerca de 1,5 MB. O arquivo `sheet-details/manifest.json` registra cada célula de origem.
+
+- `blood-court` e `wolf-rites` entram nos golpes, rituais e auras de vampiros e lobisomens.
+- `blood-architecture` e `moon-architecture` fornecem portais e construções incorporados aos territórios.
+- `blood-atmosphere` e `moon-atmosphere` animam faíscas, cinzas, neblina e clima dos mapas e impactos.
+- `vampire-frame` e `werewolf-frame` fornecem quatro insígnias por linhagem, do branco ao vermelho, preto e dourado. O mesmo grau aparece no retrato, no mapa e na ficha de karma.
+
+Os novos sons de guarda, bloqueio, aparo e reflexo ficam em `client/assets/sfx/shield-*.mp3`; cada colisão usa uma variação curta, luz central, feixes opostos, faiscamento e abalo local de câmera. A física, o dano, o controle de PK e a recompensa continuam decididos pelo servidor.
+
+As folhas novas vêm com fundo preto opaco. O gerador transforma esse preto em transparência com uma rampa suave antes de montar cada tira WebP. As auras contínuas usam glifos discretos aos pés, wisps nas laterais e luz orbital proporcional ao grau de karma; a arte grande da linhagem aparece por um instante ao derrotar uma presa. Isso mantém o retrato e a insígnia legíveis sem quadrados ou molduras girando sobre o personagem.

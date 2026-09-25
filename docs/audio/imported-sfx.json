@@ -168,6 +168,27 @@
       "source": "yodguard-scorpion-claw-attack-4-482507 (1).mp3",
       "bytes": 96768,
       "sha256": "b7099e5497e94ed9b5cac231d61370234c422e1d41a12ec3d94e96a95a800ce1"
+    },
+    {
+      "id": "shield-guard",
+      "file": "/assets/sfx/shield-guard.mp3",
+      "source": "freesound_community-shield-guard-6963.mp3",
+      "bytes": 17760,
+      "sha256": "dc7872b0e7a3cc666b5fe9fd55b31b8ead30f2195e005688c6cddb6b2e9aaaf9"
+    },
+    {
+      "id": "shield-impact-3",
+      "file": "/assets/sfx/shield-impact-3.mp3",
+      "source": "yodguard-shield_impact-3-382411.mp3",
+      "bytes": 257280,
+      "sha256": "3908c73c43fe038195010958bdfb1284b66e44c3dad3c398a69c7c13a1c70c9d"
+    },
+    {
+      "id": "shield-impact-4",
+      "file": "/assets/sfx/shield-impact-4.mp3",
+      "source": "yodguard-shield_impact-4-382413.mp3",
+      "bytes": 257280,
+      "sha256": "7ec153a4a057d800593b70e3b969c8c9cb77a5bd95b7f879f7df62b86060f30a"
     }
   ],
   "duplicates": [

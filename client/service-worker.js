@@ -1,4 +1,4 @@
-const CACHE='bloodmoon-shell-v5-death-vigilia';
+const CACHE='bloodmoon-shell-v6-aura-keyed';
 const SHELL=['/','/play','/offline.html','/manifest.webmanifest','/app-icon.svg','/app-icon-192.png','/app-icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('bloodmoon-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

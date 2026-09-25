@@ -1,38 +1,41 @@
 const VFX={
- strike:{sheet:'blood-slash',cell:3,motion:'slash',glow:'#ff3854',size:145,duration:480,layers:[['realm-slashes',2],['vampire-omens',9]]},
+ strike:{sheet:'blood-slash',cell:3,motion:'slash',glow:'#ff3854',size:145,duration:480,layers:[['blood-court',3],['realm-slashes',2]]},
  cleave:{sheet:'blood-slash',cell:7,motion:'sweep',glow:'#ff5369',size:188,duration:590,layers:[['realm-slashes',10],['moon-rites',7]]},
  dash:{sheet:'moon-silver',cell:1,motion:'dash',glow:'#b9eaff',size:142,duration:480,layers:[['realm-slashes',5],['moon-rites',13]]},
- guard:{sheet:'blood-ward',cell:3,motion:'ward',glow:'#e8d3a0',size:162,duration:700,layers:[['gothic-rites',7],['moon-rites',18]]},
+ guard:{sheet:'blood-ward',cell:3,motion:'ward',glow:'#e8d3a0',size:162,duration:700,layers:[['blood-court',11],['gothic-rites',7]]},
  mend:{sheet:'violet-arcana',cell:4,motion:'heal',glow:'#b7ecbb',size:164,duration:760,layers:[['card-rites',9],['vampire-omens',2]]},
- frost:{sheet:'moon-frost',cell:1,motion:'burst',glow:'#a8e7ff',size:196,duration:790,layers:[['storm-magic',4],['moon-rites',21]]},
- drain:{sheet:'crimson-sigils',cell:4,motion:'drain',glow:'#ff234f',size:154,duration:740,layers:[['vampire-omens',16],['gothic-rites',12]]},
+ frost:{sheet:'moon-frost',cell:1,motion:'burst',glow:'#a8e7ff',size:196,duration:790,layers:[['wolf-rites',12],['moon-rites',21]]},
+ drain:{sheet:'crimson-sigils',cell:4,motion:'drain',glow:'#ff234f',size:154,duration:740,layers:[['blood-court',18],['vampire-omens',16]]},
  bolt:{sheet:'blood-orbits',cell:0,motion:'projectile',glow:'#ff4764',size:114,duration:560,layers:[['storm-magic',16],['realm-slashes',23]]},
  tempest:{sheet:'ember',cell:2,motion:'burst',glow:'#ff9c55',size:226,duration:900,layers:[['storm-magic',14],['gothic-rites',24]]},
  moonfire:{sheet:'ember',cell:4,motion:'projectile',glow:'#ff9c55',size:146,duration:620,layers:[['storm-magic',10],['moon-rites',30]]},
- howl:{sheet:'moon-silver',cell:0,motion:'sweep',glow:'#c2ecff',size:180,duration:650,layers:[['moon-rites',2],['realm-slashes',15]]},
+ howl:{sheet:'moon-silver',cell:0,motion:'sweep',glow:'#c2ecff',size:180,duration:650,layers:[['wolf-rites',18],['moon-rites',2]]},
  renewal:{sheet:'violet-arcana',cell:6,motion:'heal',glow:'#b7ecbb',size:168,duration:780,layers:[['card-rites',17],['moon-rites',26]]},
- blood:{sheet:'blood-orbits',cell:4,motion:'burst',glow:'#ff2850',size:172,duration:700,layers:[['vampire-omens',15],['gothic-rites',2]]},
+ blood:{sheet:'blood-orbits',cell:4,motion:'burst',glow:'#ff2850',size:172,duration:700,layers:[['blood-court',24],['vampire-omens',15]]},
  pact:{sheet:'crimson-sigils',cell:0,motion:'ward',glow:'#ff4662',size:172,duration:730,layers:[['gothic-rites',18],['card-rites',13]]},
- pounce:{sheet:'moon-silver',cell:2,motion:'dash',glow:'#d4efff',size:158,duration:530,layers:[['realm-slashes',8],['moon-rites',10]]},
+ pounce:{sheet:'moon-silver',cell:2,motion:'dash',glow:'#d4efff',size:158,duration:530,layers:[['wolf-rites',20],['realm-slashes',8]]},
  rend:{sheet:'blood-impact',cell:0,motion:'slash',glow:'#ff2849',size:178,duration:570,layers:[['realm-slashes',12],['vampire-omens',10]]},
- execution:{sheet:'blood-impact',cell:5,motion:'impact',glow:'#ff7759',size:224,duration:840,layers:[['gothic-rites',20],['card-rites',22]]},
+ execution:{sheet:'blood-impact',cell:5,motion:'impact',glow:'#ff7759',size:224,duration:840,layers:[['blood-court',32],['gothic-rites',20]]},
  parry:{sheet:'moon-silver',cell:0,motion:'ward',glow:'#ffe6ad',size:136,duration:540,layers:[['realm-slashes',17]]},
  reflect:{sheet:'moon-frost',cell:1,motion:'ward',glow:'#97e8ff',size:164,duration:620,layers:[['moon-rites',18]]}
 };
 const IMPACTS={
- critical:{sheet:'blood-impact',cell:3,motion:'impact',glow:'#ffe0ad',size:202,duration:850,layers:[['gothic-rites',21],['realm-slashes',17]]},
+ critical:{sheet:'blood-impact',cell:3,motion:'impact',glow:'#ffe0ad',size:202,duration:850,layers:[['blood-atmosphere',29],['realm-slashes',17]]},
  'enemy-hit':{sheet:'blood-impact',cell:1,motion:'impact',glow:'#ff596b',size:166,duration:650,layers:[['moon-rites',27],['realm-slashes',20]]},
  hit:{sheet:'blood-impact',cell:2,motion:'impact',glow:'#ff536a',size:140,duration:570,layers:[['realm-slashes',14],['vampire-omens',12]]},
  miss:{sheet:'moon-silver',cell:5,motion:'dash',glow:'#b9eaff',size:130,duration:480,layers:[['moon-rites',11]]},
  evade:{sheet:'moon-silver',cell:1,motion:'dash',glow:'#c9f3ff',size:148,duration:520,layers:[['realm-slashes',29],['moon-rites',5]]},
  heal:{sheet:'violet-arcana',cell:4,motion:'heal',glow:'#b8edbd',size:170,duration:760,layers:[['card-rites',9],['vampire-omens',2]]},
  guard:{sheet:'blood-ward',cell:21,motion:'ward',glow:'#e8d3a0',size:162,duration:560,layers:[['gothic-rites',7]]},
- block:{sheet:'moon-silver',cell:0,motion:'deflect',glow:'#ffe0a0',size:122,duration:420,layers:[['realm-slashes',17]]},
- parry:{sheet:'moon-silver',cell:2,motion:'deflect',glow:'#fff0c7',size:174,duration:620,layers:[['realm-slashes',20]]},
- reflect:{sheet:'moon-frost',cell:1,motion:'deflect',glow:'#9deaff',size:182,duration:660,layers:[['moon-rites',21]]},
- 'guard-break':{sheet:'blood-ward',cell:27,motion:'shatter',glow:'#ffa66c',size:176,duration:760,layers:[['gothic-rites',21]]},
+ block:{sheet:'moon-silver',cell:0,motion:'deflect',glow:'#ffe0a0',size:153,duration:520,layers:[['blood-court',11],['blood-atmosphere',29]]},
+ parry:{sheet:'moon-silver',cell:2,motion:'deflect',glow:'#fff0c7',size:205,duration:700,layers:[['wolf-rites',26],['blood-court',27]]},
+ reflect:{sheet:'moon-frost',cell:1,motion:'deflect',glow:'#9deaff',size:212,duration:740,layers:[['moon-rites',21],['wolf-rites',35]]},
+ 'enemy-guard':{sheet:'blood-ward',cell:21,motion:'deflect',glow:'#f7cd91',size:156,duration:520,layers:[['blood-atmosphere',29],['realm-slashes',17]]},
+ 'guard-break':{sheet:'blood-ward',cell:27,motion:'shatter',glow:'#ffa66c',size:176,duration:760,layers:[['blood-court',27],['gothic-rites',21]]},
+ kill:{sheet:'blood-impact',cell:5,motion:'impact',glow:'#ff536b',size:188,duration:760,layers:[['blood-atmosphere',18],['blood-court',32]]},
+ 'pk-kill':{sheet:'blood-impact',cell:5,motion:'impact',glow:'#f2bf74',size:216,duration:900,layers:[['blood-court',33],['wolf-rites',35]]},
  interrupt:{sheet:'moon-silver',cell:2,motion:'shatter',glow:'#e0d0ff',size:120,duration:500,layers:[['moon-rites',11]]},
- collision:{sheet:'blood-impact',cell:1,motion:'impact',glow:'#e8c9a0',size:108,duration:400,layers:[]},
+ collision:{sheet:'blood-impact',cell:1,motion:'deflect',glow:'#e8c9a0',size:168,duration:550,layers:[['blood-atmosphere',29],['moon-atmosphere',18]]},
  expire:{sheet:'moon-silver',cell:5,motion:'dissolve',glow:'#b9eaff',size:78,duration:320,layers:[]}
 };
 const SOURCE_CELLS={
@@ -41,7 +44,11 @@ const SOURCE_CELLS={
  'moon-frost':[1,7,13,19,25,31], 'crimson-sigils':[0,4], 'blood-orbits':[0,4],
  'ember':[2,4], 'blood-impact':[0,1,2,3,5], 'vampire-omens':[0,2,9,10,12,15,16],
  'moon-rites':[2,5,7,10,11,13,18,21,26,27,30], 'realm-slashes':[2,5,8,10,12,14,15,17,20,23,29],
- 'card-rites':[9,13,17,22], 'storm-magic':[4,10,14,16], 'gothic-rites':[2,7,12,18,20,21,24]
+ 'card-rites':[9,13,17,22], 'storm-magic':[4,10,14,16], 'gothic-rites':[2,7,12,18,20,21,24],
+ 'blood-court':[0,3,6,11,12,18,24,27,32,33], 'wolf-rites':[0,3,5,7,12,14,18,20,26,35],
+ 'blood-architecture':[0,2,5,10,14,17,20,26,28,32], 'moon-architecture':[0,1,3,5,14,17,20,25,28,33],
+ 'blood-atmosphere':[0,1,3,5,11,14,18,24,29,35], 'moon-atmosphere':[0,4,5,6,12,17,18,24,28,34],
+ 'vampire-frame':[0,7,12,20,27,32], 'werewolf-frame':[0,7,12,20,25,32]
 };
 const SHEET_IMAGES=new Map(),SHEET_INDEX=new Map(Object.entries(SOURCE_CELLS).map(([name,cells])=>[name,new Map(cells.map((cell,index)=>[cell,index]))]));
 const ABILITY_NAMES={strike:'Corte',cleave:'Arco de aço',bolt:'Lança do Véu',dash:'Passo espectral',guard:'Guarda de ferro',parry:'Contra-guarda',reflect:'Espelho do Véu',mend:'Sangue renovado',frost:'Círculo lunar',drain:'Pacto carmesim',tempest:'Eclipse',moonfire:'Chama lunar',howl:'Uivo da matilha',renewal:'Renovação',blood:'Sangria',pact:'Juramento',pounce:'Bote lupino',rend:'Rasgo',execution:'Execução'};
@@ -67,7 +74,7 @@ function pumpSheets(){
   let finished=false;
   const finish=ok=>{if(finished)return;finished=true;entry.loaded=ok;entry.resolve(ok?image:null);loading--;pumpSheets();};
   image.onload=async()=>{try{await image.decode?.();}catch{}finish(!!image.naturalWidth);};
-  image.onerror=()=>finish(false);image.src=`/assets/world/vfx/frames/${name}.webp`;
+  image.onerror=()=>finish(false);image.src=`/assets/world/vfx/frames/${name}.webp?v=aura2`;
  }
 }
 function loadSheet(name){
@@ -96,6 +103,7 @@ export function warmVfx(rpg){
  const sheets=new Set();
  for(const id of ids)for(const [sheet] of VFX[id]?.frames||[])sheets.add(sheet);
  for(const config of Object.values(IMPACTS))for(const [sheet] of config.frames)sheets.add(sheet);
+ for(const sheet of ['vampire-frame','werewolf-frame','moon-atmosphere','blood-atmosphere'])sheets.add(sheet);
  return Promise.all([...sheets].map(loadSheet));
 }
 export function abilityIcon(id){return `/assets/world/ability-icons/${ICON_ALIASES[id]||id}.webp`;}
@@ -136,6 +144,32 @@ function sparks(ctx,event,x,y,t,size,color,shatter=false){
  }
  ctx.restore();
 }
+function drawDefenseCollision(ctx,event,x,y,angle,t,size,color,zoom){
+ if(t>.78)return;
+ const power=event.kind==='parry'||event.kind==='reflect'||event.kind==='guard-break'?1.2:1;
+ const burst=clamp(1-t/.78),travel=(12+size*(.33+t*.48))*power,wing=travel*.72;
+ const cx=Math.cos(angle),cy=Math.sin(angle),nx=-cy,ny=cx;
+ ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
+ for(const side of [-1,1]){
+  const offset=side*travel;
+  ctx.strokeStyle=side<0?color:'#eaf8ff';ctx.globalAlpha=burst*(side<0?.72:.58);
+  ctx.lineWidth=(side<0?7:5)*zoom*(1-t*.68);
+  ctx.beginPath();ctx.moveTo(x+cx*offset,y+cy*offset);ctx.lineTo(x+cx*side*3,y+cy*side*3);ctx.stroke();
+  ctx.lineWidth=1.3*zoom;ctx.globalAlpha=burst*.76;
+  ctx.beginPath();ctx.moveTo(x+cx*offset+nx*wing*.2,y+cy*offset+ny*wing*.2);ctx.lineTo(x+cx*side*5,y+cy*side*5);ctx.stroke();
+ }
+ const count=compact()?7:16,seed=finite(event.seed,0);
+ ctx.strokeStyle='#fff2cf';ctx.lineWidth=1.5*zoom;ctx.globalAlpha=burst*.88;
+ for(let i=0;i<count;i++){
+  const direction=i*2.39996+seed*.013,reach=(.28+(i%5)*.13)*travel*t;
+  const px=x+Math.cos(direction)*reach,py=y+Math.sin(direction)*reach*.72;
+  ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+Math.cos(direction)*Math.max(2,wing*(1-t)*.22),py+Math.sin(direction)*Math.max(2,wing*(1-t)*.22));ctx.stroke();
+ }
+ ctx.restore();
+ ring(ctx,x,y,12+travel*.6,color,burst*.72,3.6*zoom,1);
+ ring(ctx,x,y,7+travel*.92,'#f8f4de',burst*.32,1.3*zoom,1);
+ if(t<.22)glow(ctx,x,y,24*zoom*(1-t/.22),'#fffaf0',.7*(1-t/.22));
+}
 function drawCharge(ctx,event,t,from,zoom,color){
  const progress=1-t,radius=(10+progress*20)*zoom;
  glow(ctx,from.x,from.y-22*zoom,radius,color,progress*.26);
@@ -169,12 +203,13 @@ export function drawVfx(ctx,event,now,to,from,zoom=1){
   drawCell(ctx,attack.sheet,attack.cell,x,y,attack.size*zoom*(.6+slash*.25),angle,Math.sin(slash*Math.PI)*.68);
   ring(ctx,x,y,(15+slash*30)*zoom,color,(1-slash)*.55,2.6*zoom,.48,rotation,-1+slash,.8+slash);
  }
- const limit=compact()?1:2;
+ const limit=compact()?2:3;
  for(let i=0;i<Math.min(limit,config.frames.length);i++){
   const [sheet,cell]=config.frames[i],delay=i*.075,phase=clamp((t-delay)/(1-delay));
   if(t<delay)continue;
   drawCell(ctx,sheet,cell,x,y,size*(i?.62:1),rotation+(i?.3:-.12)*(1-phase)*motion,fade*(i?.65:1));
  }
+ if(['block','parry','reflect','guard-break','collision','enemy-guard'].includes(event.kind))drawDefenseCollision(ctx,event,x,y,Number.isFinite(event.directionX)?Math.atan2(event.directionY,event.directionX):rotation,t,size,color,zoom);
  if(impact){
   const radius=(7+ease*size*.34)*motion;
   ring(ctx,x,y,radius,color,(1-t)**2,(event.kind==='critical'?3:2)*zoom,.65);
@@ -282,11 +317,66 @@ function drawCast(ctx,cast,world,clock,now,project,zoom,pose){
  }
 }
 
+function drawTravelerAura(ctx,world,position,karma,clock,now,project,zoom){
+ if(!position||!karma)return;
+ const point=project(position);if(!onScreen(ctx,point,100))return;
+ const wolf=karma.faction==='werewolf',color=karma.color||COLOR[karma.faction]||COLOR.vampire;
+ const rank=Math.max(0,['white','red','black','gold'].indexOf(karma.rank));
+ const sheet=wolf?'wolf-rites':'blood-court',groundCell=wolf?12:11;
+ const atmosphere=wolf?'moon-atmosphere':'blood-atmosphere',wispCell=wolf?28:11;
+ const frame=wolf?'werewolf-frame':'vampire-frame',frameCells=[0,7,20,32];
+ const cast=world.combat?.casts?.some(c=>(c.source===position.id||c.source===position.publicId)&&c.endsAt>clock);
+ const wake=karma.lastKillAt?clamp(1-(clock-karma.lastKillAt)/2600):0;
+ const pulse=reducedMotion?.matches?1:.92+Math.sin(now*.0026+position.x)*.08;
+ const strength=.18+rank*.045+Math.min(karma.streak||0,8)*.009+(cast?.08:0);
+ const radius=(20+rank*3+Math.min(karma.streak||0,8)) * zoom;
+ const footY=point.y+3*zoom,bodyY=point.y-27*zoom;
+ glow(ctx,point.x,footY,radius*1.3,color,strength*.27*pulse);
+ ring(ctx,point.x,footY,radius,color,strength*1.55*pulse,1.4*zoom);
+ ring(ctx,point.x,footY,radius*.72,'#f4e4c2',strength*.46,zoom,.5,0,now*.0005,now*.0005+Math.PI*.8);
+ // Keep painted glyphs below the portrait and make the motion in the halo,
+ // rather than rotating a full rectangular illustration across the token.
+ drawCell(ctx,sheet,groundCell,point.x,footY-3*zoom,radius*2.15,0,strength*.6*pulse);
+ if(rank>0||cast){
+  const sway=reducedMotion?.matches?0:Math.sin(now*.0019+position.y)*3*zoom;
+  for(const side of [-1,1])drawCell(ctx,atmosphere,wispCell,point.x+side*(radius*.82+sway),bodyY,Math.max(24*zoom,radius*1.15),side*.13,strength*.62*pulse);
+  ring(ctx,point.x,footY,radius*(1.1+Math.sin(now*.0012)*.06),color,strength*.5,zoom,.46,0,now*.0008,now*.0008+Math.PI*1.1);
+ }
+ if(rank>=2)for(let i=0;i<(compact()?2:4);i++){
+  const angle=now*.00065*(wolf?1:-1)+i*TAU/(compact()?2:4);
+  glow(ctx,point.x+Math.cos(angle)*radius,bodyY+Math.sin(angle)*10*zoom,2.2*zoom,color,strength*.8);
+ }
+ if(wake>0){
+  const flare=1-wake;
+  drawCell(ctx,frame,frameCells[rank],point.x,bodyY,(60+flare*34)*zoom,0,wake*.43);
+  glow(ctx,point.x,bodyY,49*zoom,color,wake*.26);
+  ring(ctx,point.x,footY,(20+flare*36)*zoom,color,wake*.62,2*zoom);
+ }
+ if(cast)ring(ctx,point.x,footY,radius*1.32,color,strength*.8,1.7*zoom,.49);
+}
+
+function drawWeather(ctx,world,now,project,zoom,pose){
+ if(compact()||!pose)return;
+ const near=(world.regions||[]).filter(region=>Math.hypot((region.x-pose.x)*1.5,region.y-pose.y)<12).slice(0,2);
+ for(const region of near){
+  const point=project(region);if(!onScreen(ctx,point,180))continue;
+  const frost=region.x>=100&&region.x<200,ember=region.x>=200;
+  const sheet=frost?'moon-atmosphere':ember?'blood-atmosphere':'moon-atmosphere';
+  const cell=frost?4:ember?3:28,color=frost?'#a9dff5':ember?'#ed8460':'#9ed8b9';
+  const sway=reducedMotion?.matches?0:Math.sin(now*.0004+region.x)*10*zoom;
+  drawCell(ctx,sheet,cell,point.x+sway,point.y-72*zoom,130*zoom,0,.11);
+  glow(ctx,point.x,point.y-25*zoom,70*zoom,color,.025);
+ }
+}
+
 /** Draw server-owned combat geometry. `now` is the RAF/performance timestamp;
  * project accepts world {x,y}; pose may be the locally interpolated player. */
 export function drawCombatEntities(ctx,world,now,project,zoom=1,playerPose){
  if(!world?.combat||typeof project!=='function')return;
  const age=Math.max(0,Date.now()-finite(world._receivedAt,Date.now())),clock=finite(world.serverTime,Date.now())+age;
+ drawWeather(ctx,world,now,project,zoom,playerPose||world.player);
+ for(const player of (world.players||[]).slice(0,24))if(player.id!==world.player?.publicId)drawTravelerAura(ctx,world,player,player.karma,clock,now,project,zoom);
+ drawTravelerAura(ctx,world,{...world.player,...playerPose},world.karma,clock,now,project,zoom);
  for(const cast of (world.combat.casts||[]).slice(0,32))drawCast(ctx,cast,world,clock,now,project,zoom,playerPose);
  for(const barrier of (world.combat.barriers||[]).slice(0,32))drawBarrier(ctx,barrier,world,clock,now,project,zoom,playerPose);
  for(const shot of (world.combat.projectiles||[]).slice(0,64))drawProjectile(ctx,shot,clock,project,zoom,now);

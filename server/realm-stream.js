@@ -31,9 +31,10 @@ export function realmLivePulse(snapshot,minimumInterval=()=>0,now=Date.now()) {
     if(!due.length)continue;
     const liveWorld = snapshot(profileId);
     if (liveWorld) {
+      const savedSnapshot=structuredClone(liveWorld);
       for (const client of due){
         const payload=`event: realm-live\ndata: ${JSON.stringify({liveWorld:realmWorldDelta(liveWorld,client.snapshot)})}\n\n`;
-        writeEncoded(client,payload);client.snapshot=structuredClone(liveWorld);client.lastLiveAt=now;
+        writeEncoded(client,payload);client.snapshot=savedSnapshot;client.lastLiveAt=now;
       }
     }
   }

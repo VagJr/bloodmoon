@@ -23,3 +23,13 @@ test('combat response updates nearby state without replacing the rest of the map
   assert.deepEqual(merged.combat,current.combat);
   assert.deepEqual(merged.rules,previous.rules);
 });
+
+test('live stream patches volatile character fields without resending static definitions',()=>{
+  const previous={version:1,serverTime:10,actors:[],slots:[],players:[],rpg:{mana:20,abilities:[{id:'bolt',name:'Raio'}],cooldowns:{}},campaign:{tension:2,edicts:{guard:{name:'Guarda'}}},combat:{projectiles:[],barriers:[{id:'wall'}]}};
+  const current={...previous,version:2,serverTime:20,rpg:{...previous.rpg,mana:19},campaign:{...previous.campaign,tension:3},combat:{...previous.combat,projectiles:[{id:'shot',x:4}]}};
+  const delta=realmWorldDelta(current,previous);
+  assert.deepEqual(delta.rpg,{mana:19});
+  assert.deepEqual(delta.campaign,{tension:3});
+  assert.deepEqual(delta.combat,{projectiles:[{id:'shot',x:4}]});
+  assert.deepEqual(applyRealmWorldDelta(previous,delta),current);
+});

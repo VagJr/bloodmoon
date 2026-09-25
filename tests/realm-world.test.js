@@ -5,9 +5,28 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createWorld,enterRealms,REGIONS} from '../shared/realms.js';
 import {grantStarter} from '../shared/progression.js';
-import {ensureRealmWorld,ensureWorldPlayer,realmWorldAction,advanceRealmWorld,prepareWorldEncounter,settleWorldEncounter,grantArenaAfterglow} from '../shared/realm-world.js';
+import {WORLD_RULES,ensureRealmWorld,ensureWorldPlayer,realmWorldAction,advanceRealmWorld,prepareWorldEncounter,settleWorldEncounter,grantArenaAfterglow} from '../shared/realm-world.js';
 const epoch=1800000000000;
 function fixture(){const world=createWorld(),p={id:randomUUID(),name:'Vigília',xp:0,level:1,matches:0,wins:0,trophies:[]};grantStarter(p,'vampire',randomUUID);enterRealms(p,randomUUID,epoch);const w=ensureRealmWorld(world,REGIONS,epoch),s=ensureWorldPlayer(p,REGIONS,epoch);p.realm.materials={timber:40,ore:40,essence:40};p.realm.seenAt=epoch;return {world,w,p,s,act:(action,at=epoch)=>realmWorldAction(world,p,action,REGIONS,at),tick:at=>advanceRealmWorld(world,[p],REGIONS,at)};}
+test('postura PK exige campo aberto e aparece na reputação persistente',()=>{
+ const f=fixture();
+ assert.throws(()=>f.act({type:'world-pk-stance',enabled:true}),/santuário/i);
+ Object.assign(f.s,{x:50,y:30,lastCombatAt:epoch-13000});
+ f.act({type:'world-pk-stance',enabled:true});
+ assert.equal(f.p.realm.karma.pkMode,true);
+ f.act({type:'world-pk-stance',enabled:false},epoch+1000);
+ assert.equal(f.p.realm.karma.pkMode,false);
+});
+test('movimento após atraso de rede recupera tempo sem ultrapassar o relógio do servidor',()=>{
+ const f=fixture();Object.assign(f.s,{x:50,y:50,moveAt:epoch-250});
+ f.act({type:'world-move',dx:1,dy:0,power:1,elapsedMs:100,sequence:1},epoch+100);
+ const first=f.s.x;
+ f.act({type:'world-move',dx:1,dy:0,power:1,elapsedMs:700,sequence:2},epoch+800);
+ assert.ok(f.s.x>first,'o pacote acumulado não deve perder o avanço');
+ const second=f.s.x;
+ f.act({type:'world-move',dx:1,dy:0,power:1,elapsedMs:750,sequence:3},epoch+900);
+ assert.ok(f.s.x-second<=WORLD_RULES.speed*.1/WORLD_RULES.aspect+.001,'tempo informado não pode superar o tempo real');
+});
 test('Recursos renovam no local; produção cobra materiais uma vez e coleta não duplica estoque',()=>{
  const f=fixture(),a=f.w.actors.find(a=>a.kind==='resource'&&a.node==='haven'&&a.resource==='timber');Object.assign(f.s,{x:a.x,y:a.y});
  const material=f.p.realm.materials.timber;f.act({type:'world-interact',targetId:a.id});assert.equal(f.p.realm.materials.timber,material+3);assert.throws(()=>f.act({type:'world-interact',targetId:a.id},epoch+300));

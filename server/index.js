@@ -774,7 +774,12 @@ const worldTimer=setInterval(()=>{
     for(const [key,challenge] of worldChallenges)if(challenge.expiresAt<=now)worldChallenges.delete(key);
     if(advanceRealmWorld(world,profiles,REGIONS,now)){
       markWorldDirty();
-      for(const profile of profiles.values())if(profile.realm?.roaming)worldDirtyProfiles.add(profile.id);
+      // The global world changes every tick, but only present (or fallen) travelers
+      // have personal state advanced by this simulation. Avoid serializing every
+      // dormant account on each MongoDB checkpoint.
+      for(const profile of profiles.values())if(profile.realm?.roaming&&(
+        now-(profile.realm.seenAt||0)<WORLD_RULES.presenceMs||profile.realm.roaming.hp<=0
+      ))worldDirtyProfiles.add(profile.id);
     }
     realmLivePulse(id=>{
       const profile=profiles.get(id);

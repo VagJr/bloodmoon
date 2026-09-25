@@ -13,7 +13,7 @@ const RESOURCE_ART={coins:'/assets/world/objects/coin-pile.png',timber:'/assets/
 const BUILD_ART={camp:'watch-camp',lumbermill:'ash-sawmill',mine:'oath-mine',essencewell:'veil-well',ballista:'obsidian-ballista',thorntrap:'thorn-snare',banner:'oath-banner'};
 function objectArt(a){const id=(a.kind==='land'?'signpost':null)||(a.kind==='settlement'?'fortified-gate':null)||BUILD_ART[a.blueprintId]||({rift:'dungeon-gate','expedition-loot':'supply-crates',wayshrine:'stone-well',satchel:'lost-satchel',caravan:'moon-caravan',portal:'dungeon-gate'})[a.kind];return id?'/assets/world/objects/'+id+'.png':a.kind==='resource'?RESOURCE_ART[a.resource]:null;}
 let cardFilter='unit',showHelp=false,detailsOpen=false;
-let ownerId=null,dataRef=null,handlers={},selected=null,selectedBlueprint='camp',selectedTarget=null,slotTarget=null,camera={x:0,y:0,z:.9},keys=new Set(),touchPointers=new Map(),frame=0,seq=0,lastMove=0,moveBusy=false,controller=null,rootRef=null,drag=null,feedbackTimer=0,atlas=false,actorMotion=new Map();
+let ownerId=null,dataRef=null,handlers={},selected=null,selectedBlueprint='camp',selectedTarget=null,slotTarget=null,camera={x:0,y:0,z:.9},keys=new Set(),touchPointers=new Map(),frame=0,seq=0,lastMove=0,moveBusy=false,controller=null,rootRef=null,drag=null,feedbackTimer=0,atlas=false,actorMotion=new Map(),lastHudPaint=0;
 const movingActors=new Set(['hostile','invader','raid','patrol','caravan','traveler']);
 const metric=(a,b)=>Math.hypot((a.x-b.x)*1.5,a.y-b.y);
 const worldCards=()=>{const d=dataRef||{},ids=d.liveWorld?.cards||d.worldCards||[];return ids.filter(id=>!!CARDS[id]);};
@@ -23,8 +23,8 @@ function clampCamera(){const {w,h}=dimensions(),min=Math.max(w/SIZE.width,h/SIZE
 function focusPlayer(smooth=false){const {w,h}=dimensions(),p=controller?.pose||dataRef.liveWorld.player;camera.x=w/2-p.x*96*camera.z;camera.y=h/2-p.y*SIZE.height/100*camera.z;clampCamera();paintCamera(smooth);}
 function paintCamera(smooth=false){const ground=rootRef?.querySelector('.rw-map-backdrop');if(ground&&dataRef){const maps=dataRef.liveWorld.continents||[],{w}=dimensions(),center=(-camera.x+w/2)/(96*camera.z),continent=maps.findLast(m=>center>=m.offset)||maps[0];ground.style.backgroundImage=`url('${continent?.image||'/assets/world/vespera-map.png'}')`;ground.style.backgroundSize=`${9600*camera.z}px ${6400*camera.z}px`;ground.style.backgroundPosition=`${camera.x+(continent?.offset||0)*96*camera.z}px ${camera.y}px`;}const plane=rootRef?.querySelector('.rw-plane');if(plane){plane.style.transition='none';plane.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${camera.z})`;}}
 function cardFace(id,label='Carta'){return `<img src="${esc(CARD_ART[id]||'/assets/world/objects/oath-banner.png')}" alt="${esc(label)}" loading="lazy">`;}
-function island(w,n){const selectedNode=n.id===w.player.location,near=metric(w.player,n)<18;return `<section class="rw-island ${selectedNode?'here':''}" style="left:${n.x*96}px;top:${n.y*64}px"><div class="rw-biome"><img src="/assets/world/${esc(n.board)}.png" alt="" loading="lazy"></div><div class="rw-place"><i>${esc(n.icon)}</i><span><small>${selectedNode?'SUA POSIÇÃO':n.kind==='dungeon'?'TERRA SELADA':'TERRITÓRIO'} · NÍVEL ${n.levelRange?`${n.levelRange.min}–${n.levelRange.max}`:n.level}</small><b>${esc(n.name)}</b></span><em>${w.territories?.[n.id]?.owner?'♜':''}</em></div><div class="rw-ring"></div>${w.slots.filter(s=>s.node===n.id).map((s,i)=>{const o=s.occupant,x=(s.x-n.x)*96,y=(s.y-n.y)*64;return `<button class="rw-slot ${o?'occupied':''} ${o?.owner===w.player.publicId?'own':''} ${near?'near':''}" style="left:calc(50% + ${x}px);top:calc(50% + ${y}px)" data-rw-slot="${esc(s.id)}" title="${esc(w.slotKinds[s.kind])}: ${o?esc(o.name):'espaço de carta'}">${o?`${objectArt(o)?`<img class="rw-structure-art" src="${objectArt(o)}" alt="${esc(o.name)}">`:cardFace(o.cardId,'')}${o.blueprintId?`<i class="rw-build-icon">${ICON[s.kind]||'◇'}</i>`:''}<meter min="0" max="${o.maxHp}" value="${o.hp}"></meter><b>${esc(o.name)}</b>`:`<i>${ICON[s.kind]||'◇'}</i><b>${esc(w.slotKinds[s.kind])}</b>`}</button>`;}).join('')}</section>`;}
-function actor(a,w){const self=a.id===w.player.publicId,person=a.kind==='traveler',avatar=a.avatar||'oracle';return `<button class="rw-actor ${esc(a.kind)} ${objectArt(a)?'scenery':''} ${esc(a.faction||'neutral')} ${a.state==='em combate'?'fighting':''} ${a.guarding?'guarding':''} ${a.windup?`windup-${esc(a.windup.style||'raider')}`:''} ${selectedTarget===a.id?'targeted':''} ${a.hp<=0?'down':''}" data-rw-actor="${esc(a.id)}" style="left:${a.x*96}px;top:${a.y*64}px" title="${esc(a.name)} · ${esc(KIND[a.kind]||'Habitante')}">${objectArt(a)?`<img class="rw-object-art" src="${objectArt(a)}" alt="${esc(a.name)}" loading="lazy">`:person?`<img src="/assets/avatars/${esc(avatar)}.png" alt="">`:cardFace(a.cardId,a.name)}${a.kind==='settlement'?`<span class="rw-city-buildings">${Object.entries(w.settlements?.find(c=>c.houseId===a.houseId)?.buildings||{}).filter(([,level])=>level>0).map(([key,level])=>`<img src="/assets/world/objects/${({warehouse:'supply-crates',forge:'blacksmith',watchtower:'watchtower'})[key]}.png" alt="${key} ${level}">`).join('')}</span>`:''}<i class="rw-footprint"></i>${a.hp>0&&a.kind!=='resource'?`<meter min="0" max="${a.maxHp}" value="${a.hp}"></meter>`:''}<b>${esc(a.name.split(' · ')[0])}</b>${a.aiStyle?`<em>NV ${a.level} · ${a.aiStyle.toUpperCase()}</em>`:''}${a.kind==='raid'?'<em>✦ RAID</em>':a.arenaKind?'<em>✦ ARENA</em>':a.kind==='invader'?'<em>⚠ INVASÃO</em>':''}</button>`;}
+function island(w,n){const selectedNode=n.id===w.player.location,near=metric(w.player,n)<18;return `<section class="rw-island ${selectedNode?'here':''}" style="left:${n.x*96}px;top:${n.y*64}px"><div class="rw-biome"><img src="/assets/world/${esc(n.board)}.png" alt="" loading="lazy"></div><img class="rw-sheet-landmark" src="/assets/world/sheet-details/${n.kind==='dungeon'?(n.x>=100&&n.x<200?'moon-gate':'blood-gate'):n.x>=100&&n.x<200?'moon-spring':n.x>=200?'blood-embers':'moon-flora'}.webp" alt="" loading="lazy"><div class="rw-place"><i>${esc(n.icon)}</i><span><small>${selectedNode?'SUA POSIÇÃO':n.kind==='dungeon'?'TERRA SELADA':'TERRITÓRIO'} · NÍVEL ${n.levelRange?`${n.levelRange.min}–${n.levelRange.max}`:n.level}</small><b>${esc(n.name)}</b></span><em>${w.territories?.[n.id]?.owner?'♜':''}</em></div><div class="rw-ring"></div>${w.slots.filter(s=>s.node===n.id).map((s,i)=>{const o=s.occupant,x=(s.x-n.x)*96,y=(s.y-n.y)*64;return `<button class="rw-slot ${o?'occupied':''} ${o?.owner===w.player.publicId?'own':''} ${near?'near':''}" style="left:calc(50% + ${x}px);top:calc(50% + ${y}px)" data-rw-slot="${esc(s.id)}" title="${esc(w.slotKinds[s.kind])}: ${o?esc(o.name):'espaço de carta'}">${o?`${objectArt(o)?`<img class="rw-structure-art" src="${objectArt(o)}" alt="${esc(o.name)}">`:cardFace(o.cardId,'')}${o.blueprintId?`<i class="rw-build-icon">${ICON[s.kind]||'◇'}</i>`:''}<meter min="0" max="${o.maxHp}" value="${o.hp}"></meter><b>${esc(o.name)}</b>`:`<i>${ICON[s.kind]||'◇'}</i><b>${esc(w.slotKinds[s.kind])}</b>`}</button>`;}).join('')}</section>`;}
+function actor(a,w){const self=a.id===w.player.publicId,person=a.kind==='traveler',avatar=a.avatar||'oracle';return `<button class="rw-actor ${esc(a.kind)} ${objectArt(a)?'scenery':''} ${esc(a.faction||'neutral')} ${a.state==='em combate'?'fighting':''} ${a.guarding?'guarding':''} ${a.windup?`windup-${esc(a.windup.style||'raider')}`:''} ${selectedTarget===a.id?'targeted':''} ${a.hp<=0?'down':''}" data-rw-actor="${esc(a.id)}" style="left:${a.x*96}px;top:${a.y*64}px" title="${esc(a.name)} · ${esc(KIND[a.kind]||'Habitante')}">${objectArt(a)?`<img class="rw-object-art" src="${objectArt(a)}" alt="${esc(a.name)}" loading="lazy">`:person?`<img src="/assets/avatars/${esc(avatar)}.png" alt="">`:cardFace(a.cardId,a.name)}${a.kind==='settlement'?`<span class="rw-city-buildings">${Object.entries(w.settlements?.find(c=>c.houseId===a.houseId)?.buildings||{}).filter(([,level])=>level>0).map(([key,level])=>`<img src="/assets/world/objects/${({warehouse:'supply-crates',forge:'blacksmith',watchtower:'watchtower'})[key]}.png" alt="${key} ${level}">`).join('')}</span>`:''}${person&&a.karma?`<span class="rw-karma-badge" title="${esc(a.karma.title)}"><img src="${esc(a.karma.icon)}" alt=""></span>`:''}<i class="rw-footprint"></i>${a.hp>0&&a.kind!=='resource'?`<meter min="0" max="${a.maxHp}" value="${a.hp}"></meter>`:''}<b>${esc(a.name.split(' · ')[0])}</b>${a.aiStyle?`<em>NV ${a.level} · ${a.aiStyle.toUpperCase()}</em>`:''}${a.kind==='raid'?'<em>✦ RAID</em>':a.arenaKind?'<em>✦ ARENA</em>':a.kind==='invader'?'<em>⚠ INVASÃO</em>':''}</button>`;}
 function scenery(regions){return '<div class="rw-scenery" aria-hidden="true">'+regions.flatMap(realmScenery).map(o=>'<img src="/assets/world/objects/'+o.art+'.png" class="'+(o.large?'large':'')+'" style="left:'+o.x*96+'px;top:'+o.y*64+'px" alt="" loading="lazy">').join('')+'</div>';}
 function statusText(w){const p=w.player,phase=w.cycle?.phase||'vigília';return `<small>VÉSPERA · ${esc(phase.toUpperCase())}</small><strong>${esc(dataRef.regions.find(n=>n.id===dataRef.player.location)?.name||'Terras de Véspera')}</strong><span>◈ ${dataRef.profile.coins} · ◉ ${dataRef.player.provisions} · ♧ ${dataRef.player.materials.timber} · ⬡ ${dataRef.player.materials.ore} · ✧ ${dataRef.player.materials.essence}</span><span>♥ ${Math.ceil(p.hp)}/${p.maxHp}　⚡ ${Math.floor(p.energy)}/${p.maxEnergy}</span>`;}
 function resourceBadge(key,value,label){const symbols={coins:'◈',provisions:'◉'},asset=RESOURCE_ART[key];return `<span class="rw-resource" title="${label}">${asset?`<img src="${asset}" alt="">`:`<i>${symbols[key]}</i>`}<b>${value}</b><small>${label}</small></span>`;}
@@ -56,7 +56,7 @@ function hud(w){
  const pick=w.actors.find(a=>a.id===selectedTarget)||w.players.filter(a=>a.id!==p.publicId).map(a=>({...a,kind:'traveler'})).find(a=>a.id===selectedTarget),blue=w.blueprints[selectedBlueprint],event=w.events[0],selectedInfo=selected?worldCardText(selected):blue?.description;
  return `<header class="rw-top"><button class="rw-brand" data-realm-exit>BLOOD<span>MOON</span><small>⌃ REFÚGIO</small></button><div class="rw-heading"><small>REINOS DE VÉSPERA</small><h1>${esc(n.name)}</h1></div><div class="rw-wallet">${resourceBadge('coins',dataRef.profile.coins,'Marcas')}${resourceBadge('provisions',dataRef.player.provisions,'Provisões')}${resourceBadge('timber',dataRef.player.materials.timber,'Madeira')}${resourceBadge('ore',dataRef.player.materials.ore,'Minério')}${resourceBadge('essence',dataRef.player.materials.essence,'Essência')}</div></header>
  ${deathOverlay(w)}<div class="rw-mobile-vitals"><span>♥ ${Math.ceil(p.hp)}/${p.maxHp}<i style="width:${100*p.hp/p.maxHp}%"></i></span><span>⚡ ${Math.floor(p.energy)}/${p.maxEnergy}<i style="width:${100*p.energy/p.maxEnergy}%"></i></span></div><nav class="rw-camera-tools" aria-label="Controles do mapa"><button data-rw-zoom="out" title="Afastar câmera">−</button><button data-rw-home title="Centralizar viajante (Home)">◎</button><button data-rw-zoom="in" title="Aproximar câmera">+</button><button data-rw-help aria-label="Ajuda do mundo">?</button></nav>
- <aside class="rw-left"><div class="rw-crest"><img src="/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png" alt="Retrato do viajante"><b>${dataRef.player.level}</b></div><strong>${esc(dataRef.profile.name)}</strong><div class="rw-life"><i style="width:${100*p.hp/p.maxHp}%"></i></div><span>♥ ${Math.ceil(p.hp)} / ${p.maxHp}</span><div class="rw-life vigor"><i style="width:${100*p.energy/p.maxEnergy}%"></i></div><span>⚡ ${Math.floor(p.energy)} / ${p.maxEnergy}</span><nav><button data-realm-tab="camp">⌂ <span>Domínio</span></button><button data-realm-tab="house">♜ <span>Casas</span></button><button data-realm-tab="journey">✧ <span>Crônica</span></button><button data-modal="market">⚖ <span>Mercado</span></button><button data-rw-filter="equipment">⚔ <span>Equipar</span></button></nav><div class="rw-cycle"><i>☽</i><small>${esc((w.cycle?.phase||'névoa').toUpperCase())}<b>Vigília das duas luas</b></small></div></aside>
+ <aside class="rw-left"><div class="rw-crest" title="Nível de personagem ${w.rpg?.level??dataRef.player.level} · nível de exploração ${w.wallet?.level??dataRef.player.level}"><img src="/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png" alt="Retrato do viajante"><b aria-label="Nível de personagem ${w.rpg?.level??dataRef.player.level}">${w.rpg?.level??dataRef.player.level}</b></div><strong>${esc(dataRef.profile.name)}</strong><small class="rw-level-context">EXPLORAÇÃO ${w.wallet?.level??dataRef.player.level}</small><div class="rw-life"><i style="width:${100*p.hp/p.maxHp}%"></i></div><span>♥ ${Math.ceil(p.hp)} / ${p.maxHp}</span><div class="rw-life vigor"><i style="width:${100*p.energy/p.maxEnergy}%"></i></div><span>⚡ ${Math.floor(p.energy)} / ${p.maxEnergy}</span><nav><button data-realm-tab="camp">⌂ <span>Domínio</span></button><button data-realm-tab="house">♜ <span>Casas</span></button><button data-realm-tab="journey">✧ <span>Crônica</span></button><button data-modal="market">⚖ <span>Mercado</span></button><button data-rw-filter="equipment">⚔ <span>Equipar</span></button></nav><div class="rw-cycle"><i>☽</i><small>${esc((w.cycle?.phase||'névoa').toUpperCase())}<b>Vigília das duas luas</b></small></div></aside>
  <aside class="rw-radar"><div class="rw-radar-head"><i></i>${w.players.length} VIAJANTE${w.players.length===1?'':'S'}<button data-rw-atlas>${atlas?'VOLTAR':'ATLAS'}</button></div><div class="rw-mini" style="background-image:url('${w.continents?.[Math.min(2,Math.floor(p.x/100))]?.image||'/assets/world/vespera-map.png'}')">${dataRef.regions.filter(r=>Math.floor(r.x/100)===Math.floor(p.x/100)).map(r=>`<button class="rw-mini-node ${r.id===n.id?'current':''}" data-rw-locate="${r.id}" title="${esc(r.name)}" aria-label="Localizar ${esc(r.name)}" style="left:${r.x%100}%;top:${r.y}%">${esc(r.icon)}</button>`).join('')}<i style="left:${p.x%100}%;top:${p.y}%"></i>${w.players.filter(x=>x.id!==p.publicId&&Math.floor(x.x/100)===Math.floor(p.x/100)).map(x=>`<b style="left:${x.x%100}%;top:${x.y}%" title="${esc(x.name)}">◇</b>`).join('')}${w.invasions.filter(i=>i.status==='active').map(i=>{const r=dataRef.regions.find(r=>r.id===i.node);return r&&Math.floor(r.x/100)===Math.floor(p.x/100)?`<em style="left:${r.x%100}%;top:${r.y}%">⚠</em>`:''}).join('')}</div>${atlas?`<div class="rw-region-list">${dataRef.regions.map(r=>`<button data-rw-locate="${r.id}">${esc(r.icon)} ${esc(r.name)}<small>NÍVEL ${r.levelRange?`${r.levelRange.min}–${r.levelRange.max}`:r.level}</small></button>`).join('')}</div>`:''}</aside>
  <aside class="rw-journal"><small>✧ CRÔNICA VIVA</small><p>${esc(event?.text||'As duas linhagens velam pelas estradas.')}</p>${w.invasions.filter(i=>i.status==='active').map(i=>`<button data-rw-invasion="${esc(i.node)}">⚠ ${esc(i.name)}<small>${Math.max(0,Math.ceil((i.endsAt-w.serverTime)/1000))}s</small></button>`).join('')}</aside>
  <aside class="rw-nearby"><small>AO ALCANCE DO OLHAR</small>${near.map(a=>`<button data-rw-focus="${esc(a.id)}" title="${esc(a.name)}">${objectArt(a)?`<img src="${objectArt(a)}" alt="">`:cardFace(a.cardId,'')}<span>${esc(a.name.split(' · ')[0])}<small>${esc(KIND[a.kind]||'Habitante')} · ${Math.round(metric(a,p))}m</small></span></button>`).join('')}</aside>
@@ -102,7 +102,7 @@ function paintWorld(){
  }
  for(const el of existing.values()){actorMotion.delete(el.dataset.rwActor);el.remove();}
  let districts=plane.querySelector('.rw-city-layer');if(!districts){districts=document.createElement('div');districts.className='rw-city-layer';plane.append(districts);}const cityStamp=JSON.stringify(w.settlements);if(districts._stamp!==cityStamp){districts.innerHTML=districtMarkers(w);districts._stamp=cityStamp;}
- let self=layer.querySelector('.rw-self');if(!self){self=document.createElement('div');self.className='rw-self';self.innerHTML=`<img src="/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png" alt="${esc(dataRef.profile.name)}"><i></i><b>${esc(dataRef.profile.name)}</b><span>VOCÊ</span>`;layer.append(self);}const p=controller?.pose||w.player;self.style.left=p.x*96+'px';self.style.top=p.y*64+'px';
+ let self=layer.querySelector('.rw-self');if(!self){self=document.createElement('div');self.className='rw-self';self.innerHTML=`<img src="/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png" alt="${esc(dataRef.profile.name)}"><i></i><span class="rw-karma-badge" title="${esc(w.karma?.title||'Karma inicial')}"><img src="${esc(w.karma?.icon||('/assets/world/sheet-details/'+(dataRef.profile?.starterFaction==='werewolf'?'werewolf':'vampire')+'-white.webp'))}" alt=""></span><b>${esc(dataRef.profile.name)}</b><span>VOCÊ</span>`;layer.append(self);}const badge=self.querySelector('.rw-karma-badge');if(badge){badge.title=w.karma?.title||'';badge.querySelector('img').src=w.karma?.icon||'/assets/world/sheet-details/'+(dataRef.profile?.starterFaction==='werewolf'?'werewolf':'vampire')+'-white.webp';}const p=controller?.pose||w.player;self.style.left=p.x*96+'px';self.style.top=p.y*64+'px';
  paintCamera();
 }
 function paintHud(){
@@ -115,7 +115,12 @@ function paintHud(){
 }
 
 function normalizeData(d){const w=d.liveWorld;w.player.publicId=d.player.publicId;w.player.location=w.player.location||d.player.location;w.territories=d.territories;return d;}
-function paint(){paintWorld();paintHud();}
+function paint(forceHud=false){
+ paintWorld();
+ const now=performance.now();
+ if(forceHud||now-lastHudPaint>=500){lastHudPaint=now;paintHud();}
+ else updateActionHud({...dataRef.liveWorld,gear:worldCards().filter(id=>CARDS[id].type==='equipment').map(id=>({...CARDS[id],cardId:id,art:CARD_ART[id],equipped:dataRef.liveWorld.player.equipment.includes(id)}))});
+}
 function feedback(s){const el=rootRef?.querySelector('.rw-feedback');if(!el)return;el.textContent=s;el.classList.add('show');clearTimeout(feedbackTimer);feedbackTimer=setTimeout(()=>el.classList.remove('show'),3300);}
 async function send(input){
  const session=controller,callbacks=handlers;if(!session)return;
@@ -124,7 +129,7 @@ async function send(input){
  if(!defensive)session.commandBusy=true;
  try{
   const d=await callbacks.sendAction(input);if(controller!==session)return;
-  if(d){dataRef=normalizeData(d);if(d.liveWorld){if(['world-recover','world-ability'].includes(input.type)&&d.liveWorld.player.displacement!==session.displacement){session.displacement=d.liveWorld.player.displacement;session.pose={x:d.liveWorld.player.x,y:d.liveWorld.player.y};session.accumulatedMs=0;session.queuedMove=null;if(input.type==='world-recover')focusPlayer();}paint();}}
+  if(d){dataRef=normalizeData(d);if(d.liveWorld){if(['world-recover','world-ability'].includes(input.type)&&d.liveWorld.player.displacement!==session.displacement){session.displacement=d.liveWorld.player.displacement;session.pose={x:d.liveWorld.player.x,y:d.liveWorld.player.y};session.accumulatedMs=0;session.queuedMove=null;if(input.type==='world-recover')focusPlayer();}paint(true);}}
   const message=d?._worldResult?.message||d?.liveWorld?.lastResult?.message;if(message)feedback(message);
   return d;
  }catch(e){feedback(e.message||'A ordem não foi aceita.');return null;}
@@ -142,28 +147,29 @@ function isBlocked(){
  return false;
 }
 function dispatchMove(session,dx,dy,elapsedMs,now){
- const sendMs=Math.max(40,Math.min(250,Math.round(elapsedMs)));session.accumulatedMs=0;session.lastSentAt=now;
- if(session.inFlight){session.queuedMove={dx,dy,elapsedMs:sendMs};return;}
- session.inFlight=true;const moveSeq=++seq;
+ const sendMs=Math.max(40,Math.min(750,Math.round(elapsedMs)));session.accumulatedMs=0;session.lastSentAt=now;
+ if(session.inFlight){
+  const queued=session.queuedMove;
+  const oldMs=Math.min(queued?.elapsedMs||0,Math.max(0,750-sendMs));
+  const total=oldMs+sendMs;
+  session.queuedMove={dx:((queued?.dx||0)*oldMs+dx*sendMs)/total,dy:((queued?.dy||0)*oldMs+dy*sendMs)/total,elapsedMs:total};
+  return;
+ }
+ session.inFlight=true;const moveSeq=++seq;session.sentSeq=moveSeq;session.settlePose=null;
  const magnitude=Math.hypot(dx,dy),power=Math.min(1,magnitude),length=Math.max(.001,magnitude);
  handlers.sendAction({type:'world-move',dx:dx/length,dy:dy/length,power:Math.max(.12,power),elapsedMs:sendMs,sequence:moveSeq}).then(data=>{
   if(controller!==session||!data)return;if(!data._movementOnly)updateRealmWorld(rootRef,data);
   const sp=data.liveWorld?.player;
   if(sp){
    const cur=direction();
-   if(!cur.dx&&!cur.dy&&!session.queuedMove){
-    session.pose.x=sp.x;session.pose.y=sp.y;
-    const self=rootRef?.querySelector('.rw-self');
-    if(self){self.style.left=session.pose.x*96+'px';self.style.top=session.pose.y*64+'px';}
-   }else if(Math.hypot(session.pose.x-sp.x,session.pose.y-sp.y)>3){
-    session.pose.x=sp.x;session.pose.y=sp.y;
-   }
+   if(!cur.dx&&!cur.dy&&!session.queuedMove&&Number(sp.moveSeq)>=session.sentSeq)
+    session.settlePose={x:sp.x,y:sp.y};
   }
  }).catch(e=>{
   if(controller===session){
    feedback(e.message||'Movimento não aceito.');
    const p=dataRef?.liveWorld?.player;
-   if(p)session.pose={x:p.x,y:p.y};
+   if(p)session.settlePose={x:p.x,y:p.y};
   }
  }).finally(()=>{
   if(controller===session){
@@ -172,6 +178,9 @@ function dispatchMove(session,dx,dy,elapsedMs,now){
     const next=session.queuedMove;
     session.queuedMove=null;
     dispatchMove(session,next.dx,next.dy,next.elapsedMs,performance.now());
+   }else if(!direction().dx&&!direction().dy){
+    const p=dataRef?.liveWorld?.player;
+    if(p&&Number(p.moveSeq)>=session.sentSeq)session.settlePose={x:p.x,y:p.y};
    }
   }
  });
@@ -191,9 +200,10 @@ function loop(now){
   const len=Math.max(1,Math.hypot(d.dx,d.dy)),rules=dataRef.liveWorld.rules,speed=rules.speed||22,aspect=rules.aspect||1.5;
   session.pose.x=Math.max(1,Math.min(299,session.pose.x+(d.dx/len*speed*(dt/1000))/aspect));
   session.pose.y=Math.max(1,Math.min(99,session.pose.y+(d.dy/len*speed*(dt/1000))));
-  session.accumulatedMs=Math.min(250,session.accumulatedMs+dt);
+  session.accumulatedMs=Math.min(750,session.accumulatedMs+dt);
   session.lastDir={dx:d.dx,dy:d.dy};
-  if(session.accumulatedMs>=100&&(now-session.lastSentAt)>=120&&!session.inFlight){
+  session.settlePose=null;
+  if(session.accumulatedMs>=100&&(now-session.lastSentAt)>=120){
    dispatchMove(session,d.dx,d.dy,session.accumulatedMs,now);
   }
   const self=rootRef.querySelector('.rw-self');if(self){self.style.left=session.pose.x*96+'px';self.style.top=session.pose.y*64+'px';self.classList.add('rw-moving');}
@@ -203,6 +213,19 @@ function loop(now){
    dispatchMove(session,session.lastDir.dx,session.lastDir.dy,session.accumulatedMs,now);
   }
   session.accumulatedMs=0;session.lastDir={dx:0,dy:0};rootRef.querySelector('.rw-self')?.classList.remove('rw-moving');
+  if(session.settlePose&&!session.inFlight&&!session.queuedMove){
+   const distance=Math.hypot(session.settlePose.x-session.pose.x,session.settlePose.y-session.pose.y);
+   if(distance>0.003){
+    const blend=1-Math.exp(-dt/(distance>2?110:180));
+    session.pose.x+=(session.settlePose.x-session.pose.x)*blend;
+    session.pose.y+=(session.settlePose.y-session.pose.y)*blend;
+    const self=rootRef.querySelector('.rw-self');if(self){self.style.left=session.pose.x*96+'px';self.style.top=session.pose.y*64+'px';}
+    const size=dimensions(),follow=1-Math.exp(-dt/110);
+    camera.x+=(size.w*.5-session.pose.x*96*camera.z-camera.x)*follow;
+    camera.y+=(size.h*.48-session.pose.y*64*camera.z-camera.y)*follow;
+    clampCamera();paintCamera();
+   }else session.settlePose=null;
+  }
  }
  frame=requestAnimationFrame(loop);
 }
@@ -284,7 +307,7 @@ function bind(){rootRef.addEventListener('click',click);rootRef.addEventListener
 function clearKeys(){analog={dx:0,dy:0};if(controller)controller.joystickId=null;const stick=rootRef?.querySelector('[data-ra-joystick]');stick?.style.setProperty('--stick-x','0px');stick?.style.setProperty('--stick-y','0px');keys.clear();touchPointers.clear();drag=null;if(controller)controller.pointerHeld=false;}
 function resize(){clampCamera();paintCamera();}
 export function renderRealmWorld(data){dataRef=normalizeData(data);const w=data.liveWorld,p=w.player;if(ownerId!==data.player.publicId){ownerId=data.player.publicId;selected=null;selectedTarget=null;slotTarget=null;seq=p.moveSeq||0;}else seq=Math.max(seq,p.moveSeq||0);return `<main class="rw-world" aria-label="Mundo aberto de Reinos de Véspera"><div class="rw-viewport" tabindex="0" aria-label="Mundo aberto; mova-se com WASD ou setas, arraste para olhar e use o zoom"><div class="rw-map-backdrop"></div><div class="rw-plane"></div></div><div class="rw-hud">${hud(w)}</div>${actionHud()}</main>`;}
-export function mountRealmWorld(root,data,callbacks){const surface=root.querySelector('.rw-world');if(!surface)return;if(rootRef!==surface){unmountRealmWorld();rootRef=surface;handlers=callbacks;controller={lastSentAt:0,accumulatedMs:0,inFlight:false,queuedMove:null,lastDir:{dx:0,dy:0},pose:{x:data.liveWorld.player.x,y:data.liveWorld.player.y}};dataRef=normalizeData(data);camera.z=innerWidth<=720?.6:.9;bind();paint();focusPlayer();mountActionHud(surface,{send,direction,pose:()=>controller.pose,data:()=>dataRef,regions:()=>dataRef.regions,blocked:()=>isBlocked(),target:()=>selectedTarget,select:id=>{selectedTarget=id;slotTarget=null;},avatar:()=>dataRef.player.avatar||'vesper',name:()=>dataRef.profile.name,stopMovement:clearKeys,reconcile:()=>{controller.pose={x:dataRef.liveWorld.player.x,y:dataRef.liveWorld.player.y};focusPlayer();},viewport:()=>rootRef.querySelector('.rw-viewport').getBoundingClientRect(),zoom:()=>camera.z*1.6,project:p=>({x:p.x*96*camera.z+camera.x,y:p.y*64*camera.z+camera.y}),unproject:(x,y)=>{const rect=rootRef.getBoundingClientRect();return {x:(x-rect.left-camera.x)/(96*camera.z),y:(y-rect.top-camera.y)/(64*camera.z)};},locate:n=>{camera.x=dimensions().w/2-n.x*96*camera.z;camera.y=dimensions().h/2-n.y*64*camera.z;paint();},interact:()=>{const w=dataRef.liveWorld,a=w.actors.filter(a=>!['hostile','invader'].includes(a.kind)&&(a.kind!=='raid'||a.hp<=0)&&(a.hp>0||a.kind==='raid')&&metric(w.player,a)<=w.rules.interactRange).sort((a,b)=>Number(b.id===selectedTarget)-Number(a.id===selectedTarget)||metric(w.player,a)-metric(w.player,b))[0];if(a){if(a.arenaKind)handlers.openEncounter(a.id);else send({type:'world-interact',targetId:slotTarget||a.id});}}},data.liveWorld);frame=requestAnimationFrame(loop);}else{handlers=callbacks;updateRealmWorld(surface,data);}}
-export function updateRealmWorld(root,data){if(!data?.liveWorld)return;const old=Number(dataRef?.liveWorld?.player?.moveSeq)||0,next=Number(data.liveWorld.player.moveSeq)||0;if(next<old)return;const displaced=data.liveWorld.player.displacement!==dataRef?.liveWorld?.player?.displacement;dataRef=normalizeData(data);if(displaced&&controller){controller.pose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};controller.accumulatedMs=0;controller.queuedMove=null;clearKeys();}const cur=direction();if(controller&&!controller.inFlight&&!cur.dx&&!cur.dy)controller.pose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};if(!rootRef?.isConnected)rootRef=root?.querySelector?.('.rw-world')||root;seq=Math.max(seq,next);if(displaced)focusPlayer(true);paint();}
+export function mountRealmWorld(root,data,callbacks){const surface=root.querySelector('.rw-world');if(!surface)return;if(rootRef!==surface){unmountRealmWorld();rootRef=surface;handlers=callbacks;controller={lastSentAt:0,accumulatedMs:0,inFlight:false,queuedMove:null,sentSeq:data.liveWorld.player.moveSeq||0,settlePose:null,lastDir:{dx:0,dy:0},pose:{x:data.liveWorld.player.x,y:data.liveWorld.player.y}};dataRef=normalizeData(data);camera.z=innerWidth<=720?.6:.9;bind();paint();focusPlayer();mountActionHud(surface,{send,direction,pose:()=>controller.pose,data:()=>dataRef,regions:()=>dataRef.regions,blocked:()=>isBlocked(),target:()=>selectedTarget,select:id=>{selectedTarget=id;slotTarget=null;},avatar:()=>dataRef.player.avatar||'vesper',name:()=>dataRef.profile.name,stopMovement:clearKeys,reconcile:()=>{controller.pose={x:dataRef.liveWorld.player.x,y:dataRef.liveWorld.player.y};focusPlayer();},viewport:()=>rootRef.querySelector('.rw-viewport').getBoundingClientRect(),zoom:()=>camera.z*1.6,project:p=>({x:p.x*96*camera.z+camera.x,y:p.y*64*camera.z+camera.y}),unproject:(x,y)=>{const rect=rootRef.getBoundingClientRect();return {x:(x-rect.left-camera.x)/(96*camera.z),y:(y-rect.top-camera.y)/(64*camera.z)};},locate:n=>{camera.x=dimensions().w/2-n.x*96*camera.z;camera.y=dimensions().h/2-n.y*64*camera.z;paint();},interact:()=>{const w=dataRef.liveWorld,a=w.actors.filter(a=>!['hostile','invader'].includes(a.kind)&&(a.kind!=='raid'||a.hp<=0)&&(a.hp>0||a.kind==='raid')&&metric(w.player,a)<=w.rules.interactRange).sort((a,b)=>Number(b.id===selectedTarget)-Number(a.id===selectedTarget)||metric(w.player,a)-metric(w.player,b))[0];if(a){if(a.arenaKind)handlers.openEncounter(a.id);else send({type:'world-interact',targetId:slotTarget||a.id});}}},data.liveWorld);frame=requestAnimationFrame(loop);}else{handlers=callbacks;updateRealmWorld(surface,data);}}
+export function updateRealmWorld(root,data){if(!data?.liveWorld)return;const old=Number(dataRef?.liveWorld?.player?.moveSeq)||0,next=Number(data.liveWorld.player.moveSeq)||0;if(next<old)return;const displaced=data.liveWorld.player.displacement!==dataRef?.liveWorld?.player?.displacement;dataRef=normalizeData(data);if(displaced&&controller){controller.pose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};controller.settlePose=null;controller.accumulatedMs=0;controller.queuedMove=null;clearKeys();}const cur=direction();if(controller&&!displaced&&!controller.inFlight&&!controller.queuedMove&&!cur.dx&&!cur.dy&&next>=controller.sentSeq)controller.settlePose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};if(!rootRef?.isConnected)rootRef=root?.querySelector?.('.rw-world')||root;seq=Math.max(seq,next);if(displaced)focusPlayer(true);paint();}
 export function unmountRealmWorld(){unmountActionHud();if(frame)cancelAnimationFrame(frame);frame=0;actorMotion.clear();keys.clear();touchPointers.clear();clearTimeout(feedbackTimer);if(rootRef){rootRef.removeEventListener('click',click);rootRef.removeEventListener('wheel',wheel);rootRef.removeEventListener('pointerdown',pointerdown);rootRef.removeEventListener('pointermove',pointermove);window.removeEventListener('pointerup',pointerup);window.removeEventListener('pointercancel',pointerup);}document.removeEventListener('keydown',keydown);document.removeEventListener('keyup',keyup);window.removeEventListener('blur',clearKeys);window.removeEventListener('resize',resize);rootRef=null;dataRef=null;controller=null;handlers={};}
 export function isRealmWorldMoving(){const d=direction();return !!(d.dx||d.dy);}
