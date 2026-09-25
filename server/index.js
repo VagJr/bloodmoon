@@ -1,4 +1,4 @@
-﻿import {gainRpg} from '../shared/realm-rpg.js';
+import {gainRpg} from '../shared/realm-rpg.js';
 import {realmStream,realmPulse,realmLivePulse,closeRealmStreams} from './realm-stream.js';
 import {AVATAR_IDS,ORIGINS} from '../shared/battle-design.js';
 import {applyDoctrine} from '../shared/expedition-doctrines.js';
@@ -481,15 +481,42 @@ const server = http.createServer(async (req,res) => {
         return json(res,200,readinessFor(profile,faction));
       }
       if(url.pathname==='/api/realms/events'&&req.method==='GET'){
-        enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);markWorldDirty(profile);
+        enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);
+
+const worldTickMs = Number(
+  process.env.WORLD_TICK_MS ||
+  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+);
+
+console.log(
+  `World tick configurado para ${worldTickMs}ms (${process.env.NODE_ENV || 'development'})`
+);ensureWorldPlayer(profile,REGIONS);markWorldDirty(profile);
         return realmStream(profile,req,res,{snapshot:()=>liveWorldFor(profile),authorized:()=>{if(identity(req)?.id!==profile.id)return false;profile.realm.seenAt=Date.now();return true;}});
       }
       if(url.pathname==='/api/realms/world'&&req.method==='GET'){
-        enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);profile.realm.seenAt=Date.now();markWorldDirty(profile);
+        enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);
+
+const worldTickMs = Number(
+  process.env.WORLD_TICK_MS ||
+  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+);
+
+console.log(
+  `World tick configurado para ${worldTickMs}ms (${process.env.NODE_ENV || 'development'})`
+);ensureWorldPlayer(profile,REGIONS);profile.realm.seenAt=Date.now();markWorldDirty(profile);
         return json(res,200,{liveWorld:liveWorldFor(profile)});
       }
       if(url.pathname==='/api/realms/world/action'&&req.method==='POST'){
-        const input=preloadedWorldAction;enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);
+        const input=preloadedWorldAction;enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);
+
+const worldTickMs = Number(
+  process.env.WORLD_TICK_MS ||
+  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+);
+
+console.log(
+  `World tick configurado para ${worldTickMs}ms (${process.env.NODE_ENV || 'development'})`
+);ensureWorldPlayer(profile,REGIONS);
         if(!input||typeof input!=='object'||Array.isArray(input))throw new RuleError('Ação de mundo inválida.');
         requireFreePlayer(profile.id);
         const result=realmWorldAction(world,profile,input,REGIONS,Date.now());markWorldDirty(profile);
@@ -499,7 +526,16 @@ const server = http.createServer(async (req,res) => {
         return json(res,200,{liveWorld:liveWorldFor(profile),result,...(!moving?{profile}:{})});
       }
       if(url.pathname==='/api/realms/world/encounter'&&req.method==='POST'){
-        const input=await body(req);enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);
+        const input=await body(req);enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);
+
+const worldTickMs = Number(
+  process.env.WORLD_TICK_MS ||
+  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+);
+
+console.log(
+  `World tick configurado para ${worldTickMs}ms (${process.env.NODE_ENV || 'development'})`
+);ensureWorldPlayer(profile,REGIONS);
         if(!input||typeof input!=='object'||Array.isArray(input))throw new RuleError('Encontro de mundo inválido.');
         requireFreePlayer(profile.id);
         if(rooms.size>=500)throw new RuleError('Todas as mesas estão ocupadas. Tente novamente em instantes.');
@@ -745,6 +781,15 @@ const server = http.createServer(async (req,res) => {
 const port = Number(process.env.PORT || 4173);
 const host = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
 ensureRealmWorld(world,REGIONS);
+
+const worldTickMs = Number(
+  process.env.WORLD_TICK_MS ||
+  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+);
+
+console.log(
+  `World tick configurado para ${worldTickMs}ms (${process.env.NODE_ENV || 'development'})`
+);
 let worldTickPending=false;
 const worldTimer=setInterval(()=>{
   if(worldTickPending)return;
@@ -761,9 +806,20 @@ const worldTimer=setInterval(()=>{
     worldTickPending=false;
     void flushRealmWorld().catch(error=>console.error('Falha ao salvar o mundo dos Reinos.',error));
   });
-},500);
+},worldTickMs);
 worldTimer.unref();
-server.listen(port,host,() => console.log(`Bloodmoon em http://${host}:${server.address().port} · ${mongoStore?'MongoDB Atlas':'persistência local'}`));
+server.once('error', error => {
+  console.error('Falha fatal ao iniciar servidor HTTP:', error);
+  process.exit(1);
+});
+
+server.listen(port, host, () => {
+  const address = server.address();
+
+  console.log(
+    `Bloodmoon HTTP ONLINE em ${address.address}:${address.port} · ${mongoStore ? 'MongoDB Atlas' : 'persistência local'}`
+  );
+});
 
 for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{
   clearInterval(worldTimer);clearInterval(maintenanceTimer);closeRealmStreams();
