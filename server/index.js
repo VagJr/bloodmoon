@@ -761,16 +761,11 @@ const worldTimer=setInterval(()=>{
     worldTickPending=false;
     void flushRealmWorld().catch(error=>console.error('Falha ao salvar o mundo dos Reinos.',error));
   });
-},250);
+},500);
 worldTimer.unref();
-server.once('error',error=>{console.error(`Falha ao abrir o servidor HTTP em ${host}:${port}.`,error);process.exit(1);});
-server.listen(port,host,() => {
-  const address=server.address();
-  console.log(`Bloodmoon HTTP ativo em ${address.address}:${address.port} (${address.family}) · ${mongoStore?'MongoDB Atlas':'persistência local'}`);
-});
+server.listen(port,host,() => console.log(`Bloodmoon em http://${host}:${server.address().port} · ${mongoStore?'MongoDB Atlas':'persistência local'}`));
 
 for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{
-  console.log(`Recebido ${signal}; encerrando o servidor e salvando o estado.`);
   clearInterval(worldTimer);clearInterval(maintenanceTimer);closeRealmStreams();
   server.close(async()=>{
     try{await exclusiveWorldTask(()=>flushRealmWorld(true));await saving;await mongoStore?.close();process.exit(0);}
