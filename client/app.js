@@ -1,5 +1,5 @@
 import {tableSelectedCard,worldTableInteracting} from '/world-table.js';
-import {mountRealmWorld,unmountRealmWorld,updateRealmWorld} from '/realm-world-ui.js';
+import {mountRealmWorld,unmountRealmWorld,updateRealmWorld} from '/realm-world-ui.js?v=4';
 import {academyStart,academyView,academyAct,academyPanel,academyStep,academyHighlight,LESSONS} from '/academy.js';
 import {CHAPTERS} from '/shared/adventure.js';
 import {ORDERS} from '/shared/battle-design.js';

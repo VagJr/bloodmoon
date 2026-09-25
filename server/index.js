@@ -30,7 +30,7 @@ const matchQueue=new MatchQueue();
 const itemLocks = new Map();
 const worldChallenges = new Map();
 const worldDirtyProfiles = new Set();
-let worldDirty = false, worldLastSaved = Date.now();
+let worldDirty = false, worldLastSaved = Date.now(), worldDirtyVersion = 0, worldFlushPromise = null, worldSaveRetryAt = 0, worldSaveFailures = 0;
 const dataDir=process.env.DATA_DIR || path.join(root,'data');
 const profileFile = path.join(dataDir, 'state.json');
 let world=createWorld();
@@ -60,10 +60,12 @@ let saving = Promise.resolve();
 function persist({ profiles: changedProfiles = [], rooms: changedRooms = [], deleteRooms = [], world: saveWorld = false, accounts:changedAccounts=[],sessions:changedSessions=[],deleteSessions=[] } = {}) {
   saving = saving.catch(() => {}).then(async () => {
     if(mongoStore){
-      await mongoStore.save({profiles:changedProfiles,rooms:changedRooms,deleteRooms,world:saveWorld?world:undefined,accounts:changedAccounts,sessions:changedSessions,deleteSessions});
+      await mongoStore.save({profiles:changedProfiles,rooms:changedRooms,deleteRooms,world:saveWorld?(saveWorld===true?world:saveWorld):undefined,accounts:changedAccounts,sessions:changedSessions,deleteSessions});
       return;
     }
-    const snapshot = JSON.stringify({schema:3,profiles:[...profiles.values()],rooms:[...rooms.values()],accounts:[...accounts.values()],sessions:[...sessions.values()],world}, null, 2);
+    const profileSnapshot=new Map([...profiles.values()].map(profile=>[profile.id,profile]));
+    for(const profile of changedProfiles)profileSnapshot.set(profile.id,profile);
+    const snapshot = JSON.stringify({schema:3,profiles:[...profileSnapshot.values()],rooms:[...rooms.values()],accounts:[...accounts.values()],sessions:[...sessions.values()],world:saveWorld&&saveWorld!==true?saveWorld:world}, null, 2);
     await mkdir(path.dirname(profileFile), { recursive: true });
     await writeFile(`${profileFile}.tmp`, snapshot);
     await rename(`${profileFile}.tmp`,profileFile);
@@ -230,13 +232,13 @@ async function reward(room) {
         p.realm.activeRoom=null;p.realm.version++;
         room.rewards[seat].realm={message:won?'Seu estandarte venceu o duelo.':'Você retorna ao mundo após o duelo.',coins:0};
       }else if(seat===0){const expedition=settleWorldEncounter(world,p,room.worldEncounter,won,player.conceded,REGIONS,Date.now(),Object.keys(player.laneClaims||{}).filter(lane=>player.laneClaims[lane]>0));room.rewards[seat].realm=expedition;if(expedition.loot){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===(room.worldEncounter.stages===3?'rare':'common'));const item=makeItem(pool[randomInt(pool.length)].id,randomUUID,'realm');p.items.push(item);room.rewards[seat].items.push(item.id);}}
-      worldDirty=true;worldDirtyProfiles.add(p.id);
+      markWorldDirty(p);
     }
     if(room.encounter&&seat===0){const expedition=settleEncounter(world,p,room.encounter,won,player.conceded,Date.now(),Object.keys(player.laneClaims||{}).filter(lane=>player.laneClaims[lane]>0));room.rewards[seat].realm=expedition;if(expedition.loot){const pool=Object.values(CARDS).filter(c=>c.type==='equipment'&&c.rarity===(room.encounter.stages===3?'rare':'common')),card=pool[randomInt(pool.length)],item=makeItem(card.id,randomUUID,'realm');p.items.push(item);room.rewards[seat].items.push(item.id);}}
     if(player.conceded)return;
     if(won&&p.realm&&!room.encounter&&(!room.worldEncounter||room.worldEncounter.kind==='pvp')){
       const afterglow=grantArenaAfterglow(world,p,REGIONS,Date.now());
-      if(afterglow){const previous=room.rewards[seat].realm;room.rewards[seat].realm={...previous,...afterglow,message:[previous?.message,afterglow.message].filter(Boolean).join(' ')};room.realmAfterglow=true;worldDirty=true;worldDirtyProfiles.add(p.id);}
+      if(afterglow){const previous=room.rewards[seat].realm;room.rewards[seat].realm={...previous,...afterglow,message:[previous?.message,afterglow.message].filter(Boolean).join(' ')};room.realmAfterglow=true;markWorldDirty(p);}
     }
     p.matches++;if(won)p.wins++;gainRpg(p,won?45:15,won?'arena':null);if(won&&room.mode==='duel')gainRpg(p,15,'duels');if(won&&room.mode==='dungeon'&&!room.worldEncounter)gainRpg(p,60,'dungeons');
     p.xp += won ? 100 : 50;p.level = Math.max(oldLevel,accountLevelForXP(p.xp));
@@ -270,6 +272,13 @@ function runBot(room) {
 }
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webmanifest':'application/manifest+json; charset=utf-8', '.png':'image/png', '.webp':'image/webp', '.mp3':'audio/mpeg', '.mp4':'video/mp4' };
 let requestQueue=Promise.resolve();
+async function acquireRequestQueue() {
+  let release;
+  const previous=requestQueue;
+  requestQueue=new Promise(resolve=>{release=resolve;});
+  await previous;
+  return release;
+}
 async function exclusiveWorldTask(task) {
   let release;
   const previous=requestQueue;
@@ -283,20 +292,40 @@ function liveWorldFor(profile,now=Date.now()) {
   snapshot.challenges=[...worldChallenges.values()].filter(c=>c.to===profile.id&&c.expiresAt>now).map(c=>({playerId:profiles.get(c.from)?.realm?.publicId,name:profiles.get(c.from)?.name||'Viajante',expiresAt:c.expiresAt}));
   return snapshot;
 }
-function markWorldDirty(profile) {worldDirty=true;if(profile)worldDirtyProfiles.add(profile.id);}
+function markWorldDirty(profile) {worldDirty=true;worldDirtyVersion++;if(profile)worldDirtyProfiles.add(profile.id);}
 async function flushRealmWorld(force=false) {
   if(!worldDirty||(!force&&Date.now()-worldLastSaved<5000))return;
-  const changed=[...worldDirtyProfiles].map(id=>profiles.get(id)).filter(Boolean);
-  await persist({profiles:changed,world:true});
-  worldDirtyProfiles.clear();worldDirty=false;worldLastSaved=Date.now();
+  if(!force&&Date.now()<worldSaveRetryAt)return;
+  if(worldFlushPromise){await worldFlushPromise;if(!worldDirty||(!force&&Date.now()-worldLastSaved<5000))return;}
+  const version=worldDirtyVersion;
+  const changed=[...worldDirtyProfiles].map(id=>profiles.get(id)).filter(Boolean).map(profile=>structuredClone(profile));
+  const save=persist({profiles:changed,world:structuredClone(world)});
+  worldFlushPromise=save;
+  try{
+    await save;
+    worldLastSaved=Date.now();
+    worldSaveFailures=0;worldSaveRetryAt=0;
+    if(worldDirtyVersion===version){worldDirtyProfiles.clear();worldDirty=false;}
+  }catch(error){
+    worldSaveFailures++;
+    worldSaveRetryAt=Date.now()+Math.min(30000,1000*2**Math.min(5,worldSaveFailures-1));
+    throw error;
+  }finally{if(worldFlushPromise===save)worldFlushPromise=null;}
 }
 function worldDistance(a,b){return Math.hypot((a.x-b.x)*1.5,a.y-b.y);}
 const server = http.createServer(async (req,res) => {
   let release;
-  if(req.url.startsWith('/api/')&&req.method!=='GET'&&!req.url.startsWith('/api/health')){const previous=requestQueue;requestQueue=new Promise(resolve=>{release=resolve;});await previous;}
+  let preloadedWorldAction;
   try {
       const url = new URL(req.url, 'http://localhost');
     if(req.method!=='GET'&&req.headers.origin&&new URL(req.headers.origin).host!==req.headers.host)return json(res,403,{error:'Origem da requisição não autorizada.'});
+    if(req.url.startsWith('/api/')&&req.method!=='GET'&&url.pathname!=='/api/health'){
+      if(url.pathname==='/api/realms/world/action'){
+        preloadedWorldAction=await body(req);
+        const realtime=['world-move','world-ability','world-attack'].includes(preloadedWorldAction?.type);
+        if(!realtime)release=await acquireRequestQueue();
+      }else release=await acquireRequestQueue();
+    }
     if (req.method === 'GET' && url.pathname === '/api/health') return json(res,200,{ ok: true, version: '0.4.0', edition:'edition-one', storage:mongoStore?'mongodb-atlas':'local-file' });
     if(url.pathname==='/api/auth/session'&&req.method==='GET'){
       const profile=identity(req);return profile?json(res,200,{profile,registered:!!profile.accountId}):json(res,401,{error:'Entre na sua conta para continuar.'});
@@ -460,12 +489,13 @@ const server = http.createServer(async (req,res) => {
         return json(res,200,{liveWorld:liveWorldFor(profile)});
       }
       if(url.pathname==='/api/realms/world/action'&&req.method==='POST'){
-        const input=await body(req);enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);
+        const input=preloadedWorldAction;enterRealms(profile,randomUUID);ensureRealmWorld(world,REGIONS);ensureWorldPlayer(profile,REGIONS);
         if(!input||typeof input!=='object'||Array.isArray(input))throw new RuleError('Ação de mundo inválida.');
         requireFreePlayer(profile.id);
         const result=realmWorldAction(world,profile,input,REGIONS,Date.now());markWorldDirty(profile);
         const moving=input.type==='world-move'||input.type==='world-ability';
-        if(!moving)await flushRealmWorld(true);
+        if(input.type==='world-attack')void flushRealmWorld().catch(error=>console.error('Falha ao salvar uma ação de combate dos Reinos.',error));
+        else if(!moving)await flushRealmWorld(true);
         return json(res,200,{liveWorld:liveWorldFor(profile),result,...(!moving?{profile}:{})});
       }
       if(url.pathname==='/api/realms/world/encounter'&&req.method==='POST'){
@@ -723,12 +753,14 @@ const worldTimer=setInterval(()=>{
     const now=Date.now();
     for(const [key,challenge]of worldChallenges)if(challenge.expiresAt<=now)worldChallenges.delete(key);
     if(advanceRealmWorld(world,profiles,REGIONS,now)){
-      worldDirty=true;
+      markWorldDirty();
       for(const profile of profiles.values())if(profile.realm?.roaming)worldDirtyProfiles.add(profile.id);
     }
     realmLivePulse(id=>{const profile=profiles.get(id);return profile?.realm?liveWorldFor(profile,now):null;});
-    await flushRealmWorld();
-  }).catch(error=>console.error('Falha ao atualizar o mundo dos Reinos.',error)).finally(()=>{worldTickPending=false;});
+  }).catch(error=>console.error('Falha ao atualizar o mundo dos Reinos.',error)).finally(()=>{
+    worldTickPending=false;
+    void flushRealmWorld().catch(error=>console.error('Falha ao salvar o mundo dos Reinos.',error));
+  });
 },250);
 worldTimer.unref();
 server.listen(port,host,() => console.log(`Bloodmoon em http://${host}:${server.address().port} · ${mongoStore?'MongoDB Atlas':'persistência local'}`));

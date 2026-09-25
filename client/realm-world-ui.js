@@ -1,4 +1,4 @@
-import {actionHud,mountActionHud,updateActionHud,unmountActionHud} from '/realm-action-ui.js';
+import {actionHud,mountActionHud,updateActionHud,unmountActionHud} from '/realm-action-ui.js?v=4';
 import {CARDS} from '/shared/cards.js';
 import {CARD_ART} from '/shared/art-manifest.js';
 

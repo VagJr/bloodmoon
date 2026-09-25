@@ -9,6 +9,14 @@ function write(client, event, data) {
   client.res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
+function writeEncoded(client, payload) {
+  if (client.res.destroyed || client.res.writableEnded || !client.authorized() || client.res.writableLength > 65536) {
+    client.res.end();
+    return;
+  }
+  client.res.write(payload);
+}
+
 export function realmPulse() {
   for (const group of clients.values()) for (const client of group) write(client, 'world', {});
 }
@@ -16,7 +24,10 @@ export function realmPulse() {
 export function realmLivePulse(snapshot) {
   for (const [profileId, group] of clients) {
     const liveWorld = snapshot(profileId);
-    if (liveWorld) for (const client of group) write(client, 'realm-live', { liveWorld });
+    if (liveWorld) {
+      const payload=`event: realm-live\ndata: ${JSON.stringify({liveWorld})}\n\n`;
+      for (const client of group) writeEncoded(client,payload);
+    }
   }
 }
 
