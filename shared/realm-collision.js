@@ -54,7 +54,7 @@ export function sweepCapsule(from,to,start,end,radius){
 export function combatObstacles(w){
   const staticObstacles=(w.obstacles||[]).filter(o=>o.solid!==false&&(o.hp===undefined||o.hp>0)).map(o=>({...o,kind:o.kind||'obstacle'}));
   const structures=(w.slots||[]).filter(slot=>slot.occupant?.hp>0&&['construction','resource','weapon','frontline'].includes(slot.kind)).map(slot=>({id:slot.id,kind:'structure',x:slot.x,y:slot.y,radius:slot.kind==='construction'?.95:.6}));
-  return [...staticObstacles,...structures];
+  return [...staticObstacles,...structures,...(w.cityBlocks||[]).filter(b=>b.hp>0)];
 }
 
 export function firstObstacleCollision(w,from,to,radius=0,options={}){

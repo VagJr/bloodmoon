@@ -1,0 +1,7 @@
+.rw-actor em{display:block;max-width:115px;margin:2px auto 0;color:#ffe2ac;font:700 7px Arial,sans-serif;letter-spacing:.55px;text-shadow:0 1px 5px #000;white-space:nowrap}
+.rw-actor.guarding>img{border-color:#efd28b;box-shadow:0 0 0 3px #e4c27745,0 0 22px #e4c277a0,0 9px 17px #000b}
+.rw-actor.windup-brute>img{border-color:#ff745c;box-shadow:0 0 20px #ff49378a,0 9px 17px #000b;animation:rw-brute-charge .32s ease-in-out infinite alternate}
+.rw-actor.windup-arcanist>img{border-color:#c095ff;box-shadow:0 0 20px #a16bfa88,0 9px 17px #000b}
+.rw-actor.windup-hunter>img{border-color:#f8c56f;box-shadow:0 0 18px #f8c56f80,0 9px 17px #000b}
+.rw-actor.windup-sentinel>img{border-color:#8fc7e8;box-shadow:0 0 20px #5fb8e088,0 9px 17px #000b}
+@keyframes rw-brute-charge{to{transform:scale(1.08) translateY(-3px)}}

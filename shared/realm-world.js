@@ -1,3 +1,7 @@
+import {ensureEcology,advanceEcology,recordEcology,ecologyInteract} from './realm-ecology.js';
+import {claimLand,districtAction,dominionAction,CITY_BUILDINGS,atWar} from './realm-dominion.js';
+import {ensureFrontier,respawnDeposit,settlementAction,advanceFrontier} from './realm-frontier.js';
+import {createRegionEnemies,enemyStyle,regionThreatLevel} from './realm-enemies.js';
 import {ensureRpg,rpgStats,rpgView,gainRpg,rpgChoice} from './realm-rpg.js';
 import {CONTINENTS,campaignView,campaignAction,ensureCampaign,advanceCampaign} from './realm-campaign.js';
 import {actionCombat,enemyAttack,combatEvent,advanceActionCombat,combatWorldView,moveWithCollisions,cancelActionCombat} from './realm-action-combat.js';
@@ -41,8 +45,15 @@ function addActor(w,n,kind,index,extra={}){
   const a={id:`${n.id}-${kind}-${index}`,node:n.id,kind,name:kind,faction:'neutral',...pos,homeX:pos.x,homeY:pos.y,hp:30,maxHp:30,attack:4,state:'patrulhando',phase:index*1.6,attackAt:0,respawnAt:0,...extra};
   a.homeX=a.x;a.homeY=a.y;w.actors.push(a);return a;
 }
+function upgradeThreats(w,regions,now){
+  const sanctuaries=new Set(regions.filter(n=>n.kind==='sanctuary').map(n=>n.id));
+  w.actors=w.actors.filter(a=>a.kind!=='hostile'||a.encounterId||a.invasionId||sanctuaries.has(a.node));
+  for(const n of regions)w.actors.push(...createRegionEnemies(n,now));
+  for(const a of w.actors.filter(a=>a.kind==='raid')){const n=nodeAt(regions,a.node),level=Math.min(20,regionThreatLevel(n)+2),ratio=a.maxHp?Math.max(.05,a.hp/a.maxHp):1;if((a.level||1)<level){a.level=level;a.maxHp=Math.max(a.maxHp,520+level*80);a.hp=Math.ceil(a.maxHp*ratio);a.attack=Math.max(a.attack,Math.ceil(10+level*1.25));a.aiStyle=a.attackType==='magic'?'arcanist':'brute';a.damageType=a.attackType||'physical';}}
+  for(const a of w.actors.filter(a=>a.kind==='rift'))a.level=regionThreatLevel(nodeAt(regions,a.node));
+}
 export function ensureRealmWorld(world,regions,now=Date.now()){
-  if(world.realmWorld?.schema===1){const w=world.realmWorld;ensureSceneryObstacles(w,regions);if((w.contentVersion||0)<5){const fresh=ensureRealmWorld({},regions,now);for(const a of fresh.actors)if(!w.actors.some(old=>old.id===a.id))w.actors.push(a);for(const slot of fresh.slots)if(!w.slots.some(old=>old.id===slot.id))w.slots.push(slot);world.territories||={};for(const n of regions.filter(n=>['capital','fortress'].includes(n.kind)))world.territories[n.id]||={owner:null,influence:{},protectedUntil:0};w.contentVersion=5;}return w;}
+  if(world.realmWorld?.schema===1){const w=world.realmWorld;ensureSceneryObstacles(w,regions);if((w.contentVersion||0)<5){const fresh=ensureRealmWorld({},regions,now);for(const a of fresh.actors)if(!w.actors.some(old=>old.id===a.id))w.actors.push(a);for(const slot of fresh.slots)if(!w.slots.some(old=>old.id===slot.id))w.slots.push(slot);world.territories||={};for(const n of regions.filter(n=>['capital','fortress'].includes(n.kind)))world.territories[n.id]||={owner:null,influence:{},protectedUntil:0};w.contentVersion=5;}if((w.contentVersion||0)<7){upgradeThreats(w,regions,now);w.contentVersion=7;log(w,'As fronteiras mudaram: criaturas de elite e novos estilos de combate rondam as regiões.',now,'arrival');}ensureFrontier(world,w,regions,now);ensureEcology(w,regions,now);return w;}
   const w={schema:1,version:1,serial:0,lastTick:now,nextInvasionAt:now+90000,actors:[],slots:[],events:[],invasions:[],presence:[]};
   const kinds=Object.keys(WORLD_SLOT_KINDS);
   regions.forEach((n,i)=>{
@@ -55,7 +66,7 @@ export function ensureRealmWorld(world,regions,now=Date.now()){
       for(let j=0;j<3;j++)addActor(w,n,'hostile',j+2,{name:'Errante das Cinzas',cardId:'thrall',hp:22,maxHp:22,attack:3,level:1});
     }else{
       addActor(w,n,'resource',0,{name:{timber:'Madeira ancestral',ore:'Minério negro',essence:'Essência lunar'}[n.resource],resource:n.resource,hp:1,maxHp:1});
-      for(let j=0;j<2;j++)addActor(w,n,'hostile',j+1,{name:j?'Fera do Véu':'Saqueador Sem Nome',cardId:j?'ravager':'warden',hp:24+n.level*10,maxHp:24+n.level*10,attack:3+n.level,level:n.level});
+      w.actors.push(...createRegionEnemies(n,now));
       addActor(w,n,'patrol',3,{name:i%2?'Vigia da Corte':'Sentinela da Alcateia',faction:i%2?'vampire':'werewolf',cardId:i%2?'duelist':'fang',hp:70,maxHp:70,attack:7});
       if(n.kind==='dungeon')addActor(w,n,'portal',4,{name:n.name,arenaKind:'dungeon',cardId:'warden',hp:1,maxHp:1,...place(n,0,0)});
       else if(['fortress','capital'].includes(n.kind))addActor(w,n,'boss',4,{name:`Guardião · ${n.name}`,arenaKind:'boss',cardId:n.id==='peak'?'alpha':'warden',hp:180+n.level*40,maxHp:180+n.level*40,...place(n,0,0)});
@@ -70,15 +81,14 @@ export function ensureRealmWorld(world,regions,now=Date.now()){
   // Short, readable journeys: each principal road has a rest stop or salvage cache.
   const roads=[['haven','rosekeep'],['haven','moonwood'],['haven','quarry'],['lake','frostport'],['frostport','frostwood'],['frostwood','winterkeep'],['icequarry','icecrypt'],['aurora','emberport'],['emberport','ashgrove'],['ashgrove','blackkeep'],['cinderforge','pyrecrypt']];
   roads.forEach(([from,to],i)=>{const a=nodeAt(regions,from),b=nodeAt(regions,to),x=(a.x+b.x)/2,y=(a.y+b.y)/2;addActor(w,b,i%2?'resource':'wayshrine',20+i,{id:`road-${from}-${to}`,name:i%2?'Suprimentos de uma caravana':'Marco do Pacto · repouso',resource:i%2?'timber':undefined,x,y,hp:1,maxHp:1,state:'à beira da estrada'});});
-  for(const a of w.actors.filter(a=>a.x>=100&&a.kind==='hostile')){const boreal=a.x<200;a.name=a.cardId==='ravager'?(boreal?'Licantropo da Geada':'Licantropo das Brasas'):(boreal?'Exilado da Corte Boreal':'Vampiro da Corte de Obsidiana');a.faction=a.cardId==='ravager'?'werewolf':'vampire';}
-  addSharedRaids(w,regions,now);ensureSceneryObstacles(w,regions);w.contentVersion=5;world.realmWorld=w;return w;
+  addSharedRaids(w,regions,now);ensureSceneryObstacles(w,regions);w.contentVersion=7;world.realmWorld=w;ensureFrontier(world,w,regions,now);return w;
 }
 function addSharedRaids(w,regions,now){
  if(w.contentVersion>=3)return;
  for(const n of regions.filter(n=>n.kind==='dungeon')){
    const position=place(n,4,-6),existing=w.actors.find(a=>a.id===`${n.id}-raid`);
    if(existing){existing.homeX=position.x;existing.homeY=position.y;}
-   else addActor(w,n,'raid',8,{id:`${n.id}-raid`,name:`Colosso do Véu · ${n.name}`,cardId:'ravager',...position,hp:360,maxHp:360,attack:7,level:n.level,contributions:{},claimed:{},respawnAt:0});
+   else {const level=Math.min(20,regionThreatLevel(n)+2),hp=520+level*80;addActor(w,n,'raid',8,{id:`${n.id}-raid`,name:`Colosso do Véu · ${n.name}`,cardId:'ravager',...position,hp,maxHp:hp,attack:Math.ceil(10+level*1.25),level,aiStyle:'brute',damageType:'physical',contributions:{},claimed:{},respawnAt:0});}
  }
  const haven=nodeAt(regions,'haven');
  for(const a of w.actors.filter(a=>a.kind==='resource'&&a.node==='haven')){const j=['timber','ore','essence'].indexOf(a.resource),position=place(haven,2+j*1.1,-1-j*1.2);a.homeX=position.x;a.homeY=position.y;}
@@ -93,7 +103,7 @@ export function ensureWorldPlayer(profile,regions,now=Date.now()){
 }
 function go(w,a,to,amount,profiles=[]){const d=distance(a,to);if(!d)return;const ratio=Math.min(1,amount/d),position=moveWithCollisions(w,a,{x:a.x+(to.x-a.x)*ratio,y:a.y+(to.y-a.y)*ratio},{profiles});a.x=position.x;a.y=position.y;}
 // Casters have readable ranged tells; the role is stable for existing saves too.
-const attackType=a=>a.attackType||(enemyOf(a)&&a.cardId==='warden'?'magic':'physical');
+const attackType=a=>a.damageType||a.attackType||(enemyOf(a)&&a.cardId==='warden'?'magic':'physical');
 function ownerProfile(profiles,id){return profiles.find(p=>p.realm?.publicId===id);}
 function enemyOf(a){return a.kind==='hostile'||a.kind==='invader'||a.kind==='raid';}
 function diePlayer(w,p,now,regions){
@@ -103,8 +113,8 @@ function diePlayer(w,p,now,regions){
   const coins=Math.min(20,Math.floor((p.coins||0)*.05)),materials={};p.coins-=coins;
   for(const key of ['timber','ore','essence']){materials[key]=Math.min(5,Math.floor((r.materials[key]||0)*.1));r.materials[key]-=materials[key];}
   w.actors=w.actors.filter(a=>a.kind!=='satchel'||a.owner!==r.publicId);
-  w.actors.push({id:`satchel-${++w.serial}`,kind:'satchel',name:`Espólio de ${p.name}`,owner:r.publicId,x:s.x,y:s.y,node:r.location,hp:1,maxHp:1,coins,materials,expiresAt:now+300000,state:'recuperável'});
-  log(w,`${p.name} caiu. A Vigília abre um retorno ao Porto; seu espólio espera por cinco minutos.`,now,'defeat');r.version++;
+  w.actors.push({id:`satchel-${++w.serial}`,kind:'satchel',name:`Espólio de ${p.name}`,raider:s.killedBy||null,owner:r.publicId,x:s.x,y:s.y,node:r.location,hp:1,maxHp:1,coins,materials,expiresAt:now+300000,state:'recuperável'});
+  s.killedBy=null;log(w,`${p.name} caiu. A Vigília abre um retorno ao Porto; seu espólio espera por cinco minutos.`,now,'defeat');r.version++;
 }
 function reviveAtHaven(w,p,regions,now,{health=.35,energy=.6,mana=.3,message='A Vigília despertou você no Porto das Cinzas.'}={}){
   const r=p.realm,s=r.roaming,haven=nodeAt(regions,'haven');syncEquipmentHealth(p);
@@ -129,7 +139,7 @@ function rewardKill(w,a,p,now){
 function hitActor(w,a,damage,p,now){
   if(!alive(a))return;
   if(a.kind==='raid'&&p){a.contributions||={};a.contributions[p.realm.publicId]=(a.contributions[p.realm.publicId]||0)+Math.min(damage,a.hp);}
-  a.hp=Math.max(0,a.hp-damage);a.state='em combate';
+  const actualDamage=Math.min(a.hp,damage);a.hp=Math.max(0,a.hp-damage);recordEcology(w,a,p,actualDamage);a.state='em combate';
   if(p){a.aggro=p.realm.publicId;a.lastHitBy=p.realm.publicId;a.aggroUntil=now+15000;p.realm.roaming.lastCombatAt=now;}
   if(!a.hp){a.state='derrotado';a.respawnAt=now+(['invader','raid'].includes(a.kind)?300000:45000);rewardKill(w,a,p,now);}
 }
@@ -138,28 +148,31 @@ function syncEquipmentHealth(p){const s=p.realm.roaming,maximum=rpgStats(p).maxH
 function npcStep(world,w,profiles,regions,now,seconds){
   const present=profiles.filter(p=>active(p,now)),hostiles=w.actors.filter(a=>enemyOf(a)&&alive(a)),guards=w.actors.filter(a=>a.kind==='patrol'&&alive(a));
   for(const a of w.actors){
-    if(!alive(a)){if(a.respawnAt&&a.respawnAt<=now&&a.kind!=='invader'){a.hp=a.maxHp;a.x=a.homeX;a.y=a.homeY;a.aggro=null;a.state='patrulhando';if(a.kind==='raid'){a.contributions={};a.claimed={};}}continue;}
+    if(!alive(a)){if(a.respawnAt&&a.respawnAt<=now&&a.kind!=='invader'&&!a.encounterId&&!a.ecologyBoss){a.hp=a.maxHp;if(a.deposit)respawnDeposit(w,a);a.x=a.homeX;a.y=a.homeY;a.aggro=null;a.state='patrulhando';if(a.kind==='raid'){a.contributions={};a.claimed={};}}continue;}
+    if(a.knockbackUntil>now)continue;
     if(a.staggerUntil>now){a.windup=null;a.state='interrompido';continue;}
-    if(a.windup){const warned=profiles.find(p=>p.realm?.publicId===a.windup.playerId);if(now<a.windup.endsAt)continue;const area=a.windup;a.windup=null;a.attackAt=now+1300;if(warned&&active(warned,now)&&!safe(warned.realm.roaming,regions)){a.attackType=attackType(a);enemyAttack(w,a,warned,now,Math.random,area);if(!warned.realm.roaming.hp)diePlayer(w,warned,now,regions);}continue;}
-    if(a.kind==='resource'||a.arenaKind||['merchant','envoy','quartermaster','satchel','wayshrine'].includes(a.kind))continue;
+    if(a.windup){const warned=profiles.find(p=>p.realm?.publicId===a.windup.playerId);if(now<a.windup.endsAt)continue;const area=a.windup;a.windup=null;a.attackAt=now+enemyStyle(a).cooldown;if(warned&&active(warned,now)&&!safe(warned.realm.roaming,regions)){a.attackType=attackType(a);enemyAttack(w,a,warned,now,Math.random,area,present);if(!warned.realm.roaming.hp)diePlayer(w,warned,now,regions);}continue;}
+    if(a.kind==='resource'||a.arenaKind||['merchant','envoy','quartermaster','satchel','wayshrine','settlement','land','rift','expedition-loot'].includes(a.kind))continue;
     if(a.kind==='caravan'){
       const threats=hostiles.filter(h=>distance(h,a)<5);if(threats.length){a.state='sob ataque';for(const h of threats){if(h.attackAt<=now){a.hp=Math.max(0,a.hp-h.attack);h.attackAt=now+2200;}}if(!a.hp){a.respawnAt=now+60000;log(w,'A caravana foi interceptada. A Vigília preparará uma nova rota.',now,'economy');}}
       else {const dest=nodeAt(regions,a.route[a.routeIndex]);go(w,a,dest,seconds*.8,present);a.state='em viagem';if(distance(a,dest)<1){a.node=dest.id;a.routeIndex=(a.routeIndex+1)%a.route.length;log(w,`A Caravana das Duas Luas entregou suprimentos em ${dest.name}.`,now,'economy');}}
       continue;
     }
-    let target=null,targetProfile=null;
+    let target=null,targetProfile=null;const style=enemyOf(a)?enemyStyle(a):null;
     if(enemyOf(a)){
-      const provoked=present.find(p=>p.realm.publicId===a.aggro&&now<a.aggroUntil&&distance(a,p.realm.roaming)<10&&!safe(p.realm.roaming,regions));
-      targetProfile=provoked||present.filter(p=>!safe(p.realm.roaming,regions)&&distance(a,p.realm.roaming)<(attackType(a)==='magic'?8:4.8)).sort((p,q)=>distance(a,p.realm.roaming)-distance(a,q.realm.roaming))[0];
+      const provoked=present.find(p=>p.realm.publicId===a.aggro&&now<a.aggroUntil&&distance(a,p.realm.roaming)<style.aggro+2&&!safe(p.realm.roaming,regions));
+      targetProfile=provoked||present.filter(p=>!safe(p.realm.roaming,regions)&&distance(a,p.realm.roaming)<style.aggro).sort((p,q)=>distance(a,p.realm.roaming)-distance(a,q.realm.roaming))[0];
       target=targetProfile?.realm.roaming||guards.filter(g=>distance(g,a)<4.5).sort((g,h)=>distance(a,g)-distance(a,h))[0];
       if(!target){const slot=w.slots.find(s=>s.occupant&&s.node===a.node&&distance(a,s)<(a.kind==='invader'?14:3));if(slot){target=slot;target.occupant._targeted=true;}}
+    if(!target&&a.kind==='invader')target=w.actors.find(c=>c.kind==='settlement'&&c.node===a.node&&c.hp>0);
     }else if(a.kind==='patrol')target=hostiles.filter(h=>h.kind!=='raid'&&alive(h)&&distance(h,a)<7).sort((g,h)=>distance(a,g)-distance(a,h))[0];
     if(target){
       a.state='em combate';
-      if(distance(a,target)>(targetProfile&&attackType(a)==='magic'?7:2)){if(!(a.rootUntil>now))go(w,a,target,seconds*(enemyOf(a)?1.15:1.4),present);}
+      if(distance(a,target)>(targetProfile?style.range:2)){if(!(a.rootUntil>now)){const d=distance(a,target),speed=enemyOf(a)?style.speed:1.4;if(targetProfile&&style.id==='raider'&&d<8)a.state='INVESTIDA';go(w,a,target,seconds*speed,present);}}
       else if(a.attackAt<=now){
-        a.attackAt=now+2000;
-        if(targetProfile){a.attackType=attackType(a);a.attackAt=now+1000;a.windup={playerId:targetProfile.realm.publicId,x:target.x,y:target.y,fromX:a.x,fromY:a.y,damageType:a.attackType,startsAt:now,endsAt:now+(a.attackType==='magic'?1000:700)};}
+        a.attackAt=now+(targetProfile?style.cooldown:2000);
+        if(targetProfile){a.attackType=attackType(a);a.attackAt=now+style.windup+style.cooldown;a.windup={playerId:targetProfile.realm.publicId,x:target.x,y:target.y,fromX:a.x,fromY:a.y,damageType:a.attackType,style:style.id,radius:style.radius||0,heavy:!!style.heavy,damageMultiplier:style.heavy?1.5:1,startsAt:now,endsAt:now+style.windup};if(style.guard){a.guardUntil=now+750;a.guardReadyAt=now+3900;const face=realmDirection(a,target);a.guardFacingX=face.x;a.guardFacingY=face.y;}}
+        else if(target.kind==='settlement'){const city=(world.houses||[]).find(h=>h.id===target.houseId)?.settlement;if(city&&now>=city.protectedUntil){city.hp=Math.max(0,city.hp-a.attack);city.morale=Math.max(0,city.morale-1);target.hp=city.hp;combatEvent(w,{source:a.id,targetId:target.id,x:target.x,y:target.y,fromX:a.x,fromY:a.y,kind:'hit',amount:a.attack,label:'CERCO NPC'},now);if(!city.hp){city.protectedUntil=now+600000;log(w,a.name+' devastou a cidade '+target.name+'.',now,'siege');}}}
         else if(target.occupant){target.occupant.hp=Math.max(0,target.occupant.hp-a.attack);if(!target.occupant.hp){log(w,`${a.name} destruiu ${target.occupant.name} em ${nodeAt(regions,target.node).name}.`,now,'siege');target.occupant=null;}}
         else {target.hp=Math.max(0,target.hp-a.attack);if(!target.hp){target.state='derrotado';target.respawnAt=now+45000;const p=ownerProfile(profiles,target.lastHitBy);if(p&&active(p,now))rewardKill(w,target,p,now);}}
       }
@@ -206,6 +219,7 @@ export function advanceRealmWorld(world,profiles,regions,now=Date.now()){
     for(const p of all)if(p.realm?.roaming&&!p.realm.activeRoom&&p.realm.roaming.hp<=0&&!p.realm.roaming.downUntil)diePlayer(w,p,at,regions);
     npcStep(world,w,all,regions,at,WORLD_RULES.tickMs/1000);structuresStep(w,all,regions,at);
   }
+  advanceFrontier(world,w,regions,now);advanceEcology(world,w,regions,now);
   if(now>=w.nextInvasionAt)startInvasion(w,regions,now);
   for(const inv of w.invasions.filter(i=>i.status==='active')){
     if(w.actors.filter(a=>a.invasionId===inv.id&&alive(a)).length===0){inv.status='defended';log(w,`${inv.name}: a Vigília venceu. As estruturas sobreviveram.`,now,'victory');}
@@ -215,14 +229,14 @@ export function advanceRealmWorld(world,profiles,regions,now=Date.now()){
   w.actors=w.actors.filter(a=>a.kind==='satchel'?a.expiresAt>now:a.kind==='invader'?validInvasions.has(a.invasionId):true);
   w.lastTick=now;w.version++;return true;
 }
-function publicActor(a,p,now){return {id:a.id,name:a.name,kind:a.kind,attackType:attackType(a),staggerUntil:a.staggerUntil||0,windup:a.windup||null,defense:10+Math.min(8,a.level||1)+(a.kind==='raid'?2:0),faction:a.faction||'neutral',x:a.x,y:a.y,hp:a.hp,maxHp:a.maxHp,node:a.node,state:a.state,cardId:a.cardId,resource:a.resource,arenaKind:a.arenaKind,respawnAt:a.respawnAt||0,owner:a.owner||null,contribution:a.contributions?.[p.realm.publicId]||0,claimed:!!a.claimed?.[p.realm.publicId],interactable:alive(a)&&(!a.owner||a.owner===p.realm.publicId),cooldown:Math.max(0,(p.realm.roaming.encounters[a.id]||0)-now)};}
+function publicActor(a,p,now){return {id:a.id,name:a.name,kind:a.kind,houseId:a.houseId||null,attackType:attackType(a),aiStyle:a.aiStyle||null,level:a.level||1,guarding:a.guardUntil>now,staggerUntil:a.staggerUntil||0,windup:a.windup||null,defense:10+Math.min(8,a.level||1)+(a.kind==='raid'?2:0),faction:a.faction||'neutral',x:a.x,y:a.y,hp:a.hp,maxHp:a.maxHp,node:a.node,state:a.state,cardId:a.cardId,resource:a.resource,arenaKind:a.arenaKind,respawnAt:a.respawnAt||0,owner:a.owner||null,contribution:a.contributions?.[p.realm.publicId]||0,claimed:!!a.claimed?.[p.realm.publicId],interactable:alive(a)&&(!a.owner||a.owner===p.realm.publicId),cooldown:Math.max(0,(p.realm.roaming.encounters[a.id]||0)-now)};}
 export function realmWorldView(world,profile,profiles,regions,now=Date.now()){
   const w=ensureRealmWorld(world,regions,now),s=ensureWorldPlayer(profile,regions,now);
   const {encounters,interactions,...player}=s;
-  return {version:w.version,serverTime:now,rules:WORLD_RULES,blueprints:WORLD_BLUEPRINTS,slotKinds:WORLD_SLOT_KINDS,player:{...structuredClone(player),publicId:profile.realm.publicId,location:profile.realm.location},wallet:{coins:profile.coins,materials:{...profile.realm.materials},provisions:profile.realm.provisions,xp:profile.realm.xp,level:profile.realm.level,version:profile.realm.version},
+  return {ecology:w.ecology,plots:w.plots,cityBuildings:CITY_BUILDINGS,myHouse:profile.realm.houseId,settlements:(world.houses||[]).filter(h=>h.settlement).map(h=>({houseId:h.id,name:h.name,leader:h.leader,treasury:h.treasury||0,...h.settlement,allied:(h.allies||[]).includes(profile.realm.houseId),offer:(world.houses||[]).find(m=>m.id===profile.realm.houseId)?.allianceOffers?.includes(h.id)||false,own:h.id===profile.realm.houseId})),version:w.version,serverTime:now,rules:WORLD_RULES,blueprints:WORLD_BLUEPRINTS,slotKinds:WORLD_SLOT_KINDS,player:{...structuredClone(player),publicId:profile.realm.publicId,location:profile.realm.location},wallet:{coins:profile.coins,materials:{...profile.realm.materials},provisions:profile.realm.provisions,xp:profile.realm.xp,level:profile.realm.level,version:profile.realm.version},
     cards:Object.keys(CARDS).filter(id=>owns(profile,id)),
     rpg:rpgView(profile,now),combat:combatWorldView(w,profileList(profiles),now),campaign:campaignView(profile,now),continents:CONTINENTS,combatEvents:(w.combatEvents||[]).filter(e=>now-e.at<4000),actors:w.actors.map(a=>publicActor(a,profile,now)),slots:w.slots.map(slot=>{const o=slot.occupant;return {id:slot.id,node:slot.node,kind:slot.kind,x:slot.x,y:slot.y,occupant:o?{owner:o.owner,name:o.name,houseId:o.houseId,faction:o.faction,cardId:o.cardId,blueprintId:o.blueprintId,hp:o.hp,maxHp:o.maxHp,attack:o.attack,stock:o.stock,resource:o.resource,equipment:[...o.equipment],expiresAt:o.expiresAt}:null};}),
-    players:profileList(profiles).filter(p=>online(p,now)&&p.realm.roaming).map(p=>({id:p.realm.publicId,name:p.name,avatar:p.realm.avatar,faction:p.starterFaction,houseId:p.realm.houseId,x:p.realm.roaming.x,y:p.realm.roaming.y,hp:p.realm.roaming.hp,maxHp:p.realm.roaming.maxHp,busy:!!p.realm.activeRoom,level:p.realm.level})),
+    players:profileList(profiles).filter(p=>online(p,now)&&p.realm.roaming).map(p=>({id:p.realm.publicId,name:p.name,avatar:p.realm.avatar,warEnemy:atWar(world,profile.realm.houseId,p.realm.houseId,now),faction:p.starterFaction,houseId:p.realm.houseId,x:p.realm.roaming.x,y:p.realm.roaming.y,hp:p.realm.roaming.hp,maxHp:p.realm.roaming.maxHp,busy:!!p.realm.activeRoom,level:p.realm.level})),
     events:w.events.slice(0,12),invasions:w.invasions.map(({contributors,...inv})=>({...inv,contribution:contributors[profile.realm.publicId]||0})),cycle:{phase:['névoa','crepúsculo','lua rubra','vigília'][Math.floor(now/180000)%4],nextAt:(Math.floor(now/180000)+1)*180000}};
 }
 function nearbySlot(w,s,id){const slot=w.slots.find(t=>t.id===id);check(slot,'Posição de carta desconhecida.');check(distance(s,slot)<=WORLD_RULES.interactRange,'Aproxime-se da posição para comandar esta carta.');return slot;}
@@ -269,10 +283,11 @@ function interact(world,w,p,input,regions,now){
     throw new RuleError('Esta carta defende a posição automaticamente. Use reparar ou recolher.');
   }
   const a=w.actors.find(a=>a.id===input.targetId);check(a&&(alive(a)||a.kind==='raid'),'Este alvo não está disponível.');check(distance(s,a)<=WORLD_RULES.interactRange,'Aproxime-se para interagir.');
+  if(['rift','expedition-loot'].includes(a.kind))return ecologyInteract(w,p,a,now);
   if(a.kind==='wayshrine'){check(now-s.lastCombatAt>=6000,'Afaste-se do combate antes de repousar.');check(now-(s.interactions[a.id]||0)>=90000,'O marco precisa de 90 segundos para renovar o pacto.');debit(p,{essence:1});s.interactions[a.id]=now;s.hp=Math.min(s.maxHp,s.hp+30);s.energy=Math.min(s.maxEnergy,s.energy+30);ensureRpg(p).mana=Math.min(rpgStats(p).maxMana,p.rpg.mana+25);return {message:'Pacto renovado: +30 vida, +30 vigor e +25 mana. Custo: 1 essência.'};}
   if(a.kind==='raid'){check(!a.hp,'Vença o colosso antes de recolher seu saque.');check((a.contributions?.[r.publicId]||0)>=20,'Cause pelo menos 20 de dano para participar do saque.');check(!a.claimed[r.publicId],'Você já recebeu o saque desta vigília.');a.claimed[r.publicId]=true;gainRpg(p,100,'raids');p.coins+=60;r.materials.ore+=6;r.materials.essence+=4;xp(r,60);return {message:'Raid vencida: +60 Marcas, +60 XP, +6 minérios e +4 essências.'};}
-  if(a.kind==='resource'){energy(s,5);gainRpg(p,8,'gathers');r.materials[a.resource]+=3;s.quest.gathers++;ensureAdventure(r);r.adventure.stats.gathers++;dailyState(r,now).gathers++;xp(r,5);a.hp=0;a.respawnAt=now+30000;s.reputation[p.starterFaction]=(s.reputation[p.starterFaction]||0)+1;return {message:`Coleta: +3 ${a.resource==='timber'?'madeiras':a.resource==='ore'?'minérios':'essências'}.`};}
-  if(a.kind==='satchel'){check(a.owner===r.publicId,'Este espólio pertence a outro viajante.');p.coins+=a.coins;for(const [k,v]of Object.entries(a.materials))r.materials[k]+=v;w.actors=w.actors.filter(t=>t!==a);return {message:'Seu espólio foi recuperado.'};}
+  if(a.kind==='resource'){energy(s,5);if(w.ecology?.regions[a.node])w.ecology.regions[a.node].gathers++;gainRpg(p,8,'gathers');r.materials[a.resource]+=3;s.quest.gathers++;ensureAdventure(r);r.adventure.stats.gathers++;dailyState(r,now).gathers++;xp(r,5);a.hp=0;a.respawnAt=now+(a.deposit?45000+Math.floor(Math.random()*60000):30000);s.reputation[p.starterFaction]=(s.reputation[p.starterFaction]||0)+1;return {message:`Coleta: +3 ${a.resource==='timber'?'madeiras':a.resource==='ore'?'minérios':'essências'}.`};}
+  if(a.kind==='satchel'){check(a.owner===r.publicId||a.raider===r.publicId,'Este espólio pertence ao viajante ou a quem o derrotou em guerra.');p.coins+=a.coins;for(const [k,v]of Object.entries(a.materials))r.materials[k]+=v;w.actors=w.actors.filter(t=>t!==a);return {message:'Seu espólio foi recuperado.'};}
   if(a.kind==='quartermaster'){check(now-(s.interactions[a.id]||0)>=20000,'Iria está preparando novos suprimentos.');s.hp=s.maxHp;s.energy=s.maxEnergy;ensureRpg(p).mana=rpgStats(p).maxMana;s.interactions[a.id]=now;r.provisions=Math.max(r.provisions,8);return {message:'Iria restaurou sua vitalidade e vigor. A Vigília garante pelo menos 8 provisões.'};}
   if(a.kind==='merchant'){const resource=input.resource||nodeAt(regions,r.location).resource;check(['timber','ore','essence'].includes(resource),'Recurso desconhecido.');debit(p,{[resource]:2});p.coins+=8;return {message:'Negócio concluído: 2 recursos vendidos por 8 Marcas.'};}
   if(a.kind==='envoy'){
@@ -311,7 +326,7 @@ export function realmWorldAction(world,profile,input,regions,now=Date.now()){
     combatReady(profile,now);const dx=Number(input.dx),dy=Number(input.dy),ms=Number(input.elapsedMs),seq=Number(input.sequence);
     check(Number.isFinite(dx)&&Number.isFinite(dy)&&Math.abs(dx)<=1&&Math.abs(dy)<=1,'Direção inválida.');check(Number.isFinite(ms)&&ms>0&&ms<=250,'Intervalo de movimento inválido.');check(Number.isSafeInteger(seq)&&seq>s.moveSeq&&seq<=Number.MAX_SAFE_INTEGER-1,'Movimento já recebido ou fora de sequência.');
     const power=input.power===undefined?1:Number(input.power);check(Number.isFinite(power)&&power>=.12&&power<=1,'Intensidade de movimento inválida.');
-    const elapsed=Math.min(ms,250,Math.max(0,now-s.moveAt)),length=Math.hypot(dx,dy),factor=length>1?1/length:1,step=WORLD_RULES.speed*elapsed/1000*power;
+    const elapsed=s.knockbackUntil>now?0:Math.min(ms,250,Math.max(0,now-s.moveAt)),length=Math.hypot(dx,dy),factor=length>1?1/length:1,step=WORLD_RULES.speed*elapsed/1000*power;
     const position=moveWithCollisions(w,s,{x:clamp(s.x+dx*factor*step/WORLD_RULES.aspect,1,299),y:clamp(s.y+dy*factor*step,1,99)});
     s.x=position.x;s.y=position.y;s.moveAt=now;s.moveSeq=seq;r.seenAt=now;
     const rpg=ensureRpg(profile);if(length&&!(rpg.barrier?.expiresAt>now)){rpg.facingX=dx/length;rpg.facingY=dy/length;}
@@ -333,7 +348,11 @@ export function realmWorldAction(world,profile,input,regions,now=Date.now()){
   combatReady(profile,now);if(input.type==='world-encounter')return prepareWorldEncounter(world,profile,input,regions,now);
   check(now>=s.commandAt,'Aguarde um instante entre ordens.');let result;
   if(input.type==='world-ability')result=actionCombat(w,profile,input,regions,now,hitActor);
-  else if(input.type.startsWith('rpg-'))result=rpgChoice(profile,input);
+  else if(input.type==='world-land'){result=claimLand(world,w,profile,input,now);ensureFrontier(world,w,regions,now);}
+  else if(input.type==='world-district')result=districtAction(world,w,profile,input,now);
+  else if(input.type==='world-government')result=dominionAction(world,w,profile,input,now);
+  else if(input.type==='world-city'){result=input.operation==='build'?districtAction(world,w,profile,{...input,districtId:input.houseId+':'+input.resource},now):settlementAction(world,profile,input,now);ensureFrontier(world,w,regions,now);}
+  else if(input.type.startsWith('rpg-'))result=rpgChoice(profile,input,now);
   else if(input.type.startsWith('campaign-'))result=campaignAction(profile,input,now);
   else if(input.type==='world-stop'){s.targetId=null;s.targetUntil=0;cancelActionCombat(w,profile,now);result={message:'Ataque interrompido.'};}
   else if(input.type==='world-equip'){

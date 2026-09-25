@@ -27,6 +27,7 @@ export const REGIONS = [
   {id:'abyss',name:'Coração do Abismo',kind:'dungeon',x:94,y:59,level:5,board:'crypt-board',resource:'ore',links:['citadel','ashroad','lake'],description:'A última fronteira. Uma fome sem rosto aguarda além das três portas do eclipse.',icon:'☠'}
 ];
 REGIONS.push(...EXPANSION_REGIONS);
+for(const node of REGIONS){const continent=Math.floor(node.x/100);node.recommendedLevel=node.kind==='sanctuary'?1:Math.min(18,node.level+continent*4);const threat=node.recommendedLevel+(node.kind==='capital'?1:0);node.levelRange={min:Math.max(1,threat-1),max:Math.min(20,threat+2)};}
 for(const node of REGIONS)for(const id of [...node.links]){const other=REGIONS.find(n=>n.id===id);if(other&&!other.links.includes(node.id))other.links.push(node.id);}
 export const AVATARS=['vesper','kael','mordrath','raven','thorn','oracle'];
 export const POLICIES={expedition:{name:'Expedição',description:'+1 madeira, minério ou essência nas vitórias de expedição.'},commerce:{name:'Comércio',description:'+5 Marcas na primeira vitória remunerada em cada região a cada cinco minutos.'},bastion:{name:'Bastião',description:'Fortalezas exigem uma vitória adicional de invasores para serem tomadas.'}};
@@ -73,7 +74,7 @@ export function realmAction(world,profile,input,createId,now=Date.now()){
   else if(action==='story-accept'||action==='story-finish'){const reward=storyAction(r,input);if(reward){profile.coins+=reward.coins;profile.scrap=(profile.scrap||0)+reward.scrap;adventureJournal(r,reward.text,now);}}
   else if(action==='legacy-claim'){const reward=legacyClaim(r,input.id);profile.coins+=reward.coins;profile.scrap=(profile.scrap||0)+reward.scrap;adventureJournal(r,reward.name+' · +'+reward.coins+' marcas e +'+reward.scrap+' sucatas.',now);}
   else if(action==='travel'){
-    const destination=region(input.destination);check(destination&&here.links.includes(destination.id),'Viaje por uma rota conectada.');check(r.level>=destination.level,`Esta região exige nível de exploração ${destination.level}.`);check(r.provisions>0,'Reabasteça suas provisões no acampamento.');
+    const destination=region(input.destination),requiredLevel=destination?.recommendedLevel||destination?.level;check(destination&&here.links.includes(destination.id),'Viaje por uma rota conectada.');check(r.level>=requiredLevel,`Esta região recomenda nível de exploração ${requiredLevel}. Prepare-se em uma zona anterior antes de cruzar a fronteira.`);check(r.provisions>0,'Reabasteça suas provisões no acampamento.');
     r.provisions--;r.location=destination.id;r.expedition=null;if(!r.visited.includes(destination.id)){r.visited.push(destination.id);gainXP(r,20);}
   }else if(action==='retreat'){r.location='haven';r.expedition=null;}
   else if(action==='gather'){
@@ -99,7 +100,7 @@ export function realmAction(world,profile,input,createId,now=Date.now()){
   else if(action==='avatar'){check(AVATARS.includes(input.avatar),'Avatar desconhecido.');r.avatar=input.avatar;}
   else if(action==='found'){
     check(!house,'Você já pertence a uma Casa.');const name=String(input.name||'').trim();check(name.length>=3&&name.length<=28,'Use um nome entre 3 e 28 caracteres.');check(!world.houses.some(h=>h.name.toLocaleLowerCase()===name.toLocaleLowerCase()),'Já existe uma Casa com esse nome.');check(world.houses.length<200,'O reino atingiu seu limite de Casas.');debit(profile,100);
-    const h={id:createId(),name,faction:profile.starterFaction,leader:r.publicId,members:[r.publicId],treasury:0,policy:'expedition',proposal:null,createdAt:now};world.houses.push(h);r.houseId=h.id;journal(world,`${profile.name} fundou ${name}.`,now);
+    const h={requiresPlot:true,id:createId(),name,faction:profile.starterFaction,leader:r.publicId,members:[r.publicId],treasury:0,policy:'expedition',proposal:null,createdAt:now};world.houses.push(h);r.houseId=h.id;journal(world,`${profile.name} fundou ${name}.`,now);
   }else if(action==='join'){
     check(!house,'Você já pertence a uma Casa.');const h=world.houses.find(h=>h.id===input.houseId);check(h&&h.faction===profile.starterFaction,'Escolha uma Casa da sua linhagem.');check(h.members.length<20,'Esta Casa já tem vinte membros.');h.members.push(r.publicId);r.houseId=h.id;journal(world,`${profile.name} jurou lealdade a ${h.name}.`,now);
   }else if(action==='donate'){check(house,'Entre em uma Casa.');const amount=Number(input.amount);check(Number.isInteger(amount)&&amount>=1&&amount<=1000,'Doe entre 1 e 1.000 Marcas.');debit(profile,amount);house.treasury+=amount;world.version++;}
@@ -109,7 +110,7 @@ export function realmAction(world,profile,input,createId,now=Date.now()){
   }else if(action==='vote'){
     check(house?.proposal,'Não há uma proposta aberta.');check(house.proposal.eligible.includes(r.publicId),'Você entrou após o início desta votação.');check(!house.proposal.votes.includes(r.publicId),'Seu voto já foi contado.');house.proposal.votes.push(r.publicId);world.version++;resolveVote(house,world,now);
   }else if(action==='war'){
-    check(house?.leader===r.publicId,'Somente o fundador pode declarar guerra.');const rival=world.houses.find(h=>h.id===input.houseId);check(rival&&rival.id!==house.id,'Escolha uma Casa rival.');check(Object.values(world.territories).some(t=>t.owner===rival.id),'O rival ainda não possui territórios.');
+    check(house?.leader===r.publicId,'Somente o fundador pode declarar guerra.');const rival=world.houses.find(h=>h.id===input.houseId);check(rival&&rival.id!==house.id,'Escolha uma Casa rival.');check(!(house.allies||[]).includes(rival.id),'Não é possível declarar guerra a uma Casa aliada.');check(rival.settlement||Object.values(world.territories).some(t=>t.owner===rival.id),'O rival ainda não possui cidade ou territórios.');
     check(!world.wars.some(w=>w.status==='active'&&[w.attacker,w.defender].includes(house.id)),'Sua Casa já participa de uma guerra.');check(!world.wars.some(w=>w.status==='active'&&[w.attacker,w.defender].includes(rival.id)),'Essa Casa já participa de uma guerra.');check(house.treasury>=50,'A guerra exige 50 Marcas do tesouro.');house.treasury-=50;
     world.wars.push({id:createId(),attacker:house.id,defender:rival.id,status:'active',startsAt:now,endsAt:now+1800000});journal(world,`${house.name} declarou guerra a ${rival.name}. Trinta minutos de disputa.`,now);
   }else throw new RuleError('Ação de reino desconhecida.');

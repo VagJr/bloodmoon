@@ -12,6 +12,18 @@ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 function state(w){w.combatCasts||=[];w.projectiles||=[];w.combatEvents||=[];w.serial||=0;}
 export function combatEvent(w,event,now){state(w);const e={...event,id:`combat-${++w.serial}`,at:now};w.combatEvents.push(e);w.combatEvents=w.combatEvents.filter(e=>now-e.at<5000).slice(-100);return e;}
 
+// Sweep the whole impulse, stopping at walls, structures and living bodies.
+export function applyKnockback(w,entity,origin,damage,now,{id=entity.id,heavy=false,profiles=[]}={}){
+  if(damage<=0||entity.hp<=0)return null;
+  const direction=realmDirection(origin,entity),mass=entity.kind==='raid'?.18:1;
+  const force=Math.min(2.4,.35+damage*.035+(heavy?.6:0))*mass;
+  const from={x:entity.x,y:entity.y};
+  const to=moveWithCollisions(w,{...entity,id},{x:from.x+direction.x*force/REALM_ASPECT,y:from.y+direction.y*force},{ignoreId:id,slide:false,profiles});
+  entity.x=to.x;entity.y=to.y;entity.knockbackUntil=now+180;entity.displacement=(entity.displacement||0)+1;
+  combatEvent(w,{kind:to.blocked?'collision':'knockback',ability:'impact',source:origin.id||origin.publicId,targetId:id,fromX:from.x,fromY:from.y,x:to.x,y:to.y,directionX:direction.x,directionY:direction.y,amount:damage,duration:180,label:to.blocked?'COLISÃO':''},now);
+  return to;
+}
+
 export function cancelActionCombat(w,p,now,reason='cancel'){
   state(w);const r=ensureRpg(p),cast=r.cast;
   w.combatCasts=w.combatCasts.filter(c=>c.source!==p.realm.publicId);r.cast=null;
@@ -34,7 +46,7 @@ function barrierContact(p,from,to,radius,now,damageType,until=now){
   return contact&&b.expiresAt>impactAt&&(!b.startedAt||b.startedAt<=impactAt)?{...contact,impactAt,barrier:b}:null;
 }
 function interruptActor(w,a,p,now,duration=1200){
-  if(!a)return;a.windup=null;a.staggerUntil=Math.max(a.staggerUntil||0,now+duration);a.rootUntil=Math.max(a.rootUntil||0,now+duration);a.attackAt=Math.max(a.attackAt||0,now+duration);
+  if(!a)return;a.windup=null;a.guardUntil=0;a.staggerUntil=Math.max(a.staggerUntil||0,now+duration);a.rootUntil=Math.max(a.rootUntil||0,now+duration);a.attackAt=Math.max(a.attackAt||0,now+duration);
   combatEvent(w,{source:p.realm.publicId,targetId:a.id,ability:'parry',x:a.x,y:a.y,kind:'interrupt',duration,label:'ATORDOADO'},now);
 }
 function absorbBarrier(w,p,contact,damage,damageType,source,now,projectile=null){
@@ -104,40 +116,53 @@ function damageActor(w,p,t,a,now,hit,rng,origin,projectile=null){
     if(a.id==='strike'&&roll.hit){r.combo=now-r.comboAt<2200?(r.combo+1)%3:1;r.comboAt=now;if(r.combo===0)damage+=4;}
     if(roll.critical&&r.path==='stalker')damage+=4;if(saved)damage=Math.floor(damage/2);
   }
-  if(damage){hit(w,t,damage,p,now);if(a.id==='frost'&&!saved)t.rootUntil=now+2000;if(a.id==='drain')s.hp=Math.min(s.maxHp,s.hp+Math.ceil(damage/2));}
+  if(damage&&t.aiStyle==='sentinel'&&t.guardUntil>now){const incoming=realmDirection(origin,t),front=incoming.x*(t.guardFacingX||0)+incoming.y*(t.guardFacingY||0);if(front>.25){const blocked=Math.floor(damage*.58);damage=Math.max(1,damage-blocked);combatEvent(w,{source:t.id,targetId:t.id,ability:'guard',kind:'enemy-guard',x:t.x,y:t.y,fromX:origin.x,fromY:origin.y,amount:blocked,label:'GUARDA FRONTAL'},now);if(roll.critical||a.id==='cleave'||a.id==='tempest')t.guardUntil=0;}}
+  if(damage){hit(w,t,damage,p,now);applyKnockback(w,t,{...origin,id:p.realm.publicId},damage,now,{heavy:roll.critical||['cleave','tempest'].includes(a.id)});if(a.id==='frost'&&!saved)t.rootUntil=now+2000;if(a.id==='drain')s.hp=Math.min(s.maxHp,s.hp+Math.ceil(damage/2));}
   s.lastCombatAt=now;
   const e=combatEvent(w,{ability:projectile?.reflected?'reflect':a.id,source:p.realm.publicId,targetId:t.id,x:t.x,y:t.y,fromX:origin.x,fromY:origin.y,damageType:a.damageType||'magic',projectileId:projectile?.id,roll,saved,amount:damage,kind:roll.critical?'critical':damage?'hit':'miss',label:roll.critical?`CRÍTICO ${damage}`:saved?`${damage} · RESISTIU`:damage?`${damage}`:'ESQUIVA'},now);
   r.log.unshift({id:e.id,at:now,ability:projectile?.reflected?'Espelho do Véu':a.name,target:t.name,...roll,damage,saved});r.log=r.log.slice(0,8);
 }
-function launchCast(w,p,cast,now,hit,rng){
+const warEnemy=(w,a,b)=>a!==b&&a.realm?.houseId&&b.realm?.houseId&&(w.warPairs||[]).some(pair=>pair.includes(a.realm.houseId)&&pair.includes(b.realm.houseId)&&a.realm.houseId!==b.realm.houseId);
+function damageOpponent(w,p,v,a,now,rng,origin,shot=null,profiles=[]){
+ const r=ensureRpg(p),stats=rpgStats(p),defender=rpgStats(v),mod=stats.modifiers[a.attribute||'strength'];
+ const roll=rollD20(stats.proficiency+mod+(r.talents.precision||0),defender.defense,rng);
+ let damage=shot?.reflected?shot.damage:roll.hit?Math.max(1,rollDice(roll.critical?2:1,a.dice||6,rng)+mod+(a.damageType==='magic'?(r.talents.channel||0):stats.weapon)):0;
+ const barrier=barrierContact(v,origin,v.realm.roaming,.15,now,a.damageType||'physical');
+ if(damage&&barrier){const outcome=absorbBarrier(w,v,barrier,damage,a.damageType||'physical',p.realm.publicId,now,shot);if(outcome.reflected)return true;damage=outcome.damage;}
+ hitPlayer(w,v,p.realm.publicId,damage,roll,now,origin,a.id,a.damageType,profiles);p.realm.roaming.lastCombatAt=now;
+ if(damage&&!v.realm.roaming.hp)v.realm.roaming.killedBy=p.realm.publicId;
+ return false;
+}
+function launchCast(w,p,cast,now,hit,rng,players=[],regions=[]){
   const s=p.realm.roaming,a=ABILITIES[cast.ability],aim={x:cast.aimX,y:cast.aimY},direction=realmDirection(s,aim,{x:cast.directionX,y:cast.directionY});
   if(a.damageType==='physical'){
-    const candidates=w.actors.filter(t=>hostile(t)&&distance(s,t)<=a.range+.45).filter(t=>{const dir=realmDirection(s,t);return dir.x*direction.x+dir.y*direction.y>=(a.id==='cleave'?.15:.7);}).sort((a,b)=>distance(s,a)-distance(s,b));
-    const victims=candidates.filter(t=>!firstObstacleCollision(w,s,t,.1));
-    if(a.id==='strike')victims.splice(1);
+    const candidates=[...w.actors.filter(hostile).map(entity=>({entity})),...players.filter(v=>warEnemy(w,p,v)&&!peaceful(v.realm.roaming,regions)).map(profile=>({entity:profile.realm.roaming,profile}))].filter(({entity:t})=>distance(s,t)<=a.range+.45).filter(({entity:t})=>{const dir=realmDirection(s,t);return dir.x*direction.x+dir.y*direction.y>=(a.id==='cleave'?.15:.7);}).sort((a,b)=>distance(s,a.entity)-distance(s,b.entity));
+    const victims=candidates.filter(({entity:t})=>!firstObstacleCollision(w,s,t,.1));if(a.id==='strike')victims.splice(1);
     if(!victims.length)combatEvent(w,{source:p.realm.publicId,ability:a.id,kind:'miss',x:aim.x,y:aim.y,fromX:s.x,fromY:s.y,label:'SEM CONTATO',damageType:'physical'},now);
-    for(const t of victims.slice(0,5))damageActor(w,p,t,a,now,hit,rng,s);
+    for(const t of victims.slice(0,5))if(t.profile)damageOpponent(w,p,t.profile,a,now,rng,s,null,players);else damageActor(w,p,t.entity,a,now,hit,rng,s);
     return;
   }
   const range=a.area?Math.min(a.range,Math.max(.7,distance(s,aim))):a.range;
-  const projectile={id:`projectile-${++w.serial}`,source:p.realm.publicId,targetId:cast.targetId,team:'player',ability:a.id,damageType:a.damageType,x:s.x,y:s.y,fromX:s.x,fromY:s.y,velocityX:direction.x*a.speed/REALM_ASPECT,velocityY:direction.y*a.speed,speed:a.speed,radius:.2,createdAt:now,lastAt:now,expiresAt:now+range/a.speed*1000};
+  const projectile={id:`projectile-${++w.serial}`,source:p.realm.publicId,targetId:cast.targetId,team:'player',ability:a.id,damage:Math.max(1,a.dice+rpgStats(p).modifiers[a.attribute]+rpgStats(p).weapon),damageType:a.damageType,x:s.x,y:s.y,fromX:s.x,fromY:s.y,velocityX:direction.x*a.speed/REALM_ASPECT,velocityY:direction.y*a.speed,speed:a.speed,radius:.2,createdAt:now,lastAt:now,expiresAt:now+range/a.speed*1000};
   w.projectiles.push(projectile);combatEvent(w,{...projectile,kind:'launch',duration:range/a.speed*1000,label:''},now);
 }
-function hitPlayer(w,p,source,damage,roll,now,origin,ability='enemy',damageType='physical'){
+function hitPlayer(w,p,source,damage,roll,now,origin,ability='enemy',damageType='physical',profiles=[]){
   const s=p.realm.roaming,r=ensureRpg(p),evaded=r.evadeUntil>now;if(evaded)damage=0;
   s.hp=Math.max(0,s.hp-damage);s.lastCombatAt=now;
+  if(damage)applyKnockback(w,s,{...origin,id:source},damage,now,{id:p.realm.publicId,heavy:!!roll?.critical,profiles});
   if(damage&&r.cast){cancelActionCombat(w,p,now,'damage');r.globalAt=now+180;}
   combatEvent(w,{source,targetId:p.realm.publicId,fromX:origin.x,fromY:origin.y,x:s.x,y:s.y,kind:damage?'enemy-hit':'evade',ability,damageType,amount:damage,label:damage?`−${damage}`:evaded?'ESQUIVA':'DEFESA',roll},now);return damage;
 }
 
-export function enemyAttack(w,a,p,now,rng=Math.random,area=null){
+export function enemyAttack(w,a,p,now,rng=Math.random,area=null,profiles=[]){
   state(w);if(!active(p,now)||a.hp<=0||a.staggerUntil>now)return 0;
-  const s=p.realm.roaming,r=ensureRpg(p),stats=rpgStats(p),aim=area||s,damageType=area?.damageType||a.attackType||'physical',direction=realmDirection(a,aim);
+  const s=p.realm.roaming,r=ensureRpg(p),stats=rpgStats(p),aim=area||s,damageType=area?.damageType||a.attackType||'physical',direction=realmDirection(a,aim),scale=area?.damageMultiplier||1;let attack=Math.ceil(a.attack*scale);
   if(damageType==='magic'||a.ranged){
-    const speed=damageType==='magic'?8:11,range=9;
-    const projectile={id:`projectile-${++w.serial}`,source:a.id,targetId:p.realm.publicId,team:'enemy',ability:damageType==='magic'?'enemy-bolt':'enemy',damageType,x:a.x,y:a.y,fromX:a.x,fromY:a.y,velocityX:direction.x*speed/REALM_ASPECT,velocityY:direction.y*speed,speed,radius:.22,damage:a.attack,level:a.level||1,createdAt:now,lastAt:now,expiresAt:now+range/speed*1000};
+    const speed=damageType==='magic'?7.2:9,range=10;
+    const projectile={id:`projectile-${++w.serial}`,source:a.id,targetId:p.realm.publicId,team:'enemy',ability:damageType==='magic'?'enemy-bolt':'enemy',damageType,x:a.x,y:a.y,fromX:a.x,fromY:a.y,velocityX:direction.x*speed/REALM_ASPECT,velocityY:direction.y*speed,speed,radius:.22,damage:attack,area:area?.radius||0,level:a.level||1,createdAt:now,lastAt:now,expiresAt:now+range/speed*1000};
     w.projectiles.push(projectile);combatEvent(w,{...projectile,kind:'launch',duration:range/speed*1000,label:''},now);return 0;
   }
+  if(area?.radius){if(distance(aim,s)>area.radius+.45){combatEvent(w,{source:a.id,targetId:p.realm.publicId,ability:'enemy-slam',kind:'miss',damageType,x:aim.x,y:aim.y,radius:area.radius,label:'ÁREA EVITADA'},now);return 0;}const barrier=barrierContact(p,a,s,.15,now,damageType);if(barrier){const outcome=absorbBarrier(w,p,barrier,attack,damageType,a.id,now);if(!outcome.damage)return 0;attack=outcome.damage;}const roll=rollD20(2+Math.floor((a.level||1)/2),stats.defense,rng),damage=roll.hit?Math.max(1,attack+(roll.critical?rollDice(1,6,rng):0)):0;combatEvent(w,{source:a.id,targetId:p.realm.publicId,ability:'enemy-slam',kind:'impact',damageType,x:aim.x,y:aim.y,fromX:a.x,fromY:a.y,radius:area.radius,label:roll.hit?'RUPTURA':'EVITADO'},now);return hitPlayer(w,p,a.id,damage,roll,now,a, 'enemy-slam',damageType,profiles);}
   const reach=2.8,targetDirection=realmDirection(a,s),contact=distance(a,s)<=reach+.45&&targetDirection.x*direction.x+targetDirection.y*direction.y>=.72;
   const end={x:a.x+direction.x*reach/REALM_ASPECT,y:a.y+direction.y*reach};
   if(!contact||firstObstacleCollision(w,a,s,.08)){
@@ -146,14 +171,25 @@ export function enemyAttack(w,a,p,now,rng=Math.random,area=null){
   if(r.evadeUntil>now)return hitPlayer(w,p,a.id,0,null,now,a);
   const barrier=barrierContact(p,a,s,.15,now,damageType);
   if(barrier){const result=absorbBarrier(w,p,barrier,a.attack,damageType,a.id,now);if(!result.damage){s.lastCombatAt=now;return 0;}return hitPlayer(w,p,a.id,result.damage,null,now,a);}
-  const roll=rollD20(2+Math.floor((a.level||1)/2),stats.defense,rng),damage=roll.hit?Math.max(1,a.attack+(roll.critical?rollDice(1,6,rng):0)):0;
-  return hitPlayer(w,p,a.id,damage,roll,now,a);
+  const roll=rollD20(2+Math.floor((a.level||1)/2),stats.defense,rng),damage=roll.hit?Math.max(1,attack+(roll.critical?rollDice(1,6,rng):0)):0;
+  return hitPlayer(w,p,a.id,damage,roll,now,a,'enemy',damageType,profiles);
 }
 
-function explode(w,shot,p,point,now,hit,rng){
+function enemyBlast(w,shot,point,profiles,regions,now,rng){
+ const radius=shot.area||0;if(radius<=0)return;
+ combatEvent(w,{source:shot.source,targetId:shot.targetId,ability:shot.ability,kind:'impact',damageType:shot.damageType,x:point.x,y:point.y,fromX:shot.fromX,fromY:shot.fromY,radius,label:'EXPLOSÃO'},now);
+ for(const p of profiles){if(!active(p,now)||peaceful(p.realm.roaming,regions)||distance(point,p.realm.roaming)>radius)continue;
+  const stats=rpgStats(p),roll=rollD20(2+Math.floor((shot.level||1)/2),stats.defense,rng),damage=roll.hit?Math.max(1,shot.damage+(roll.critical?rollDice(1,6,rng):0)):0,source=w.actors.find(a=>a.id===shot.source),barrier=barrierContact(p,source||{x:shot.fromX,y:shot.fromY},p.realm.roaming,.15,now,shot.damageType);
+  if(barrier&&damage){const outcome=absorbBarrier(w,p,barrier,damage,shot.damageType,shot.source,now,shot);if(outcome.reflected)continue;if(!outcome.damage)continue;hitPlayer(w,p,shot.source,outcome.damage,roll,now,source||{x:shot.fromX,y:shot.fromY},shot.ability,shot.damageType,profiles);}
+  else hitPlayer(w,p,shot.source,damage,roll,now,source||{x:shot.fromX,y:shot.fromY},shot.ability,shot.damageType,profiles);
+ }
+}
+
+function explode(w,shot,p,point,now,hit,rng,players=[],regions=[]){
   const a=ABILITIES[shot.ability];if(!a?.area)return;
   combatEvent(w,{source:shot.source,ability:a.id,kind:'impact',x:point.x,y:point.y,fromX:shot.fromX,fromY:shot.fromY,radius:a.area,damageType:'magic',projectileId:shot.id,label:''},now);
   for(const target of w.actors.filter(t=>hostile(t)&&distance(point,t)<=a.area).slice(0,8))if(!firstObstacleCollision(w,point,target,.02))damageActor(w,p,target,a,now,hit,rng,point,shot);
+  for(const target of players.filter(v=>warEnemy(w,p,v)&&!peaceful(v.realm.roaming,regions)&&distance(point,v.realm.roaming)<=a.area).slice(0,8))if(!firstObstacleCollision(w,point,target.realm.roaming,.02))damageOpponent(w,p,target,a,now,rng,point,shot,players);
 }
 
 export function advanceActionCombat(w,profiles,regions,now,hit,rng=Math.random){
@@ -167,7 +203,7 @@ export function advanceActionCombat(w,profiles,regions,now,hit,rng=Math.random){
     const p=byId.get(cast.source);if(!p||p.rpg.cast?.id!==cast.id)continue;
     if(cast.endsAt>now){pending.push(cast);continue;}
     p.rpg.cast=null;
-    if(!peaceful(p.realm.roaming,regions))launchCast(w,p,cast,cast.endsAt,hit,rng);
+    if(!peaceful(p.realm.roaming,regions))launchCast(w,p,cast,cast.endsAt,hit,rng,players,regions);
   }
   w.combatCasts=pending;
   const remaining=[];
@@ -179,15 +215,15 @@ export function advanceActionCombat(w,profiles,regions,now,hit,rng=Math.random){
     const from={x:shot.x,y:shot.y},to={x:shot.x+shot.velocityX*elapsed,y:shot.y+shot.velocityY*elapsed};
     let collision=firstObstacleCollision(w,from,to,shot.radius);
     if(collision)collision.kind='obstacle';
-    const victims=shot.team==='player'?w.actors.filter(hostile):players.filter(p=>!peaceful(p.realm.roaming,regions));
+    const victims=shot.team==='player'?[...w.actors.filter(hostile),...players.filter(v=>warEnemy(w,owner,v)&&!peaceful(v.realm.roaming,regions))]:players.filter(p=>!peaceful(p.realm.roaming,regions));
     for(const victim of victims){
-      const entity=shot.team==='player'?victim:victim.realm.roaming;
-      if(shot.team==='enemy'){
+      const entity=victim.realm?victim.realm.roaming:victim;
+      if(victim.realm){
         const barrier=barrierContact(victim,from,to,shot.radius,shot.lastAt,shot.damageType,until);
         if(barrier&&(!collision||barrier.t<collision.t))collision={...barrier,kind:'barrier',victim};
       }
       const contact=sweepCircle(from,to,entity,shot.radius+(entity.kind==='raid'?1:.45));
-      if(shot.team==='enemy'&&contact){const at=shot.lastAt+(until-shot.lastAt)*contact.t;if(victim.rpg?.evadeUntil>at&&(victim.rpg.evadeStartedAt||0)<=at)continue;}
+      if(victim.realm&&contact){const at=shot.lastAt+(until-shot.lastAt)*contact.t;if(victim.rpg?.evadeUntil>at&&(victim.rpg.evadeStartedAt||0)<=at)continue;}
       if(contact&&(!collision||contact.t<collision.t))collision={...contact,kind:'body',victim};
     }
     shot.lastAt=until;
@@ -196,24 +232,32 @@ export function advanceActionCombat(w,profiles,regions,now,hit,rng=Math.random){
       if(collision.kind==='barrier'){
         const outcome=absorbBarrier(w,collision.victim,collision,shot.damage,shot.damageType,shot.source,collision.impactAt||now,shot);
         if(outcome.reflected){remaining.push(shot);continue;}
-        if(outcome.damage)hitPlayer(w,collision.victim,shot.source,outcome.damage,null,now,from,shot.ability,shot.damageType);
+        if(outcome.damage&&shot.area){
+          const direct=collision.victim;
+          hitPlayer(w,direct,shot.source,outcome.damage,null,now,from,shot.ability,shot.damageType,players);
+          enemyBlast(w,shot,point,players.filter(p=>p!==direct),regions,now,rng);
+        }else if(outcome.damage)hitPlayer(w,collision.victim,shot.source,outcome.damage,null,now,from,shot.ability,shot.damageType,players);
       }else if(collision.kind==='body'){
         if(shot.team==='player'){
-          if(ABILITIES[shot.ability]?.area)explode(w,shot,owner,point,now,hit,rng);
+          if(collision.victim.realm){if(ABILITIES[shot.ability]?.area)explode(w,shot,owner,point,now,hit,rng,players,regions);else if(damageOpponent(w,owner,collision.victim,ABILITIES[shot.ability]||ABILITIES.bolt,now,rng,from,shot,players))remaining.push(shot);}
+          else if(ABILITIES[shot.ability]?.area)explode(w,shot,owner,point,now,hit,rng,players,regions);
           else damageActor(w,owner,collision.victim,ABILITIES[shot.ability]||ABILITIES.bolt,now,hit,rng,from,shot);
-        }else{
+        }else if(shot.area)enemyBlast(w,shot,point,players,regions,now,rng);
+        else{
           const roll=rollD20(2+Math.floor(shot.level/2),rpgStats(collision.victim).defense,rng),damage=roll.hit?Math.max(1,shot.damage+(roll.critical?rollDice(1,6,rng):0)):0;
-          hitPlayer(w,collision.victim,shot.source,damage,roll,now,from,shot.ability,shot.damageType);
+          hitPlayer(w,collision.victim,shot.source,damage,roll,now,from,shot.ability,shot.damageType,players);
         }
       }else{
         combatEvent(w,{source:shot.source,ability:shot.ability,kind:'collision',damageType:shot.damageType,x:point.x,y:point.y,fromX:from.x,fromY:from.y,projectileId:shot.id,targetId:collision.obstacle.id,label:'IMPACTO'},now);
-        if(shot.team==='player')explode(w,shot,owner,point,now,hit,rng);
+        if(shot.team==='player')explode(w,shot,owner,point,now,hit,rng,players,regions);
+        else if(shot.area)enemyBlast(w,shot,point,players,regions,now,rng);
       }
       continue;
     }
     shot.x=clamp(to.x,0,300);shot.y=clamp(to.y,0,100);
     if(now>=shot.expiresAt||to.x<0||to.x>300||to.y<0||to.y>100){
-      if(shot.team==='player')explode(w,shot,owner,shot,now,hit,rng);
+      if(shot.team==='player')explode(w,shot,owner,shot,now,hit,rng,players,regions);
+      else if(shot.area)enemyBlast(w,shot,shot,players,regions,now,rng);
       combatEvent(w,{source:shot.source,ability:shot.ability,kind:'expire',x:shot.x,y:shot.y,projectileId:shot.id,label:''},now);continue;
     }
     remaining.push(shot);

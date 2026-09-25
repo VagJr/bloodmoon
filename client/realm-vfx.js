@@ -161,7 +161,7 @@ export function drawVfx(ctx,event,now,to,from,zoom=1){
  // Projectile travel belongs exclusively to world.combat.projectiles. A hit
  // event is rendered at the server's collision position, never at its origin.
  if(config.motion==='ward'||config.motion==='heal')rotation=(t-.5)*.35*motion;
- const size=config.size*zoom*(impact?.45+ease*.55:.7+ease*.3),fade=clamp(t/.09)*(1-t)**1.3;
+ const size=config.size*Math.max(zoom,compact()?.8:.9)*(impact?.45+ease*.55:.7+ease*.3),fade=clamp(t/.09)*(1-t)**1.3;
  glow(ctx,x,y,size*.36,color,fade*(impact?.27:.14));
  const attack=VFX[event.ability];
  if(impact&&['hit','critical'].includes(event.kind)&&attack&&['slash','sweep'].includes(attack.motion)&&t<.55){
@@ -173,11 +173,11 @@ export function drawVfx(ctx,event,now,to,from,zoom=1){
  for(let i=0;i<Math.min(limit,config.frames.length);i++){
   const [sheet,cell]=config.frames[i],delay=i*.075,phase=clamp((t-delay)/(1-delay));
   if(t<delay)continue;
-  drawCell(ctx,sheet,cell,x,y,size*(i?.62:1),rotation+(i?.3:-.12)*(1-phase)*motion,fade*(i?.38:.8));
+  drawCell(ctx,sheet,cell,x,y,size*(i?.62:1),rotation+(i?.3:-.12)*(1-phase)*motion,fade*(i?.65:1));
  }
  if(impact){
   const radius=(7+ease*size*.34)*motion;
-  ring(ctx,x,y,radius,color,(1-t)**2*.8,(event.kind==='critical'?3:2)*zoom,.65);
+  ring(ctx,x,y,radius,color,(1-t)**2,(event.kind==='critical'?3:2)*zoom,.65);
   if(t<.16)glow(ctx,x,y,Math.max(4,22*zoom*(1-t/.16)),'#fff3d5',.64*(1-t/.16));
   sparks(ctx,event,x,y,t,size,color,['shatter','deflect'].includes(config.motion));
   if(config.motion==='deflect'){

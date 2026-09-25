@@ -16,7 +16,8 @@ const PATTERNS=Object.freeze({
   evade:{pulse:[6,26,6],priority:2,gap:180},
   guard:{pulse:[14,24,7],priority:1,gap:200},
   heal:{pulse:[7,38,12],priority:1,gap:250},
-  collision:{pulse:[10],priority:1,gap:180}
+  knockback:{pulse:[26,20,12],priority:4,gap:220},
+  collision:{pulse:[25],priority:1,gap:180}
 });
 
 export function createRealmHaptics({navigator:nav,document:doc,storage,clock=()=>Date.now(),reducedMotion=()=>false}={}){
@@ -55,8 +56,8 @@ export function createRealmHaptics({navigator:nav,document:doc,storage,clock=()=
     // Strong defensive signals can interrupt a light attack, but repeated hits
     // never restart an ongoing pattern or keep the motor continuously engaged.
     if(time-lastAt<70||time<busyUntil&&pattern.priority<=priority||time-lastAt<pattern.gap&&pattern.priority<=priority)return false;
-    const factor=mode==='soft'?.55:1;
-    const pulse=pattern.pulse.map((duration,index)=>index%2?duration:Math.max(3,Math.round(duration*factor*(reducedMotion()?.75:1))));
+    const factor=mode==='soft'?.75:1;
+    const pulse=pattern.pulse.map((duration,index)=>index%2?duration:Math.max(12,Math.round(duration*factor*(reducedMotion()?.75:1))));
     try{
       if(nav.vibrate(pulse)===false)return false;
     }catch{return false;}
