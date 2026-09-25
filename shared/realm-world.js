@@ -13,7 +13,7 @@ import {ensureSceneryObstacles} from './realm-scenery.js';
 
 // Coordinates are percentages of the existing illustrated map. Distances use
 // its 3:2 aspect ratio so diagonal movement has the same world speed.
-export const WORLD_RULES=Object.freeze({width:18000,height:4000,aspect:1.5,speed:3.3,interactRange:4.2,attackRange:5.2,maxMoveMs:250,tickMs:250,maxCatchupMs:5000,maxDeployments:8,attackCooldown:1300,respawnMs:12000,presenceMs:45000});
+export const WORLD_RULES=Object.freeze({width:18000,height:4000,aspect:1.5,speed:3.3,interactRange:4.2,attackRange:5.2,maxMoveMs:250,tickMs:250,maxCatchupMs:500,maxDeployments:8,attackCooldown:1300,respawnMs:12000,presenceMs:45000});
 export const WORLD_SLOT_KINDS=Object.freeze({construction:'Construção',resource:'Produção',weapon:'Armamento',trap:'Armadilha',frontline:'Linha de frente',influence:'Influência'});
 export const WORLD_BLUEPRINTS=Object.freeze({
   camp:{id:'camp',name:'Abrigo da Vigília',kind:'construction',cost:{timber:3,ore:1},health:90,description:'Um abrigo no mundo: recupere vitalidade e vigor, repare suas cartas próximas.'},

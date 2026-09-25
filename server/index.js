@@ -485,7 +485,7 @@ const server = http.createServer(async (req,res) => {
 
 const worldTickMs = Number(
   process.env.WORLD_TICK_MS ||
-  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+  (process.env.NODE_ENV === 'production' ? 500 : 250)
 );
 
 console.log(
@@ -498,7 +498,7 @@ console.log(
 
 const worldTickMs = Number(
   process.env.WORLD_TICK_MS ||
-  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+  (process.env.NODE_ENV === 'production' ? 500 : 250)
 );
 
 console.log(
@@ -511,7 +511,7 @@ console.log(
 
 const worldTickMs = Number(
   process.env.WORLD_TICK_MS ||
-  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+  (process.env.NODE_ENV === 'production' ? 500 : 250)
 );
 
 console.log(
@@ -530,7 +530,7 @@ console.log(
 
 const worldTickMs = Number(
   process.env.WORLD_TICK_MS ||
-  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+  (process.env.NODE_ENV === 'production' ? 500 : 250)
 );
 
 console.log(
@@ -784,7 +784,7 @@ ensureRealmWorld(world,REGIONS);
 
 const worldTickMs = Number(
   process.env.WORLD_TICK_MS ||
-  (process.env.NODE_ENV === 'production' ? 2000 : 500)
+  (process.env.NODE_ENV === 'production' ? 500 : 250)
 );
 
 console.log(
@@ -806,8 +806,7 @@ let worldTickPending = false;
  * WORLD_SIMULATION_ENABLED=true
  */
 const worldSimulationEnabled =
-  process.env.NODE_ENV !== 'production' ||
-  process.env.WORLD_SIMULATION_ENABLED === 'true';
+  process.env.WORLD_SIMULATION_ENABLED !== 'false';
 
 let worldTimer = null;
 
