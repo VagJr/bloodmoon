@@ -1,0 +1,9 @@
+# Morte de tokens e controles mobile
+
+- A transição de vida positiva para zero cria fragmentos da imagem real do token antes da substituição do elemento. Corte produz duas metades irregulares; dilaceração produz seis fragmentos; magia produz nove fragmentos com dispersão radial. O último golpe determina a variação. Sem registro de golpe, a identidade do alvo escolhe uma variante estável.
+- O token morto é removido do mapa. Um alvo de toque de 44px contém apenas um vestígio de 24×12px, preservando o identificador usado por sangue, caça, profissão e saque. Loot continua sendo a entidade independente do servidor. O viajante local também desaparece ao cair e reaparece após recuperação.
+- Corpos já presentes ao entrar não repetem a animação. Novas atualizações do mesmo corpo não a repetem. Animações são limitadas a dezesseis simultâneas e removidas ao terminar ou sair do Reino. Movimento reduzido usa desaparecimento curto, sem dispersão.
+- A pinça usa dois ponteiros do mapa, preserva a posição do mundo sob o centro dos dedos e admite arrasto simultâneo. Joystick e botões ficam fora do cálculo. Soltar um dedo permite continuar arrastando; cancelar o toque, perder foco e desmontar o mapa limpam o gesto. Cliques de seleção/ataque são suprimidos após pinça ou arrasto.
+- A inspeção mobile mantém a carta TCG completa em proporção 7:10, com informações abaixo. A correção neutraliza a antiga altura fixa e a base fixa do layout flex, inclusive os valores conflitantes marcados como importantes.
+
+Validação: testes de transição de morte, seleção de efeito e centro/limites da pinça; navegador Edge com eventos multitoque via CDP; fluxo real Menu → Arsenal → carta em perfil local isolado, nas larguras 320, 390, 600 e 760px. Testados: interações pós-morte, ausência de imagem no corpo, descarte dos fragmentos, atualizações repetidas, queda e recuperação do jogador. A suíte completa passou com 141 testes. O progresso real não foi usado para testes de escrita.

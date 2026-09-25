@@ -1,6 +1,6 @@
 import {realmSanctum} from '/realm-sanctum.js';
 import {renderWorldTable} from '/world-table.js';
-import {renderRealmWorld} from '/realm-world-ui.js?v=difficulty1';
+import {renderRealmWorld} from '/realm-world-ui.js?v=realm-death-touch1';
 import {CHAPTERS} from '/shared/adventure.js';
 import {adventureUI} from '/adventure-ui.js';
 import {REGIONS,MATERIALS,POLICIES,AVATARS} from '/shared/realms.js';

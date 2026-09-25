@@ -376,5 +376,17 @@
     ],
     "source": "assets_sheets2\\Imagem do ChatGPT 24 de set. de 2026, 21_43_26-2.png",
     "bytes": 170328
+  },
+  "token-auras": {
+    "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "source": "scripts/build-token-auras.py",
+    "bytes": 225070
   }
 }

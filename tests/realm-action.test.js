@@ -34,5 +34,5 @@ test('conselho: custos atômicos, projetos, crises e prêmios únicos; resultado
 });
 test('expansão preserva mundo existente, cria rotas e permite movimento analógico na nova fronteira',()=>{
  const {world,w,p,s}=fixture();const original=w.actors[0];original.hp=5;w.contentVersion=3;ensureRealmWorld(world,REGIONS,now);assert.equal(w.actors[0],original);assert.equal(original.hp,5);assert.ok(w.actors.some(a=>a.id==='road-lake-frostport'));assert.equal(new Set(w.actors.map(a=>a.id)).size,w.actors.length);
- s.x=100;realmWorldAction(world,p,{type:'world-move',dx:1,dy:0,power:.5,elapsedMs:250,sequence:1},REGIONS,now+250);assert.ok(s.x>100.25&&s.x<100.3);assert.equal(REGIONS.length,27);
+ s.x=100;realmWorldAction(world,p,{type:'world-move',dx:1,dy:0,power:.5,elapsedMs:250,sequence:1},REGIONS,now+250);assert.ok(s.x>100.25&&s.x<100.3);assert.equal(REGIONS.length,67);assert.ok(REGIONS.some(n=>n.id==='eclipse-palace'));
 });

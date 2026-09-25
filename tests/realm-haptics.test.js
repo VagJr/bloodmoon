@@ -14,14 +14,14 @@ function fixture(){
 test('Haptics require interaction, ignore other players, stale events and replayed snapshots',()=>{
   const f=fixture();assert.equal(f.event('hit'),false);f.h.prime();
   assert.equal(f.event('hit','foreign',{source:'someone-else'}),false);
-  assert.equal(f.event('hit','old',{at:1}),false);
+  assert.equal(f.event('hit','old',{at:-1000}),false);
   assert.equal(f.event('hit'),true);f.advance(400);assert.equal(f.event('hit'),false);
   assert.equal(f.pulses.length,1);
 });
 
 test('Strong counters interrupt light hits; continuous attacks do not erase defensive patterns',()=>{
-  const f=fixture();f.h.prime();f.h.setMode('full');
-  assert.equal(f.event('hit'),true);f.advance(80);assert.equal(f.event('parry'),true);
+ const f=fixture();f.h.prime();f.h.setMode('full');
+ assert.equal(f.event('hit'),true);f.advance(45);assert.equal(f.event('parry'),true);
   f.advance(80);assert.equal(f.event('hit','hit-2'),false);
   f.advance(300);assert.equal(f.event('reflect'),true);
   assert.notDeepEqual(f.pulses[1],f.pulses[2]);
@@ -30,7 +30,7 @@ test('Strong counters interrupt light hits; continuous attacks do not erase defe
 });
 
 test('Tactile preferences persist, scale pulses and stop immediately when disabled or hidden',()=>{
-  const f=fixture();f.h.prime();assert.equal(f.h.getMode(),'soft');f.event('enemy-hit');const soft=f.pulses.at(-1);
+  const f=fixture();f.h.prime();assert.equal(f.h.getMode(),'full');f.h.setMode('soft');f.event('enemy-hit');const soft=f.pulses.at(-1);
   f.advance(500);f.h.setMode('full');f.event('enemy-hit','hurt-2');assert.ok(f.pulses.at(-1)[0]>soft[0]);
   f.doc.hidden=true;f.listeners.get('visibilitychange')();assert.equal(f.pulses.at(-1),0);
   f.advance(500);assert.equal(f.event('critical'),false);f.doc.hidden=false;
@@ -41,4 +41,16 @@ test('Tactile preferences persist, scale pulses and stop immediately when disabl
 test('Unsupported or blocked vibration hardware never breaks combat',()=>{
   const unsupported=createRealmHaptics({navigator:{}});assert.equal(unsupported.prime(),false);
   const f=fixture();f.h.prime();f.nav.vibrate=()=>{throw new Error('blocked');};assert.equal(f.event('parry'),false);assert.doesNotThrow(()=>f.h.cancel());
+});
+
+test('A direct touch preview and distant combat event use perceptible, distinct rhythms',()=>{
+  const f=fixture();f.h.prime();
+  assert.equal(f.h.trigger({kind:'test',source:'traveler'},{playerId:'traveler'}),true);
+  const preview=f.pulses.at(-1);assert.ok(preview[0]>=60);
+  f.advance(500);
+  assert.equal(f.event('hit','arcane',{ability:'bolt',damageType:'magic'}),true);
+  const magic=f.pulses.at(-1);assert.notDeepEqual(magic,preview);
+  f.advance(500);
+  assert.equal(f.event('hit','storm',{ability:'tempest',damageType:'magic'}),true);
+  assert.ok(f.pulses.at(-1).reduce((a,b)=>a+b,0)>magic.reduce((a,b)=>a+b,0));
 });

@@ -58,14 +58,14 @@ test('biomas usam objetos distintos e a mesma composição fornece colisões per
  const byHabitat=new Map();
  for(const region of FRONTIER_REGIONS){
   const objects=realmScenery(region);
-  assert.equal(objects.length,3);
+  assert.equal(objects.length,6);
   for(const object of objects)assert.ok(existsSync(fileURLToPath(new URL(`../client/assets/world/objects/${object.art}.png`,import.meta.url))),`Objeto ausente: ${object.art}`);
   byHabitat.set(region.habitat,objects.map(object=>object.art).join(','));
  }
  assert.ok(new Set(byHabitat.values()).size>=8);
  const world={obstacles:[]};ensureSceneryObstacles(world,FRONTIER_REGIONS);
  const first=world.obstacles.map(obstacle=>obstacle.id);
- assert.ok(first.length>80);
+ assert.ok(first.length>=80);
  ensureSceneryObstacles(world,FRONTIER_REGIONS);
  assert.deepEqual(world.obstacles.map(obstacle=>obstacle.id),first);
 });

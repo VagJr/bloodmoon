@@ -27,6 +27,23 @@ test('projectile sweeps the whole tick and hits first body instead of selected d
   const impacts=f.w.combatEvents.filter(e=>e.kind==='hit');assert.equal(impacts.length,1);assert.equal(impacts[0].targetId,'near');
 });
 
+test('damage effects remain on the body boundary before knockback moves the target',()=>{
+  const melee=fixture();melee.enemy.x=32;melee.cast('strike',{targetId:'enemy'});melee.step(now+160);
+  const strike=melee.w.combatEvents.find(e=>e.targetId==='enemy'&&e.kind==='hit');
+  assert.ok(strike);assert.ok(strike.x<32&&melee.enemy.x>32);
+  const projectile=fixture();projectile.enemy.x=33;projectile.cast('bolt',{targetId:'enemy'});projectile.step(now+230);projectile.step(now+1200);
+  const bolt=projectile.w.combatEvents.find(e=>e.targetId==='enemy'&&e.kind==='hit');
+  assert.ok(bolt);assert.ok(bolt.x<33&&projectile.enemy.x>33);
+});
+
+test('authored body radius affects projectile grazing and high-coordinate province travel',()=>{
+  const f=fixture();f.s.x=400;f.enemy.x=404;f.enemy.y=50.95;f.enemy.hitRadius=1.1;
+  f.cast('bolt',{x:408,y:50});f.step(now+230);f.step(now+1100);
+  assert.ok(f.enemy.hp<100);assert.ok(f.w.combatEvents.some(e=>e.kind==='hit'&&e.targetId==='enemy'));
+  const miss=fixture();miss.enemy.x=33;miss.enemy.y=51.2;miss.cast('bolt',{x:36,y:50});miss.step(now+230);miss.step(now+1100);
+  assert.equal(miss.enemy.hp,100);
+});
+
 test('solid obstacle stops projectiles, cuts, walking and dash without tunneling',()=>{
   const f=fixture();f.enemy.x=32.5;f.w.obstacles.push({id:'wall',x:31,y:50,width:.3,height:6});f.cast('bolt',{targetId:'enemy'});f.step(now+1100);assert.equal(f.enemy.hp,100);assert.equal(f.w.projectiles.length,0);assert.equal(f.w.combatEvents.at(-1).kind,'collision');
   f.cast('strike',{targetId:'enemy'},now+1800);f.step(now+2000);assert.equal(f.enemy.hp,100);

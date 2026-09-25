@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {makeItem} from '../shared/progression.js';
+import {CARDS} from '../shared/cards.js';
+import {spawnRealmLoot,claimRealmLoot,lootView,wearRealmGear,dropEquippedGear} from '../shared/realm-loot.js';
+
+const now=1800000000000;
+const traveler=id=>({coins:0,scrap:0,items:[],realm:{publicId:id,materials:{timber:0,ore:0,essence:0},roaming:{x:8,y:9,equipment:[]}}});
+test('physical loot gives each contributor one share, protects it, then releases unclaimed shares',()=>{
+ const world={serial:0,actors:[]},killer=traveler('killer'),ally=traveler('ally'),outsider=traveler('outsider');
+ const actor={id:'beast',name:'VETERANO · Fera',kind:'hostile',node:'port',x:8,y:9,level:3,habitat:'forest',damageContributors:{ally:{damage:12,at:now-1000}}};
+ const drop=spawnRealmLoot(world,actor,killer,now,()=>.5);
+ assert.equal(Object.keys(drop.rewards).length,2);
+ assert.equal(lootView(drop,outsider,now).protected,true);
+ assert.throws(()=>claimRealmLoot(world,outsider,drop,now),/pertence/);
+ const first=claimRealmLoot(world,killer,drop,now);
+ assert.equal(killer.coins,first.reward.coins);
+ assert.equal(lootView(drop,killer,now).claimed,true);
+ assert.throws(()=>claimRealmLoot(world,killer,drop,now+100),/já recolheu/);
+ const second=claimRealmLoot(world,ally,drop,now+200);
+ assert.equal(ally.coins,second.reward.coins);
+ assert.equal(world.actors.length,0);
+ const next=spawnRealmLoot(world,actor,killer,now+1000,()=>.5);
+ claimRealmLoot(world,killer,next,now+1100);
+ assert.equal(lootView(next,outsider,now+91001).eligible,true);
+ claimRealmLoot(world,outsider,next,now+91001);
+ assert.equal(world.actors.length,0);
+});
+test('equipped unbound gear drops on defeat; bound gear stays and active gear wears out',()=>{
+ const cardId=Object.values(CARDS).find(c=>c.type==='equipment')?.id;
+ assert.ok(cardId);
+ const p=traveler('hunter'),unbound=makeItem(cardId,()=>randomUUID(),'realm-drop'),bound=makeItem(cardId,()=>randomUUID(),'starter');
+ unbound.bound=false;bound.bound=true;p.items=[unbound,bound];p.realm.roaming.equipment=[cardId,cardId];
+ const dropped=dropEquippedGear(p);
+ assert.deepEqual(dropped,[unbound]);assert.deepEqual(p.items,[bound]);assert.deepEqual(p.realm.roaming.equipment,[cardId]);
+ p.realm.roaming.gearWearAt=now-21000;
+ const before=bound.durability,wear=wearRealmGear(p,now);
+ assert.equal(wear.cardId,cardId);assert.equal(bound.durability,before-1);
+ assert.equal(wearRealmGear(p,now+1000),null);
+});

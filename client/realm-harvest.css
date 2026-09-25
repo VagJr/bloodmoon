@@ -1,0 +1,36 @@
+.rw-world .rw-actor.resource{width:116px;min-height:106px;overflow:visible;perspective:420px;isolation:isolate}
+.rw-world .rw-actor.resource .rw-footprint{display:none}
+.rw-world .rw-resource-field{--ore:#b8c4ce;--glow:#cbd9dc;display:block;position:relative;width:110px;height:95px;margin:-5px auto 0;transform-style:preserve-3d;pointer-events:none}
+.rw-world .rw-resource-timber{--ore:#adba84;--glow:#d7e7a1}
+.rw-world .rw-resource-ore{--ore:#b6c4d2;--glow:#d8e8ff}
+.rw-world .rw-resource-essence{--ore:#a7a9ed;--glow:#b1e4ff}
+.rw-world .rw-resource-ground{position:absolute;left:8%;right:8%;bottom:0;height:27px;border-radius:50%;background:radial-gradient(ellipse,var(--ore) 0%,#13202da8 42%,transparent 72%);border:1px solid color-mix(in srgb,var(--ore) 36%,transparent);box-shadow:0 0 16px color-mix(in srgb,var(--ore) 20%,transparent);transform:rotateX(62deg)}
+.rw-world .rw-resource-ground:after{content:'';position:absolute;inset:13%;border:1px dashed color-mix(in srgb,var(--glow) 65%,transparent);border-radius:50%;animation:rw-resource-ring 9s linear infinite}
+.rw-world .rw-resource-aura{position:absolute;left:18%;right:18%;top:10%;bottom:9%;border-radius:50%;background:radial-gradient(ellipse at 50% 75%,color-mix(in srgb,var(--glow) 23%,transparent),transparent 66%);filter:blur(9px);animation:rw-resource-breathe 3.4s ease-in-out infinite alternate}
+.rw-world .rw-resource-field img{position:absolute;display:block;max-width:none;max-height:none;width:103px;height:86px;left:3px;top:0;object-fit:contain;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important;pointer-events:none}
+.rw-world .rw-resource-field .rw-resource-echo{opacity:.19;filter:blur(4px) drop-shadow(0 0 12px var(--glow));transform:translate(4px,-7px) scale(1.12)}
+.rw-world .rw-resource-field .rw-resource-core{filter:drop-shadow(0 8px 5px #030609bb) drop-shadow(0 0 6px color-mix(in srgb,var(--ore) 39%,transparent));transform-origin:50% 83%;animation:rw-resource-parallax 4.6s ease-in-out infinite alternate}
+.rw-world .rw-resource-timber .rw-resource-core{height:79px;top:7px;transform:rotate(-2deg) rotateX(5deg)}
+.rw-world .rw-resource-ore .rw-resource-core{height:87px;top:0;transform:rotateY(-8deg) rotateX(6deg)}
+.rw-world .rw-resource-essence .rw-resource-core{height:91px;top:-5px;animation:rw-resource-levitate 3.1s ease-in-out infinite alternate}
+.rw-world .rw-resource-spark{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--glow);box-shadow:0 0 8px 3px color-mix(in srgb,var(--glow) 55%,transparent);opacity:.75;animation:rw-resource-mote 2.8s ease-in-out infinite alternate}
+.rw-world .rw-resource-spark.spark-one{left:22%;top:26%;animation-delay:-1.1s}.rw-world .rw-resource-spark.spark-two{left:77%;top:39%;animation-delay:-2s}.rw-world .rw-resource-spark.spark-three{left:47%;top:6%;animation-delay:-.35s}
+.rw-world .rw-actor.resource.targeted .rw-resource-core,.rw-world .rw-actor.resource:hover .rw-resource-core{filter:drop-shadow(0 5px 5px #000) drop-shadow(0 0 12px var(--glow)) brightness(1.23)}
+.rw-world .rw-resource-field.harvesting .rw-resource-ground{box-shadow:0 0 21px 5px color-mix(in srgb,var(--glow) 42%,transparent)}
+.rw-world .rw-resource-field.harvesting:after{content:'';position:absolute;inset:13px 8px 9px;border:3px solid transparent;border-top-color:var(--glow);border-right-color:color-mix(in srgb,var(--glow) 70%,transparent);border-radius:50%;transform:rotateX(57deg);animation:rw-resource-cast .62s linear infinite;filter:drop-shadow(0 0 5px var(--glow))}
+.rw-world .rw-harvest-progress{position:absolute;z-index:15;left:50%;top:-35px;transform:translateX(-50%);min-width:112px;padding:5px 7px;border:1px solid #c9b47d91;border-radius:5px;background:#09131de8;box-shadow:0 4px 15px #0009;text-align:center;pointer-events:none}
+.rw-world .rw-harvest-progress b{display:block;color:#eddfb5;font:700 9px Arial;letter-spacing:1px;white-space:nowrap}
+.rw-world .rw-harvest-progress i{display:block;height:4px;margin-top:4px;background:linear-gradient(90deg,#a3cabb,#edd68b);transform-origin:left;transform:scaleX(var(--harvest-progress,0));box-shadow:0 0 7px #cedcb3}
+.rw-world .rw-harvest-hud{position:absolute;z-index:30;left:50%;top:calc(50% + 87px);transform:translateX(-50%);width:170px;padding:7px 9px;border:1px solid #ddc78e94;border-radius:5px;background:#0b1823e8;box-shadow:0 7px 25px #000a;text-align:center;pointer-events:none}
+.rw-world .rw-harvest-hud strong{display:block;color:#f5e4ba;font:11px Georgia}.rw-world .rw-harvest-hud small{display:block;color:#b9d9d5;font:8px Arial;letter-spacing:.5px}.rw-world .rw-harvest-hud i{display:block;height:4px;margin:6px 0 0;background:linear-gradient(90deg,#82c3be,#ecd28f);transform-origin:left;transform:scaleX(var(--harvest-progress,0))}
+@keyframes rw-resource-parallax{to{transform:translateY(-3px) rotateY(5deg) rotateX(3deg)}}
+@keyframes rw-resource-levitate{to{transform:translateY(-7px) rotate(2deg) scale(1.03)}}
+@keyframes rw-resource-ring{to{transform:rotate(360deg)}}
+@keyframes rw-resource-breathe{to{opacity:.54;transform:scale(1.1)}}
+@keyframes rw-resource-mote{to{opacity:.2;transform:translate(4px,-13px) scale(.5)}}
+@keyframes rw-resource-cast{to{transform:rotateX(57deg) rotate(360deg)}}
+.rw-world .rw-threat-markers{position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden}
+.rw-world .rw-threat-markers button{position:absolute;display:grid;place-items:center;gap:0;width:34px;height:36px;min-height:0;padding:2px 1px;border:1px solid #e6a18f9c;border-radius:8px 8px 11px 11px;background:linear-gradient(160deg,#4c1e2ddd,#16141be8)!important;box-shadow:0 0 0 2px #071018a9,0 0 11px #ee6e6f80;transform:translate(-50%,-50%);pointer-events:auto;touch-action:manipulation}
+.rw-world .rw-threat-markers button.boss{border-color:#e9c77e;box-shadow:0 0 0 2px #071018a9,0 0 15px #eac16c9e}
+.rw-world .rw-threat-markers i{display:block;color:#ffd8bc;font:13px/1 Arial;font-style:normal;text-shadow:0 0 6px #fa7f64}.rw-world .rw-threat-markers b{color:#f3dabb;font:700 8px/1 Arial}
+@media(prefers-reduced-motion:reduce){.rw-world .rw-resource-field *,.rw-world .rw-resource-field:after{animation:none!important}}

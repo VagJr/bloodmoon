@@ -1,28 +1,33 @@
-// Combat-only tactile feedback. The web vibration API controls pulse duration,
-// not motor amplitude; intensity therefore scales the on-time of each pulse.
+// The web vibration API controls pulse duration, not motor amplitude. Distinct
+// rhythms and on-times provide weight without asking the motor to run nonstop.
 const KEY='bloodmoon.realm.haptics';
 const PATTERNS=Object.freeze({
-  cast:{pulse:[7],priority:0,gap:220},
-  hit:{pulse:[15],priority:1,gap:150},
-  heavy:{pulse:[24,22,12],priority:2,gap:190},
-  critical:{pulse:[18,25,42],priority:3,gap:240},
-  'enemy-hit':{pulse:[38,28,18],priority:4,gap:240},
-  block:{pulse:[11,20,11],priority:3,gap:180},
-  parry:{pulse:[9,22,9,28,30],priority:5,gap:260},
-  reflect:{pulse:[8,18,16,24,32],priority:5,gap:260},
-  'guard-break':{pulse:[48,28,18,25,42],priority:6,gap:360},
-  interrupt:{pulse:[25,30,9],priority:3,gap:220},
-  dash:{pulse:[8,18,5],priority:1,gap:180},
-  evade:{pulse:[6,26,6],priority:2,gap:180},
-  guard:{pulse:[14,24,7],priority:1,gap:200},
-  heal:{pulse:[7,38,12],priority:1,gap:250},
-  knockback:{pulse:[26,20,12],priority:4,gap:220},
-  collision:{pulse:[25],priority:1,gap:180}
+  test:{pulse:[70,45,95],priority:7,gap:0},
+  cast:{pulse:[28],priority:0,gap:110},
+  hit:{pulse:[38],priority:1,gap:130},
+  magic:{pulse:[32,28,57],priority:2,gap:180},
+  heavy:{pulse:[62,26,40],priority:3,gap:190},
+  thunder:{pulse:[48,35,90,24,45],priority:5,gap:300},
+  critical:{pulse:[55,25,78],priority:5,gap:240},
+  'enemy-hit':{pulse:[66,26,35],priority:5,gap:210},
+  'enemy-heavy':{pulse:[95,32,65],priority:6,gap:270},
+  block:{pulse:[50,35,31],priority:4,gap:180},
+  parry:{pulse:[28,35,85],priority:6,gap:240},
+  reflect:{pulse:[34,25,35,30,82],priority:6,gap:250},
+  'guard-break':{pulse:[105,38,65],priority:7,gap:330},
+  interrupt:{pulse:[44,38,25],priority:3,gap:200},
+  dash:{pulse:[32,22,28],priority:2,gap:170},
+  evade:{pulse:[28,25,28],priority:2,gap:170},
+  guard:{pulse:[45,30,28],priority:2,gap:200},
+  heal:{pulse:[30,42,55],priority:2,gap:240},
+  knockback:{pulse:[78,28,52],priority:5,gap:230},
+  collision:{pulse:[65],priority:3,gap:180},
+  impact:{pulse:[48,28,40],priority:3,gap:170}
 });
 
 export function createRealmHaptics({navigator:nav,document:doc,storage,clock=()=>Date.now(),reducedMotion=()=>false}={}){
   let saved;try{saved=storage?.getItem(KEY);}catch{}
-  let mode=['off','soft','full'].includes(saved)?saved:'soft';
+  let mode=['off','soft','full'].includes(saved)?saved:'full';
   let armed=false,lastAt=-Infinity,busyUntil=0,priority=-1,unlisten=null;
   const seen=new Set();
   const supported=()=>typeof nav?.vibrate==='function';
@@ -45,19 +50,22 @@ export function createRealmHaptics({navigator:nav,document:doc,storage,clock=()=
     return mode;
   };
   const trigger=(event,{playerId,now=clock()}={})=>{
-    if(!event||!playerId||!armed||mode==='off'||!supported()||doc?.hidden||nav.userActivation?.hasBeenActive===false)return false;
+    if(!event||!playerId||!armed||mode==='off'||!supported()||doc?.hidden)return false;
     if(event.source!==playerId&&event.targetId!==playerId&&event.owner!==playerId)return false;
-    if(Number.isFinite(event.at)&&(now-event.at>1000||event.at-now>1000))return false;
+    if(Number.isFinite(event.at)&&(now-event.at>2500||event.at-now>1000))return false;
     if(event.id&&seen.has(event.id))return false;
     if(event.id){seen.add(event.id);if(seen.size>128)seen.delete(seen.values().next().value);}
-    const key=event.kind==='hit'&&['cleave','tempest','execution'].includes(event.ability)?'heavy':event.kind;
+    const key=event.kind==='enemy-hit'&&event.amount>=16?'enemy-heavy':
+      ['hit','impact','critical'].includes(event.kind)&&['tempest','moonfire','enemy-storm'].includes(event.ability)?'thunder':
+      event.kind==='hit'&&['cleave','execution','rend','pounce'].includes(event.ability)?'heavy':
+      event.kind==='hit'&&event.damageType==='magic'?'magic':event.kind;
     const pattern=PATTERNS[key];if(!pattern)return false;
     const time=clock();
     // Strong defensive signals can interrupt a light attack, but repeated hits
     // never restart an ongoing pattern or keep the motor continuously engaged.
-    if(time-lastAt<70||time<busyUntil&&pattern.priority<=priority||time-lastAt<pattern.gap&&pattern.priority<=priority)return false;
-    const factor=mode==='soft'?.75:1;
-    const pulse=pattern.pulse.map((duration,index)=>index%2?duration:Math.max(12,Math.round(duration*factor*(reducedMotion()?.75:1))));
+    if(time-lastAt<70&&pattern.priority<=priority||time<busyUntil&&pattern.priority<=priority||time-lastAt<pattern.gap&&pattern.priority<=priority)return false;
+    const factor=mode==='soft'?.62:1;
+    const pulse=pattern.pulse.map((duration,index)=>index%2?duration:Math.max(20,Math.round(duration*factor*(reducedMotion()?.8:1))));
     try{
       if(nav.vibrate(pulse)===false)return false;
     }catch{return false;}

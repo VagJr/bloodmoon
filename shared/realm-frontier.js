@@ -7,12 +7,14 @@ const names={timber:'Bosque de coleta',ore:'Afloramento mineral',essence:'Nascen
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 // Persisted spawn anchors stay on their biome; depletion never creates new actors.
 export function respawnDeposit(w,a,rng=Math.random){
- for(let attempt=0;attempt<16;attempt++){
-  const angle=rng()*Math.PI*2,radius=1+rng()*3;
+ for(let attempt=0;attempt<24;attempt++){
+  const angle=rng()*Math.PI*2,radius=.8+Math.sqrt(rng())*4.2;
   const x=clamp(a.deposit.x+Math.cos(angle)*radius/1.5,2,WORLD_MAP_BOUNDS.maxX-1),y=clamp(a.deposit.y+Math.sin(angle)*radius,2,98);
   if((w.obstacles||[]).some(o=>distance({x,y},o)<(o.radius||0)+.7))continue;
+  if((w.actors||[]).some(other=>other!==a&&other.kind==='resource'&&other.hp>0&&distance({x,y},other)<1.75))continue;
   a.x=a.homeX=x;a.y=a.homeY=y;return;
  }
+ a.x=a.homeX=a.deposit.x;a.y=a.homeY=a.deposit.y;
 }
 export function ensureFrontier(world,w,regions,now){
  if(!w.frontierVersion){
@@ -36,6 +38,29 @@ export function ensureFrontier(world,w,regions,now){
    respawnDeposit(w,a);w.actors.push(a);existing.add(id);
   }
   w.frontierVersion=2;
+ }
+ // Early province saves could contain the old radial deposits as well as the
+ // authored field deposits. Keep the field state and retire only the duplicate
+ // radial actors, so harvesting and respawn stay tied to painted resource sites.
+ if((w.frontierVersion||0)<3){
+  const authored=new Set(regions.filter(n=>n.provinceId).map(n=>n.id));
+  if(authored.size)w.actors=w.actors.filter(a=>!authored.has(a.node)||!a.id?.startsWith(`deposit-${a.node}-`));
+  w.frontierVersion=3;
+ }
+ // Long inter-site journeys need a useful midpoint. These fixed road anchors
+ // give travelers a recovery pact or salvage without adding per-tick spawns.
+ if((w.frontierVersion||0)<4){
+  const byId=new Map(regions.map(n=>[n.id,n])),known=new Set(w.actors.map(a=>a.id));
+  for(const n of regions.filter(n=>n.provinceId))for(const link of n.links||[]){
+   const other=byId.get(link);if(!other||n.id>other.id)continue;
+   const id=`road-frontier-${n.id}-${other.id}`;if(known.has(id))continue;
+   const code=[...id].reduce((sum,ch)=>sum+ch.charCodeAt(0),0),resource=(n.resourceFields||[]).concat(other.resourceFields||[]).sort((a,b)=>distance(a,{x:(n.x+other.x)/2,y:(n.y+other.y)/2})-distance(b,{x:(n.x+other.x)/2,y:(n.y+other.y)/2}))[0]?.resource||n.resource||'timber';
+   const x=clamp((n.x+other.x)/2,2,WORLD_MAP_BOUNDS.maxX-1),y=clamp((n.y+other.y)/2+(code%2?2:-2),2,98),rest=code%3===0;
+   if(rest)w.actors.push({id,node:n.id,provinceId:n.provinceId,kind:'wayshrine',name:`Marco do Pacto · ${n.name}`,cardId:'envoy',x,y,homeX:x,homeY:y,hp:1,maxHp:1,state:'Repouso entre postos',respawnAt:0});
+   else{const deposit={x,y};const a={id,node:n.id,provinceId:n.provinceId,kind:'resource',name:`Suprimentos da estrada · ${names[resource]}`,resource,richness:1,deposit,x,y,homeX:x,homeY:y,hp:1,maxHp:1,state:'Carga deixada por uma caravana',respawnAt:0};respawnDeposit(w,a);w.actors.push(a);}
+   known.add(id);
+  }
+  w.frontierVersion=4;
  }
  for(const h of world.houses||[]){
   if(!h.settlement&&h.requiresPlot)continue;

@@ -1,0 +1,43 @@
+.rw-world .ra-profession,.rw-world .ra-lore{color:#e9dcc6;font-family:Georgia,serif}
+.rw-world .ra-profession-hero,.rw-world .ra-lore-hero{position:relative;overflow:hidden;display:flex;gap:20px;align-items:center;padding:23px 24px;border:1px solid #b68f6170;background:linear-gradient(100deg,#12232cee,#1b1725ef 60%,#101b26f5),url('/assets/world/sheet-details/blood-eclipse.webp') center/cover;box-shadow:inset 0 0 0 1px #f7d7a11c,0 14px 35px #0007}
+.rw-world .ra-profession[data-lineage=hunter] .ra-profession-hero{background-image:linear-gradient(100deg,#13202bee,#142530eb 65%,#101b26f5),url('/assets/world/sheet-details/moon-flora.webp')}
+.rw-world .ra-profession-hero:after,.rw-world .ra-lore-hero:after{content:'';position:absolute;right:-45px;top:-60px;width:220px;height:220px;border:1px solid #e5c99540;border-radius:50%;box-shadow:0 0 0 16px #d7ae7220,0 0 0 45px #d7ae7210;pointer-events:none}
+.rw-world .ra-profession-hero>img{width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 0 18px #e4a4a75c)}
+.rw-world .ra-profession-hero h3,.rw-world .ra-lore-hero h3{margin:4px 0 8px;font:clamp(23px,3vw,34px)/1.08 Georgia;color:#f6e3bd}
+.rw-world .ra-profession-hero small,.rw-world .ra-lore-hero small,.rw-world .ra-lore article>small{font:700 9px/1.3 Arial;letter-spacing:2px;color:#d8b88c}
+.rw-world .ra-profession-hero p,.rw-world .ra-lore-hero p{max-width:650px;margin:0;color:#d2c9be;font:12px/1.55 Arial}
+.rw-world .ra-profession-progress{height:9px;margin:17px 0 32px;border:1px solid #b89b684b;background:#0b141c;position:relative}
+.rw-world .ra-profession-progress i{display:block;height:100%;background:linear-gradient(90deg,#693c4b,#d5ae77);box-shadow:0 0 13px #e0ae846b;transition:width .35s ease}
+.rw-world .ra-profession-progress span{position:absolute;top:12px;right:0;color:#baaf9d;font:9px Arial}
+.rw-world .ra-profession-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rw-world .ra-profession-summary span{min-width:0;padding:14px 10px;background:linear-gradient(#23303a,#111921);border:1px solid #ba9a6554;text-align:center;color:#b9b7b3;font:10px/1.4 Arial}
+.rw-world .ra-profession-summary b{display:block;color:#f5dcad;font:24px Georgia;overflow:hidden;text-overflow:ellipsis}
+.rw-world .ra-profession-note{margin:19px 0;padding:13px 16px;border-left:2px solid #b79761;background:#0e1921b8;color:#c9c3b8;font:12px/1.6 Arial}
+.rw-world .ra-profession-servants{display:grid;gap:9px}
+.rw-world .ra-profession-servants article{padding:13px 15px;border:1px solid #bc9b664a;background:linear-gradient(110deg,#18252f,#141a23);display:flex;align-items:center;justify-content:space-between;gap:15px}
+.rw-world .ra-profession-servants b{display:block;color:#f2d9ac;font:18px Georgia}.rw-world .ra-profession-servants small{display:block;color:#b9aca0;font:10px Arial;margin-top:4px}
+.rw-world .ra-profession-servants article>div:last-child,.rw-world .ra-profession-actions{display:flex;flex-wrap:wrap;gap:6px}
+.rw-world .ra-profession-servants button,.rw-world .ra-profession-actions button,.rw-world .ra-lore article button{min-height:37px;padding:7px 10px;border:1px solid #bd9e70;background:linear-gradient(#2b3540,#17212a);color:#f1dfc1;font:700 9px Arial;letter-spacing:.5px;cursor:pointer}
+.rw-world .ra-profession-actions button{min-width:150px;min-height:52px}.rw-world .ra-profession-actions small{display:block;margin-top:3px;color:#bcae96;font:8px Arial}
+.rw-world .ra-profession button:disabled{opacity:.46;cursor:default}
+.rw-world .ra-lore{display:grid;gap:11px}.rw-world .ra-lore-hero{display:block;padding:24px;margin-bottom:8px}
+.rw-world .ra-lore article{position:relative;padding:19px 22px;border:1px solid #a88b614a;background:linear-gradient(110deg,#18242d,#171c24 62%,#101820),url('/assets/world/sheet-details/blood-candles.webp') right center/180px auto no-repeat;box-shadow:inset 0 1px #e9d8b915}
+.rw-world .ra-lore article.new{border-color:#dcbd7e;box-shadow:inset 3px 0 #d1ad6b,0 0 16px #d9a97128}
+.rw-world .ra-lore article.sealed{opacity:.7;filter:saturate(.6)}
+.rw-world .ra-lore article h4{margin:5px 0 9px;color:#efd7a7;font:21px Georgia}.rw-world .ra-lore article p{max-width:760px;margin:0 0 12px;color:#d5d0c8;font:13px/1.7 Georgia}.rw-world .ra-lore-hint{font-style:italic!important;color:#b9a88f!important}
+.rw-world .rw-threat-markers button,.rw-world .rw-threat-markers button.boss{width:20px;height:22px;min-width:20px;min-height:22px;padding:0;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;opacity:.45;filter:drop-shadow(0 1px 3px #03070b);transition:opacity .16s,transform .16s}
+.rw-world .rw-threat-markers button:hover,.rw-world .rw-threat-markers button:focus-visible{opacity:.94;transform:translate(-50%,-50%) scale(1.18);outline:0}
+.rw-world .rw-threat-markers i{color:#e9b7a8;font:10px/1 Arial;text-shadow:0 0 5px #e1776580}.rw-world .rw-threat-markers button.boss i{color:#f4daa0;text-shadow:0 0 8px #e8b75e}
+.rw-world .rw-threat-markers b{display:none}
+@media(max-width:720px){.rw-world .ra-profession-hero{gap:8px;padding:15px}.rw-world .ra-profession-hero>img{width:59px;height:70px}.rw-world .ra-profession-summary b{font-size:17px}.rw-world .ra-profession-servants article{display:block}.rw-world .ra-profession-servants article>div:last-child{margin-top:10px}.rw-world .ra-lore article{padding:15px}.rw-world .rw-threat-markers button{opacity:.38}}
+@media(prefers-reduced-motion:reduce){.rw-world .ra-profession-progress i,.rw-world .rw-threat-markers button{transition:none}}
+.rw-world .ra-life-skills{display:grid;gap:16px;color:#e8ddca;font-family:Georgia,serif}
+.rw-world .ra-life-skills>header{padding:24px;border:1px solid #c1a66b70;background:linear-gradient(105deg,#192932ee,#182029f2),url('/assets/world/sheet-details/moon-snow.webp') right center/auto 100% no-repeat}
+.rw-world .ra-life-skills>header>small{color:#d8bf8f;font:700 9px Arial;letter-spacing:2px}.rw-world .ra-life-skills>header h3{margin:5px 0;font:30px Georgia;color:#f4deb3}
+.rw-world .ra-life-skills>header p{max-width:680px;color:#ccc7bc;font:12px/1.6 Arial}.rw-world .ra-life-skills>header>div{display:flex;align-items:baseline;gap:10px;color:#d1c3a8;font:10px Arial}.rw-world .ra-life-skills>header>div b{color:#f7d6a1;font:24px Georgia}
+.rw-world .ra-skill-group,.rw-world .ra-skill-tree{padding:16px;border:1px solid #ac936055;background:#0d1822d8}.rw-world .ra-skill-group h4,.rw-world .ra-skill-tree h4{margin:0 0 12px;color:#ecd5a8;font:21px Georgia}
+.rw-world .ra-skill-group article{display:grid;grid-template-columns:minmax(170px,1fr) minmax(130px,1.2fr);gap:14px;align-items:center;padding:10px 5px;border-top:1px solid #bda57525}
+.rw-world .ra-skill-group article b,.rw-world .ra-skill-tree article b{display:block;color:#f0e0bf;font:15px Georgia}.rw-world .ra-skill-group article small{color:#b4ad9f;font:9px Arial}
+.rw-world .ra-skill-track{height:7px;background:#0a1119;border:1px solid #a992605c}.rw-world .ra-skill-track i{display:block;height:100%;background:linear-gradient(90deg,#6a7682,#e3bb77);box-shadow:0 0 9px #e0c28661}
+.rw-world .ra-skill-tree>p{color:#c6bbae;font:12px/1.5 Arial}.rw-world .ra-skill-tree>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.rw-world .ra-skill-tree article{padding:14px;border:1px solid #a991603d;background:linear-gradient(#1b2932,#121d27)}.rw-world .ra-skill-tree article.ready{border-color:#e0bb7c}.rw-world .ra-skill-tree article small{color:#ccb184;font:700 8px Arial;letter-spacing:1px}.rw-world .ra-skill-tree article p{min-height:38px;color:#bdb6aa;font:11px/1.45 Arial}.rw-world .ra-skill-tree article button{min-height:36px;padding:7px 10px;border:1px solid #b69563;background:#24313d;color:#f3d7a6;font:700 9px Arial}.rw-world .ra-skill-tree article button:disabled{opacity:.45}
+@media(max-width:720px){.rw-world .ra-life-skills>header{padding:15px}.rw-world .ra-life-skills>header h3{font-size:24px}.rw-world .ra-skill-tree>div{grid-template-columns:1fr}.rw-world .ra-skill-group article{grid-template-columns:1fr;gap:5px}}

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+ <defs>
+  <linearGradient id="bloodPath" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd9ad"/><stop offset=".42" stop-color="#bd5366"/><stop offset="1" stop-color="#5c2738"/></linearGradient>
+  <radialGradient id="bloodCore"><stop stop-color="#ffe3bd" stop-opacity=".72"/><stop offset=".22" stop-color="#d96c78" stop-opacity=".22"/><stop offset="1" stop-color="#6c1c37" stop-opacity="0"/></radialGradient>
+  <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="7"/></filter>
+  <linearGradient id="thread" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f1c99d" stop-opacity=".8"/><stop offset="1" stop-color="#b9445f" stop-opacity=".14"/></linearGradient>
+ </defs>
+ <ellipse cx="300" cy="304" rx="274" ry="285" stroke="#d6a27c" stroke-opacity=".07"/>
+ <ellipse cx="300" cy="304" rx="250" ry="261" stroke="#c76979" stroke-opacity=".08" stroke-dasharray="1 7"/>
+ <path d="M300 26C284 58 217 80 166 112S107 144 100 175c-8 36 3 76 0 112-3 39 4 74 0 107-4 44 9 80 0 159" stroke="#8d3249" stroke-width="23" stroke-linecap="round" opacity=".16" filter="url(#glow)"/>
+ <path d="M300 26C284 58 217 80 166 112S107 144 100 175c-8 36 3 76 0 112-3 39 4 74 0 107-4 44 9 80 0 159" stroke="url(#thread)" stroke-width="2.4" stroke-linecap="round" opacity=".32"/>
+ <path d="M300 26c16 32 83 54 134 86s59 32 66 63c8 36-3 76 0 112 3 39-4 74 0 107 4 44-9 80 0 159" stroke="#8d3249" stroke-width="23" stroke-linecap="round" opacity=".16" filter="url(#glow)"/>
+ <path d="M300 26c16 32 83 54 134 86s59 32 66 63c8 36-3 76 0 112 3 39-4 74 0 107 4 44-9 80 0 159" stroke="url(#thread)" stroke-width="2.4" stroke-linecap="round" opacity=".32"/>
+ <path d="M300 26c0 38-3 78 0 115 3 37-6 74 0 111 5 43-5 79 0 119 5 38-4 76 0 203" stroke="#8d3249" stroke-width="23" stroke-linecap="round" opacity=".14" filter="url(#glow)"/>
+ <path d="M300 26c0 38-3 78 0 115 3 37-6 74 0 111 5 43-5 79 0 119 5 38-4 76 0 203" stroke="url(#thread)" stroke-width="2.2" stroke-linecap="round" opacity=".28"/>
+ <circle cx="300" cy="52" r="44" fill="url(#bloodCore)"/>
+ <circle cx="300" cy="52" r="24" stroke="#f0c7a3" stroke-opacity=".38"/>
+ <path d="M300 33l5 14 14 5-14 5-5 14-5-14-14-5 14-5z" fill="#f0c7a3" fill-opacity=".52"/>
+ <g stroke="url(#bloodPath)" stroke-linecap="round" stroke-linejoin="round" opacity=".38">
+  <path d="M78 186l22 16 22-16M78 384l22 16 22-16M278 186l22 16 22-16M278 384l22 16 22-16M478 186l22 16 22-16M478 384l22 16 22-16" stroke-width="1.5"/>
+  <path d="M70 274l12-9 12 9-12 9zm436 0 12-9 12 9-12 9zM270 274l12-9 12 9-12 9z" stroke-width="1.2"/>
+ </g>
+ <g fill="#efb99d" opacity=".45">
+  <circle cx="54" cy="232" r="1.5"/><circle cx="145" cy="296" r="1.2"/><circle cx="176" cy="220" r="1"/><circle cx="244" cy="292" r="1.2"/><circle cx="359" cy="227" r="1.1"/><circle cx="423" cy="294" r="1.5"/><circle cx="549" cy="236" r="1.2"/><circle cx="168" cy="488" r="1.4"/><circle cx="434" cy="488" r="1.2"/><circle cx="299" cy="527" r="1.4"/>
+ </g>
+</svg>

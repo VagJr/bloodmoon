@@ -32,6 +32,9 @@ const itemLocks = new Map();
 const worldChallenges = new Map();
 const worldDirtyProfiles = new Set();
 let worldDirty = false, worldLastSaved = Date.now(), worldDirtyVersion = 0, worldFlushPromise = null, worldSaveRetryAt = 0, worldSaveFailures = 0;
+let realmActionFlushTimer = null;
+let realmActionNeedsWorld = false;
+const realmActionProfiles = new Set();
 const dataDir=process.env.DATA_DIR || path.join(root,'data');
 const profileFile = path.join(dataDir, 'state.json');
 let world=createWorld();
@@ -294,6 +297,19 @@ function liveWorldFor(profile,now=Date.now()) {
   return snapshot;
 }
 function markWorldDirty(profile) {worldDirty=true;worldDirtyVersion++;if(profile)worldDirtyProfiles.add(profile.id);}
+function scheduleRealmActionFlush(profile,profileOnly=false){
+  realmActionProfiles.add(profile.id);
+  if(!profileOnly)realmActionNeedsWorld=true;
+  if(realmActionFlushTimer)clearTimeout(realmActionFlushTimer);
+  realmActionFlushTimer=setTimeout(()=>{
+    realmActionFlushTimer=null;
+    const needsWorld=realmActionNeedsWorld,ids=[...realmActionProfiles];
+    realmActionNeedsWorld=false;realmActionProfiles.clear();
+    const save=needsWorld?flushRealmWorld(true):persist({profiles:ids.map(id=>profiles.get(id)).filter(Boolean).map(profile=>structuredClone(profile))});
+    void save.catch(error=>console.error('Falha ao salvar uma ação dos Reinos.',error));
+  },300);
+  realmActionFlushTimer.unref();
+}
 async function flushRealmWorld(force=false) {
   if(!worldDirty||(!force&&Date.now()-worldLastSaved<5000))return;
   if(!force&&Date.now()<worldSaveRetryAt)return;
@@ -323,7 +339,7 @@ const server = http.createServer(async (req,res) => {
     if(req.url.startsWith('/api/')&&req.method!=='GET'&&url.pathname!=='/api/health'){
       if(url.pathname==='/api/realms/world/action'){
         preloadedWorldAction=await body(req);
-        const realtime=['world-move','world-ability','world-attack'].includes(preloadedWorldAction?.type);
+        const realtime=['world-move','world-ability','world-attack','world-dungeon-move','world-dungeon-attack'].includes(preloadedWorldAction?.type);
         if(!realtime)release=await acquireRequestQueue();
       }else release=await acquireRequestQueue();
     }
@@ -400,6 +416,7 @@ const server = http.createServer(async (req,res) => {
       if(url.pathname==='/api/character'&&req.method==='POST'){
         const input=await body(req),name=String(input.name||'').trim();
         if(name.length<2||name.length>24||!AVATAR_IDS.includes(input.avatar)||!Object.hasOwn(ORIGINS,input.origin))throw new RuleError('Escolha nome, retrato e origem válidos.');
+        if(profile.rpg?.skillTree&&profile.character?.origin&&input.origin!==profile.character.origin)throw new RuleError('Troque sua classe pela árvore de talentos no Reino.');
         profile.name=name;profile.character={avatar:input.avatar,origin:input.origin};
         if(profile.realm){profile.realm.avatar=input.avatar;profile.realm.version++;}
         await persist({profiles:[profile]});return json(res,200,{profile});
@@ -497,12 +514,12 @@ const server = http.createServer(async (req,res) => {
         if(!input||typeof input!=='object'||Array.isArray(input))throw new RuleError('Ação de mundo inválida.');
         requireFreePlayer(profile.id);
         const previousLocation=profile.realm.location;
-        const result=realmWorldAction(world,profile,input,REGIONS,Date.now());markWorldDirty(profile);
-        const moving=input.type==='world-move'||input.type==='world-ability';
+        const result=realmWorldAction(world,profile,input,REGIONS,Date.now(),profiles);markWorldDirty(profile);
+        const moving=['world-move','world-ability','world-dungeon-move'].includes(input.type);
         if(input.type==='world-attack')void flushRealmWorld().catch(error=>console.error('Falha ao salvar uma ação de combate dos Reinos.',error));
-        else if(!moving)await flushRealmWorld(true);
-        if(input.type==='world-move'&&profile.realm.location===previousLocation){
-          return json(res,200,{movement:{x:result.x,y:result.y,sequence:result.sequence,location:profile.realm.location}});
+        else if(!moving)scheduleRealmActionFlush(profile,input.type.startsWith('rpg-'));
+        if((input.type==='world-move'&&profile.realm.location===previousLocation)||input.type==='world-dungeon-move'){
+          return json(res,200,{movement:{x:result.x,y:result.y,sequence:result.sequence,location:profile.realm.location,dungeon:input.type==='world-dungeon-move'}});
         }
         const liveWorld=liveWorldFor(profile);
         const combatResponse=['world-ability','world-attack'].includes(input.type)&&Number.isFinite(input.snapshotAt)&&input.snapshotAt>0;
@@ -774,6 +791,8 @@ const worldTimer=setInterval(()=>{
     for(const [key,challenge] of worldChallenges)if(challenge.expiresAt<=now)worldChallenges.delete(key);
     if(advanceRealmWorld(world,profiles,REGIONS,now)){
       markWorldDirty();
+      for(const id of world.realmWorld.professionDirtyProfiles||[])worldDirtyProfiles.add(id);
+      delete world.realmWorld.professionDirtyProfiles;
       // The global world changes every tick, but only present (or fallen) travelers
       // have personal state advanced by this simulation. Avoid serializing every
       // dormant account on each MongoDB checkpoint.
@@ -812,7 +831,7 @@ server.listen(port, host, () => {
 });
 
 for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{
-  if(worldTimer)clearInterval(worldTimer);clearInterval(maintenanceTimer);closeRealmStreams();
+  if(worldTimer)clearInterval(worldTimer);if(realmActionFlushTimer)clearTimeout(realmActionFlushTimer);clearInterval(maintenanceTimer);closeRealmStreams();
   server.close(async()=>{
     try{await exclusiveWorldTask(()=>flushRealmWorld(true));await saving;await mongoStore?.close();process.exit(0);}
     catch{process.exit(1);}

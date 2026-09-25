@@ -44,7 +44,7 @@ export function provinceMarketTrade(w,profile,actor,region,input,now){
 export function ensureProvinceLife(w,regions,now){
  const provinces=regions.filter(n=>n.provinceId);
  if(!provinces.length)return;
- if(w.provinceLife?.siteCount===provinces.length)return;
+ if(w.provinceLife?.siteCount===provinces.length&&w.provinceLife?.version>=2)return;
  w.provinceLife||={version:1,nextAt:now+60000,lastAt:now,cycle:0};
  const ids=new Set(w.actors.map(a=>a.id));
  const add=actor=>{if(!ids.has(actor.id)){w.actors.push(actor);ids.add(actor.id);}};
@@ -54,13 +54,11 @@ export function ensureProvinceLife(w,regions,now){
    add(person(n,'quartermaster','healer',`${first} · Vigília de ${n.name}`,-3,-2,{cardId:'envoy',hp:80,state:'Ampara viajantes'}));
    add(person(n,'patrol','guard',`${second} · Guarda de ${n.name}`,3,1,{cardId:'warden',hp:100,attack:7,state:'Vigia a estrada'}));
   }
-  if(n.market){
+  if(n.market||n.settlementRole||n.kind==='mine'){
    const merchant=person(n,'merchant','market',`${first} · Mercado de ${n.name}`,2,-3,{cardId:'duchess',hp:70,role:n.settlementRole||'mercado',marketStock:{timber:24,ore:20,essence:16},marketPurse:160,state:'Compra e vende suprimentos'});
    add(merchant);
   }
-  if(n.kind==='sanctuary'||n.kind==='capital'||n.settlementRole==='temple'||n.settlementRole==='observatory'){
-   add(person(n,'envoy','chronicler',`${second} · Crônicas de ${n.name}`,-2,3,{cardId:'elder',hp:70,role:'chronicler',state:'Registra rumores e juramentos'}));
-  }
+  add(person(n,'envoy','chronicler',`${second} · Crônicas de ${n.name}`,-2,3,{cardId:'elder',hp:70,role:'chronicler',state:n.kind==='dungeon'?'Estuda os portões e seus guardiões':'Registra rumores e juramentos'}));
  }
  const byProvince=new Map();for(const n of provinces){const list=byProvince.get(n.provinceId)||[];list.push(n);byProvince.set(n.provinceId,list);}
  for(const [provinceId,sites] of byProvince){
@@ -68,7 +66,7 @@ export function ensureProvinceLife(w,regions,now){
   const start=sites.find(n=>n.kind==='sanctuary'||n.market)||sites[0];
   add(person(start,'caravan',`caravan-${provinceId}`,`Caravana de ${start.name}`,1,5,{cardId:'mooncaller',hp:155,attack:4,role:'regional-caravan',route:sites.map(n=>n.id),routeIndex:1,marketStock:{timber:12,ore:8,essence:6},state:'Transporta mercadorias'}));
  }
- w.provinceLife.siteCount=provinces.length;
+ w.provinceLife.siteCount=provinces.length;w.provinceLife.version=2;
 }
 export function advanceProvinceLife(w,regions,now){
  ensureProvinceLife(w,regions,now);const life=w.provinceLife;if(!life||now<life.nextAt)return;
@@ -86,6 +84,8 @@ export function advanceProvinceLife(w,regions,now){
    a.state=(eco?.unrest||0)>65?'Comércio vigiado por guardas':(eco?.prosperity||0)>65?'Mercado em expansão':'Compra e vende suprimentos';
   }else if(a.kind==='envoy'&&a.role==='chronicler'){
    a.state=(eco?.unrest||0)>65?'Alerta: motim nas estradas':(eco?.security||0)<35?'Registra desaparecimentos':'Registra rumores e juramentos';
+  }else if(a.kind==='patrol'&&n){
+   a.state=(eco?.unrest||0)>65?'Contendo motins e saqueadores':(eco?.security||0)<35?'Rastreando criaturas':'Vigia as rotas comerciais';
   }else if(a.kind==='caravan'&&a.role==='regional-caravan'){
    // Unobserved routes advance at coarse cadence; local movement is animated
    // by the regular NPC step only while players can see the caravan.

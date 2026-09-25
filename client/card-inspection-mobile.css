@@ -1,0 +1,20 @@
+/* One source of dimensions: the complete card is 7:10, just like its TCG face.
+   Clear legacy fixed/min heights and use a full-width row above its details. */
+@media(max-width:760px){
+ .menu-backdrop .card-inspection-modal .full-card-inspect{display:grid!important;grid-template-columns:minmax(0,1fr);justify-items:center;align-items:start;gap:26px;margin:18px auto;width:100%;min-width:0}
+ .menu-backdrop .card-inspection-modal .full-card-inspect>.game-card{
+  --card-w:min(64vw,252px)!important;--card-h:calc(var(--card-w) * 10 / 7)!important;
+  width:var(--card-w)!important;height:var(--card-h)!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
+  aspect-ratio:7/10!important;box-sizing:border-box;align-self:start;justify-self:center;position:relative;top:auto;flex:none!important;margin:0!important;
+ }
+ .menu-backdrop .card-inspection-modal .full-card-inspect>.game-card>.art{width:100%;height:100%;object-fit:cover}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .inspect-copy{width:100%;min-width:0}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .card-caption{left:8px;right:8px;bottom:12px;min-height:74px;padding:10px 6px}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .card-caption>small{font-size:7px}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .card-caption>strong{font-size:16px;line-height:1.12;margin:5px 0}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .card-caption>span{font-size:6px}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .cost-gem{width:32px;height:36px;font-size:23px;top:-8px;left:-8px}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .stat{width:30px;height:33px;font-size:20px;bottom:-8px}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .card-rarity{top:calc(var(--card-w) - 19px);font-size:11px}
+ .menu-backdrop .card-inspection-modal .full-card-inspect .spell-seal{width:28px;height:28px;left:calc(50% - 14px);bottom:-7px;font-size:16px}
+}

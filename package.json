@@ -6,7 +6,7 @@
     "description":  "Protótipo autoral de TCG de aventura competitiva",
     "scripts":  {
                     "dev":  "node --env-file-if-exists=.env --watch server/index.js",
-                    "start":  "node server/index.js",
+                    "start":  "node --env-file-if-exists=.env server/index.js",
                     "db:wipe":  "node --env-file-if-exists=.env scripts/wipe-game-data.js",
                     "db:wipe:confirm":  "node --env-file-if-exists=.env scripts/wipe-game-data.js --confirm",
                     "db:check":  "node --env-file-if-exists=.env scripts/check-mongo.js",

@@ -1,0 +1,60 @@
+/* One visual language for every page of the realm codex. */
+.rw-world .ra-sheet-window{background:#10191e;overflow:hidden}
+.rw-world.ra-panel-open .ra-action{z-index:80}
+.rw-world.ra-panel-open .rw-hud{visibility:hidden}
+.rw-world .ra-sheet-window>header{background:linear-gradient(90deg,#14242b,#10181f);border-bottom:1px solid #b59a614d}
+.rw-world .ra-sheet-content{scrollbar-color:#8b7653 #10191e;padding:24px}
+.rw-world .ra-codex-hero{position:relative;isolation:isolate;min-height:190px;padding:38px 150px 30px 28px;margin:0 0 24px;border:1px solid #baa16b59;background:linear-gradient(90deg,#08141cec, #08141c95 48%,#08141c10),url('/assets/world/codex/kingdom-codex.webp') 65% 50%/cover;overflow:hidden}
+.rw-world .ra-codex-hero h2{font:clamp(25px,3vw,38px)/1.12 Georgia;color:#f0dfba;margin:12px 0}
+.rw-world .ra-codex-hero>small{color:#c8aa75;letter-spacing:3px;font:9px Arial}
+.rw-world .ra-codex-hero>p{color:#c1c9c7;font:13px/1.6 Georgia;max-width:330px;margin:0}
+.rw-world .ra-codex-hero>.ra-concept-art{position:absolute;right:30px;bottom:22px;width:110px;height:110px;object-fit:contain;filter:drop-shadow(0 8px 14px #000)}
+.rw-world .ra-codex-details{border-left:2px solid #8e78524d;padding:8px 12px;margin:10px 0;color:#b5c0bf;font:12px/1.6 Arial}
+.rw-world .ra-codex-details summary{cursor:pointer;color:#d4bd90;font:11px Arial;padding:4px 0;min-height:28px}
+.rw-world .ra-codex-details p,.rw-world .ra-codex-details small{display:block;font:12px/1.65 Arial;letter-spacing:0;margin:8px 0}
+.rw-world .ra-hub-hero{display:none}
+.rw-world .ra-hub-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rw-world .ra-hub-grid>button{position:relative;display:flex;flex-direction:column;justify-content:end;align-items:center;min-height:180px;padding:18px 10px;text-align:center;background:radial-gradient(ellipse at 50% 25%,#41616b50,transparent 65%),linear-gradient(145deg,#1d2b31,#10191f);border:1px solid #a8905c55;overflow:hidden}
+.rw-world .ra-hub-grid>button>img{width:94px;height:88px;object-fit:contain;margin:0 0 12px;filter:drop-shadow(0 7px 8px #0008);transition:transform .2s}
+.rw-world .ra-hub-grid>button:hover>img{transform:translateY(-4px)}
+.rw-world .ra-hub-grid>button b{font:17px Georgia;color:#eedbb5;display:block}
+.rw-world .ra-hub-grid>button small{font:10px/1.4 Arial;letter-spacing:0;color:#9eafaf;display:block;margin-top:7px}
+.rw-world .ra-hub-grid>button>i{position:absolute;right:12px;top:8px;color:#aa9263}
+.rw-world .ra-concept-card{display:flex!important;flex-direction:column;align-items:center;text-align:center;min-height:160px;background:radial-gradient(ellipse at 50% 15%,#3e51504d,transparent 70%),#132128!important;padding:18px!important}
+.rw-world .ra-concept-card>.ra-concept-art{width:74px;height:74px;object-fit:contain;margin-bottom:12px}
+.rw-world .ra-concept-card>b{font:17px Georgia!important}.rw-world .ra-concept-card>span{font:11px/1.5 Arial!important;margin-top:8px}
+.rw-world .ra-skill-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rw-world .ra-skill-group>h4{grid-column:1/-1;display:flex;align-items:center;gap:12px}
+.rw-world .ra-skill-group>h4>img{width:42px;height:42px;object-fit:contain}
+.rw-world .ra-skill-group>article{padding:14px;background:#17252b;border:1px solid #a58a5340}
+.rw-world .ra-skill-tree article{position:relative;padding-top:100px!important;text-align:center}
+.rw-world .ra-skill-tree article>.ra-concept-art{position:absolute;top:12px;left:calc(50% - 37px);width:74px;height:74px;object-fit:contain}
+.rw-world .ra-lore>article{position:relative;padding-left:100px;min-height:125px;background:linear-gradient(110deg,#26303960,#101b22)}
+.rw-world .ra-lore>article>.ra-concept-art{position:absolute;left:15px;top:22px;width:66px;height:80px;object-fit:contain}
+.rw-world .ra-lore>article.sealed>.ra-concept-art{filter:grayscale(1);opacity:.5}
+.rw-world .ra-profession-servants article>.ra-concept-art{width:58px;height:66px;object-fit:contain}
+.rw-world .ra-spell-grid>article{background:radial-gradient(ellipse at 0 0,#3c586046,transparent 70%),#132027;border-color:#a8905c55;padding:18px}
+.rw-world .ra-spell-grid .ra-spell-icon{width:76px;height:76px;object-fit:contain}
+.rw-world .ra-sheet button:focus-visible,.rw-world .ra-sheet summary:focus-visible{outline:2px solid #f6d69b;outline-offset:3px}
+.rw-world .rw-self{height:112px;min-height:112px}
+.rw-world .rw-self.rw-moving{animation:none}
+.rw-world .rw-self:before{display:none}
+.rw-world .rw-actor.traveler{height:112px;min-height:112px}
+.rw-world .rw-actor.traveler>img{display:block;margin:auto;width:60px;height:78px;border-radius:40% 40% 5px 5px}
+@media(min-width:1050px){
+ .rw-world .ra-sheet-window{display:grid;grid-template-columns:164px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);width:min(1180px,94vw);height:min(880px,90dvh)}
+ .rw-world .ra-sheet-window>header{grid-column:1/-1}
+ .rw-world .ra-sheet-window>nav{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:4px;padding:16px 10px;margin:0;border-right:1px solid #baa16b33;overflow:auto;background:#0d171e;max-height:none}
+ .rw-world .ra-sheet-window>nav button{display:flex;align-items:center;gap:12px;flex:none;text-align:left;min-height:53px;width:100%;padding:10px;border:1px solid transparent;background:none;font:12px Georgia}
+ .rw-world .ra-sheet-window>nav button.active{background:linear-gradient(90deg,#7d633333,transparent);border-color:#b79b614a;color:#f4dfb1}
+ .rw-world .ra-sheet-window>nav .ra-section-icon{width:30px;height:30px;object-fit:contain;margin:0}
+ .rw-world .ra-sheet-content{min-height:0;max-height:none;overflow:auto}
+}
+@media(max-width:720px){
+ .rw-world .ra-sheet-content{padding:12px}.rw-world .ra-codex-hero{min-height:150px;padding:24px 90px 20px 18px;margin-bottom:15px}
+ .rw-world .ra-codex-hero>.ra-concept-art{right:10px;width:70px;height:80px}.rw-world .ra-codex-hero>p{font-size:11px}
+ .rw-world .ra-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.rw-world .ra-hub-grid>button{min-height:155px}.rw-world .ra-hub-grid>button>img{width:74px;height:72px}
+ .rw-world .ra-skill-group{grid-template-columns:1fr}.rw-world .ra-lore>article{padding-left:78px}.rw-world .ra-lore>article>.ra-concept-art{left:8px;width:54px}
+ .rw-world .ra-sheet-window>nav{display:flex;overflow-x:auto;justify-content:flex-start}.rw-world .ra-sheet-window>nav button{min-width:78px;min-height:56px;flex-shrink:0}
+}
+@media(prefers-reduced-motion:reduce){.rw-world .ra-hub-grid>button>img{transition:none}}

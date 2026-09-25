@@ -1,19 +1,29 @@
+import {animateTokenDeath,shouldAnimateDeath,corpseFigure,deathEvent,clearTokenDeaths} from '/realm-token-death.js?v=1';
+import {touchSpan,pinchCamera} from '/realm-touch-camera.js?v=1';
 import {cityPanel,districtMarkers} from '/realm-dominion-ui.js';
 import {realmScenery} from '/shared/realm-scenery.js';
-import {actionHud,mountActionHud,updateActionHud,unmountActionHud} from '/realm-action-ui.js?v=difficulty1';
+import {realmSiteIdentity,realmSiteSlots} from '/shared/realm-site-plan.js';
+import {actionHud,mountActionHud,updateActionHud,unmountActionHud} from '/realm-action-ui.js?v=realm-death-touch1';
 import {sampleRealmMotion,advanceRealmMotion} from '/shared/realm-motion.js';
+import {moveWithCollisions} from '/shared/realm-collision.js';
 import {CARDS} from '/shared/cards.js';
 import {CARD_ART} from '/shared/art-manifest.js';
 
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const SIZE={width:1500*96,height:100*64};
-const KIND={rift:'Expedição pública', 'expedition-loot':'Tesouro de expedição',land:'Terreno de cidade',settlement:'Cidade de Casa',wayshrine:'Marco do Pacto · repouso',resource:'Veio de recursos',hostile:'Criatura hostil',invader:'Invasor',patrol:'Patrulha',merchant:'Mercadora',quartermaster:'Guardiã do Porto',envoy:'Emissário',caravan:'Caravana',boss:'Guardião',portal:'Dungeon',champion:'Desafiante',satchel:'Espólio recuperável',raid:'Raid · Colosso do Véu'};
+const KIND={rift:'Expedição pública', 'expedition-loot':'Tesouro de expedição',land:'Terreno de cidade',settlement:'Cidade de Casa',wayshrine:'Marco do Pacto · repouso',resource:'Veio de recursos',hostile:'Criatura hostil',invader:'Invasor',patrol:'Patrulha',merchant:'Mercadora',quartermaster:'Guardiã do Porto',envoy:'Emissário',caravan:'Caravana',boss:'Guardião',portal:'Dungeon',champion:'Desafiante',satchel:'Espólio recuperável',loot:'Espólio da caçada',raid:'Raid · Colosso do Véu'};
 const ICON={construction:'⌂',resource:'♧',weapon:'⚒',trap:'⌘',frontline:'⚔',influence:'♜'};
 const RESOURCE_ART={coins:'/assets/world/objects/coin-pile.png',timber:'/assets/world/objects/fallen-timber.png',ore:'/assets/world/objects/iron-vein.png',essence:'/assets/world/objects/lunar-essence.png'};
 const BUILD_ART={camp:'watch-camp',lumbermill:'ash-sawmill',mine:'oath-mine',essencewell:'veil-well',ballista:'obsidian-ballista',thorntrap:'thorn-snare',banner:'oath-banner'};
 function objectArt(a){const id=(a.kind==='land'?'signpost':null)||(a.kind==='settlement'?'fortified-gate':null)||BUILD_ART[a.blueprintId]||({rift:'dungeon-gate','expedition-loot':'supply-crates',wayshrine:'stone-well',satchel:'lost-satchel',caravan:'moon-caravan',portal:'dungeon-gate'})[a.kind];return id?'/assets/world/objects/'+id+'.png':a.kind==='resource'?RESOURCE_ART[a.resource]:null;}
+function resourceFigure(a){
+ const source=RESOURCE_ART[a.resource]||RESOURCE_ART.essence;
+ return `<span class="rw-resource-field rw-resource-${esc(a.resource)}" aria-hidden="true"><i class="rw-resource-ground"></i><i class="rw-resource-aura"></i><img class="rw-resource-echo" src="${source}" alt="" loading="lazy"><img class="rw-resource-core" src="${source}" alt="" loading="lazy"><i class="rw-resource-spark spark-one"></i><i class="rw-resource-spark spark-two"></i><i class="rw-resource-spark spark-three"></i></span>`;
+}
+function lootFigure(a){const gear=a.loot?.gear,source=(gear&&CARD_ART[gear])||RESOURCE_ART.coins;return `<span class="rw-loot-figure ${gear?'gear':''}" aria-hidden="true"><i class="rw-loot-ground"></i><img class="rw-loot-glow" src="${source}" alt=""><img class="rw-loot-item" src="${source}" alt=""><i class="rw-loot-spark one"></i><i class="rw-loot-spark two"></i><i class="rw-loot-spark three"></i></span>`;}
 let cardFilter='unit',showHelp=false,detailsOpen=false;
-let ownerId=null,dataRef=null,handlers={},selected=null,selectedBlueprint='camp',selectedTarget=null,slotTarget=null,camera={x:0,y:0,z:.9},keys=new Set(),touchPointers=new Map(),frame=0,seq=0,lastMove=0,moveBusy=false,controller=null,rootRef=null,drag=null,feedbackTimer=0,atlas=false,actorMotion=new Map(),lastHudPaint=0;
+let ownerId=null,dataRef=null,handlers={},selected=null,selectedBlueprint='camp',selectedTarget=null,slotTarget=null,dungeonTarget=null,camera={x:0,y:0,z:.9},keys=new Set(),touchPointers=new Map(),frame=0,seq=0,lastMove=0,moveBusy=false,controller=null,rootRef=null,drag=null,feedbackTimer=0,atlas=false,actorMotion=new Map(),lastHudPaint=0,lastCullingAt=0,localHarvest=null;
+const mapTouches=new Map();let pinch=null,suppressMapClickUntil=0;
 let provinceSource=null,provinceCache=[];
 const movingActors=new Set(['hostile','invader','raid','patrol','caravan','traveler']);
 const metric=(a,b)=>Math.hypot((a.x-b.x)*1.5,a.y-b.y);
@@ -27,26 +37,69 @@ function focusPlayer(smooth=false){const {w,h}=dimensions(),p=controller?.pose||
 function paintMapTiles(){
  const ground=rootRef?.querySelector('.rw-map-backdrop');if(!ground||!dataRef)return;
  const {w}=dimensions(),preload=Math.max(8,12/camera.z),left=(-camera.x)/(96*camera.z)-preload,right=(w-camera.x)/(96*camera.z)+preload;
- const visible=provinces().filter(m=>m.offset<right&&m.offset+m.width>left),active=new Set(visible.map(m=>m.id));
+ const maps=provinces(),visible=maps.filter(m=>m.offset<right&&m.offset+m.width>left),active=new Set(visible.map(m=>m.id));
  for(const tile of [...ground.children])if(!active.has(tile.dataset.province))tile.remove();
  for(const m of visible){
   let tile=[...ground.children].find(el=>el.dataset.province===m.id);
-  if(!tile){tile=document.createElement('div');tile.className='rw-map-tile';tile.dataset.province=m.id;tile.style.backgroundImage=`linear-gradient(90deg,#0b1820 0%,transparent 1.5%,transparent 98.5%,#0b1820 100%),linear-gradient(0deg,#08141ab0,transparent 13%,transparent 87%,#08141a9c),url('${m.image}')`;ground.append(tile);}
-  tile.style.left=(camera.x+m.offset*96*camera.z)+'px';tile.style.top=camera.y+'px';tile.style.width=(m.width*96*camera.z)+'px';tile.style.height=(SIZE.height*camera.z)+'px';
+  if(!tile){tile=document.createElement('div');tile.className='rw-map-tile';tile.dataset.province=m.id;tile.style.zIndex=String(maps.indexOf(m));tile.style.backgroundImage=`linear-gradient(0deg,#08141ab0,transparent 13%,transparent 87%,#08141a9c),url('${m.image}')`;ground.append(tile);}
+  tile.style.left=(camera.x+m.offset*96*camera.z)+'px';tile.style.top=camera.y+'px';tile.style.width=((m.width+(m.offset+m.width<SIZE.width/96?3:0))*96*camera.z)+'px';tile.style.height=(SIZE.height*camera.z)+'px';
  }
 }
 function paintCamera(smooth=false){paintMapTiles();const plane=rootRef?.querySelector('.rw-plane');if(plane){plane.style.transition='none';plane.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${camera.z})`;}}
+function paintThreatMarkers(){
+ const host=rootRef?.querySelector('.rw-threat-markers'),w=dataRef?.liveWorld;if(!host||!w||!controller)return;
+ const now=performance.now();if(now-(host._paintAt||0)<80)return;host._paintAt=now;
+ const {w:width,h:height}=dimensions(),pose=controller.pose,cx=pose.x*96*camera.z+camera.x,cy=pose.y*64*camera.z+camera.y;
+ const sectors=new Map();
+ for(const enemy of w.actors||[]){
+  if(enemy.hp<=0||!['hostile','invader','raid'].includes(enemy.kind))continue;
+  const ex=enemy.x*96*camera.z+camera.x,ey=enemy.y*64*camera.z+camera.y;
+  if(ex>=15&&ex<=width-15&&ey>=15&&ey<=height-15)continue;
+  const dx=(enemy.x-pose.x)*1.5,dy=enemy.y-pose.y,distance=Math.hypot(dx,dy);
+  if(distance>46||distance<.1)continue;
+  const angle=Math.atan2(dy,dx),sector=Math.round(angle/(Math.PI/6));
+  if(!sectors.has(sector)||sectors.get(sector).distance>distance)sectors.set(sector,{enemy,angle,distance});
+ }
+ const entries=[...sectors.values()].sort((a,b)=>a.distance-b.distance).slice(0,6);
+ const reach=width<700?87:104,margin=reach+12,x=Math.max(margin,Math.min(width-margin,cx)),y=Math.max(margin,Math.min(height-margin,cy));
+ const stamp=JSON.stringify(entries.map(({enemy,angle,distance})=>[enemy.id,Math.round(angle*100),Math.round(distance),Math.round(x),Math.round(y)]));
+ if(host._stamp===stamp)return;host._stamp=stamp;
+ host.innerHTML=entries.map(({enemy,angle,distance})=>`<button data-rw-threat="${esc(enemy.id)}" class="${enemy.kind==='raid'?'boss':''}" style="left:${Math.round(x+Math.cos(angle)*reach)}px;top:${Math.round(y+Math.sin(angle)*reach)}px" aria-label="Selecionar ${esc(enemy.name)} a ${Math.round(distance)} metros" title="${esc(enemy.name)} · ${Math.round(distance)}m"><i style="transform:rotate(${angle*180/Math.PI+90}deg)">▲</i><b>${Math.round(distance)}m</b></button>`).join('');
+}
+function paintHarvest(){
+ const w=dataRef?.liveWorld;if(!rootRef||!w)return;
+ const harvest=w.player?.harvest||localHarvest;
+ const host=rootRef.querySelector('.rw-harvest-hud'),self=rootRef.querySelector('.rw-self'),prior=rootRef.querySelector('.rw-resource-field.harvesting');
+ if(!harvest){host?.remove();self?.querySelector('.rw-harvest-progress')?.remove();prior?.classList.remove('harvesting');return;}
+ const actor=w.actors.find(a=>a.id===harvest.targetId),resource=harvest.resource||actor?.resource||'timber';
+ const now=harvest===localHarvest?Date.now():w.serverTime+Date.now()-(w._receivedAt||Date.now()),progress=Math.max(0,Math.min(1,(now-harvest.startedAt)/Math.max(1,harvest.endsAt-harvest.startedAt)));
+ const label={timber:'CORTANDO MADEIRA',ore:'EXTRAINDO MINÉRIO',essence:'CANALIZANDO ESSÊNCIA'}[resource];
+ if(!host){const el=document.createElement('div');el.className='rw-harvest-hud';el.innerHTML='<strong></strong><small>Permaneça no local · dano interrompe</small><i></i>';rootRef.append(el);}
+ const shown=rootRef.querySelector('.rw-harvest-hud');shown.querySelector('strong').textContent=label;shown.style.setProperty('--harvest-progress',progress);
+ if(self&&!self.querySelector('.rw-harvest-progress'))self.insertAdjacentHTML('beforeend','<span class="rw-harvest-progress"><b></b><i></i></span>');
+ const bar=self?.querySelector('.rw-harvest-progress');if(bar){bar.querySelector('b').textContent=label;bar.style.setProperty('--harvest-progress',progress);}
+ const target=rootRef.querySelector(`.rw-actor[data-rw-actor="${CSS.escape(harvest.targetId)}"] .rw-resource-field`);
+ if(prior&&prior!==target)prior.classList.remove('harvesting');target?.classList.add('harvesting');
+}
 function cardFace(id,label='Carta'){return `<img src="${esc(CARD_ART[id]||'/assets/world/objects/oath-banner.png')}" alt="${esc(label)}" loading="lazy">`;}
 function landmarkFor(n){if(n.kind==='dungeon')return ['snow','forest','marsh'].includes(n.habitat)?'moon-gate':'blood-gate';return ({forest:'moon-flora',marsh:'moon-spring',mountain:'moon-snow',ruins:'blood-candles',city:'blood-eclipse',snow:'moon-snow',volcanic:'blood-embers',astral:'blood-eclipse',citadel:'blood-gate'})[n.habitat]||(n.x<100?'moon-flora':n.x<200?'moon-spring':'blood-embers');}
-function island(w,n){const selectedNode=n.id===w.player.location,near=metric(w.player,n)<18;return `<section class="rw-island ${n.provinceId?'frontier':''} ${selectedNode?'here':''}" style="left:${n.x*96}px;top:${n.y*64}px"><div class="rw-biome"><img src="/assets/world/${esc(n.board)}.png" alt="" loading="lazy"></div><img class="rw-sheet-landmark" src="/assets/world/sheet-details/${landmarkFor(n)}.webp" alt="" loading="lazy"><div class="rw-place"><i>${esc(n.icon)}</i><span><small>${selectedNode?'SUA POSIÇÃO':n.kind==='dungeon'?'TERRA SELADA':'TERRITÓRIO'} · NÍVEL ${n.levelRange?`${n.levelRange.min}–${n.levelRange.max}`:n.level}</small><b>${esc(n.name)}</b></span><em>${w.territories?.[n.id]?.owner?'♜':''}</em></div><div class="rw-ring"></div>${w.slots.filter(s=>s.node===n.id).map((s,i)=>{const o=s.occupant,x=(s.x-n.x)*96,y=(s.y-n.y)*64;return `<button class="rw-slot ${o?'occupied':''} ${o?.owner===w.player.publicId?'own':''} ${near?'near':''}" style="left:calc(50% + ${x}px);top:calc(50% + ${y}px)" data-rw-slot="${esc(s.id)}" title="${esc(w.slotKinds[s.kind])}: ${o?esc(o.name):'espaço de carta'}">${o?`${objectArt(o)?`<img class="rw-structure-art" src="${objectArt(o)}" alt="${esc(o.name)}">`:cardFace(o.cardId,'')}${o.blueprintId?`<i class="rw-build-icon">${ICON[s.kind]||'◇'}</i>`:''}<meter min="0" max="${o.maxHp}" value="${o.hp}"></meter><b>${esc(o.name)}</b>`:`<i>${ICON[s.kind]||'◇'}</i><b>${esc(w.slotKinds[s.kind])}</b>`}</button>`;}).join('')}</section>`;}
-function actor(a,w){const self=a.id===w.player.publicId,person=a.kind==='traveler',avatar=a.avatar||'oracle';return `<button class="rw-actor ${esc(a.kind)} ${objectArt(a)?'scenery':''} ${esc(a.faction||'neutral')} ${a.state==='em combate'?'fighting':''} ${a.guarding?'guarding':''} ${a.windup?`windup-${esc(a.windup.style||'raider')}`:''} ${selectedTarget===a.id?'targeted':''} ${a.hp<=0?'down':''}" data-rw-actor="${esc(a.id)}" style="left:${a.x*96}px;top:${a.y*64}px" title="${esc(a.name)} · ${esc(KIND[a.kind]||'Habitante')}">${objectArt(a)?`<img class="rw-object-art" src="${objectArt(a)}" alt="${esc(a.name)}" loading="lazy">`:person?`<img src="/assets/avatars/${esc(avatar)}.png" alt="">`:cardFace(a.cardId,a.name)}${a.kind==='settlement'?`<span class="rw-city-buildings">${Object.entries(w.settlements?.find(c=>c.houseId===a.houseId)?.buildings||{}).filter(([,level])=>level>0).map(([key,level])=>`<img src="/assets/world/objects/${({warehouse:'supply-crates',forge:'blacksmith',watchtower:'watchtower'})[key]}.png" alt="${key} ${level}">`).join('')}</span>`:''}${person&&a.karma?`<span class="rw-karma-badge" title="${esc(a.karma.title)}"><img src="${esc(a.karma.icon)}" alt=""></span>`:''}<i class="rw-footprint"></i>${a.hp>0&&a.kind!=='resource'?`<meter min="0" max="${a.maxHp}" value="${a.hp}"></meter>`:''}<b>${esc(a.name.split(' · ')[0])}</b>${a.aiStyle?`<em>NV ${a.level} · ${a.aiStyle.toUpperCase()}</em>`:''}${a.kind==='raid'?'<em>✦ RAID</em>':a.arenaKind?'<em>✦ ARENA</em>':a.kind==='invader'?'<em>⚠ INVASÃO</em>':''}</button>`;}
-function scenery(regions){return '<div class="rw-scenery" aria-hidden="true">'+regions.flatMap(realmScenery).map(o=>'<img src="/assets/world/objects/'+o.art+'.png" class="'+(o.large?'large':'')+'" style="left:'+o.x*96+'px;top:'+o.y*64+'px" alt="" loading="lazy">').join('')+'</div>';}
+function frontierIsland(w,n){
+ const identity=realmSiteIdentity(n),selectedNode=n.id===w.player.location,near=metric(w.player,n)<18;
+ const live=new Map(w.slots.filter(s=>s.node===n.id).map(s=>[s.id,s]));
+ const slots=realmSiteSlots(n).map(plan=>live.get(plan.id)||plan);
+ const art=name=>`/assets/world/objects/${esc(name)}.png`;
+ return `<section class="rw-island frontier rw-site-${esc(identity.accent)} rw-habitat-${esc(n.habitat)} ${selectedNode?'here':''}" style="left:${n.x*96}px;top:${n.y*64}px" aria-label="${esc(n.name)}"><div class="rw-biome"><img src="/assets/world/${esc(n.board)}.png" alt="" loading="lazy"></div><div class="rw-site-foundation" aria-hidden="true"><i class="rw-site-trail"></i><i class="rw-site-crossing"></i><i class="rw-site-court"></i><img class="rw-site-architecture main" src="${art(identity.art)}" alt="" loading="lazy"><img class="rw-site-architecture support" src="${art(identity.secondary)}" alt="" loading="lazy"><img class="rw-site-architecture resource" src="${art(identity.resource)}" alt="" loading="lazy"></div><img class="rw-sheet-landmark" src="/assets/world/sheet-details/${landmarkFor(n)}.webp" alt="" loading="lazy"><div class="rw-place"><i>${esc(n.icon)}</i><span><small>${selectedNode?'SUA POSIÇÃO · ':''}${esc(identity.label)} · NV ${esc(n.level)}</small><b>${esc(n.name)}</b></span><em>${w.territories?.[n.id]?.owner?'♜':''}</em></div><div class="rw-ring"></div>${slots.map(s=>{const o=s.occupant,available=live.has(s.id),x=(s.x-n.x)*96,y=(s.y-n.y)*64;return `<button class="rw-slot ${o?'occupied':''} ${o?.owner===w.player.publicId?'own':''} ${near?'near':''} ${available?'':'rw-slot-distant'}" style="left:calc(50% + ${x}px);top:calc(50% + ${y}px)" ${available?`data-rw-slot="${esc(s.id)}"`:'disabled'} title="${esc(w.slotKinds[s.kind])}: ${o?esc(o.name):available?'espaço de carta':'aproxime-se para interagir'}">${o?`${objectArt(o)?`<img class="rw-structure-art" src="${objectArt(o)}" alt="${esc(o.name)}">`:cardFace(o.cardId,'')}${o.blueprintId?`<i class="rw-build-icon">${ICON[s.kind]||'◇'}</i>`:''}<meter min="0" max="${o.maxHp}" value="${o.hp}"></meter><b>${esc(o.name)}</b>`:`<i>${ICON[s.kind]||'◇'}</i><b>${esc(w.slotKinds[s.kind])}</b>`}</button>`;}).join('')}</section>`;
+}
+function island(w,n){if(n.provinceId)return frontierIsland(w,n);return legacyIsland(w,n);}
+function legacyIsland(w,n){const selectedNode=n.id===w.player.location,near=metric(w.player,n)<18;return `<section class="rw-island ${n.provinceId?'frontier':''} ${selectedNode?'here':''}" style="left:${n.x*96}px;top:${n.y*64}px"><div class="rw-biome"><img src="/assets/world/${esc(n.board)}.png" alt="" loading="lazy"></div><img class="rw-sheet-landmark" src="/assets/world/sheet-details/${landmarkFor(n)}.webp" alt="" loading="lazy"><div class="rw-place"><i>${esc(n.icon)}</i><span><small>${selectedNode?'SUA POSIÇÃO':n.kind==='dungeon'?'TERRA SELADA':'TERRITÓRIO'} · NÍVEL ${n.levelRange?`${n.levelRange.min}–${n.levelRange.max}`:n.level}</small><b>${esc(n.name)}</b></span><em>${w.territories?.[n.id]?.owner?'♜':''}</em></div><div class="rw-ring"></div>${w.slots.filter(s=>s.node===n.id).map((s,i)=>{const o=s.occupant,x=(s.x-n.x)*96,y=(s.y-n.y)*64;return `<button class="rw-slot ${o?'occupied':''} ${o?.owner===w.player.publicId?'own':''} ${near?'near':''}" style="left:calc(50% + ${x}px);top:calc(50% + ${y}px)" data-rw-slot="${esc(s.id)}" title="${esc(w.slotKinds[s.kind])}: ${o?esc(o.name):'espaço de carta'}">${o?`${objectArt(o)?`<img class="rw-structure-art" src="${objectArt(o)}" alt="${esc(o.name)}">`:cardFace(o.cardId,'')}${o.blueprintId?`<i class="rw-build-icon">${ICON[s.kind]||'◇'}</i>`:''}<meter min="0" max="${o.maxHp}" value="${o.hp}"></meter><b>${esc(o.name)}</b>`:`<i>${ICON[s.kind]||'◇'}</i><b>${esc(w.slotKinds[s.kind])}</b>`}</button>`;}).join('')}</section>`;}
+function actor(a,w){if(a.hp<=0&&!objectArt(a)&&!['loot','resource'].includes(a.kind))return `<button class="rw-actor rw-corpse ${selectedTarget===a.id?'targeted':''}" data-rw-actor="${esc(a.id)}" style="left:${a.x*96}px;top:${a.y*64}px" aria-label="Restos de ${esc(a.name)} · interações pós-morte" title="Restos de ${esc(a.name)}">${corpseFigure()}</button>`;const self=a.id===w.player.publicId,person=a.kind==='traveler',avatar=a.avatar||'oracle';return `<button class="rw-actor ${esc(a.kind)} ${objectArt(a)?'scenery':''} ${esc(a.faction||'neutral')} ${a.state==='em combate'?'fighting':''} ${a.guarding?'guarding':''} ${a.windup?`windup-${esc(a.windup.style||'raider')}`:''} ${selectedTarget===a.id?'targeted':''} ${a.hp<=0?'down':''}" data-rw-actor="${esc(a.id)}" style="left:${a.x*96}px;top:${a.y*64}px" title="${esc(a.name)} · ${esc(KIND[a.kind]||'Habitante')}">${a.kind==='resource'?resourceFigure(a):a.kind==='loot'?lootFigure(a):objectArt(a)?`<img class="rw-object-art" src="${objectArt(a)}" alt="${esc(a.name)}" loading="lazy">`:person?`<img src="/assets/avatars/${esc(avatar)}.png" alt="">`:cardFace(a.cardId,a.name)}${a.kind==='settlement'?`<span class="rw-city-buildings">${Object.entries(w.settlements?.find(c=>c.houseId===a.houseId)?.buildings||{}).filter(([,level])=>level>0).map(([key,level])=>`<img src="/assets/world/objects/${({warehouse:'supply-crates',forge:'blacksmith',watchtower:'watchtower'})[key]}.png" alt="${key} ${level}">`).join('')}</span>`:''}${person&&a.karma?`<span class="rw-karma-badge" title="${esc(a.karma.title)}"><img src="${esc(a.karma.icon)}" alt=""></span>`:''}<i class="rw-footprint"></i>${a.hp>0&&!['resource','loot','satchel'].includes(a.kind)?`<meter min="0" max="${a.maxHp}" value="${a.hp}"></meter>`:''}<b>${esc(a.kind==='loot'?'ESPÓLIO':a.name.split(' · ')[0])}</b>${a.aiStyle?`<em>NV ${a.level} · ${a.aiStyle.toUpperCase()}</em>`:''}${a.kind==='raid'?'<em>✦ RAID</em>':a.arenaKind?'<em>✦ ARENA</em>':a.kind==='invader'?'<em>⚠ INVASÃO</em>':''}</button>`;}
+function scenery(regions){return '<div class="rw-scenery" aria-hidden="true">'+regions.flatMap(n=>realmScenery(n).map(o=>({...o,frontier:!!n.provinceId}))).map(o=>'<img src="/assets/world/objects/'+o.art+'.png" class="'+(o.large?'large ':'')+(o.frontier?'rw-frontier-scenery':'')+'" style="left:'+o.x*96+'px;top:'+o.y*64+'px" alt="" loading="lazy">').join('')+'</div>';}
 function statusText(w){const p=w.player,phase=w.cycle?.phase||'vigília';return `<small>VÉSPERA · ${esc(phase.toUpperCase())}</small><strong>${esc(dataRef.regions.find(n=>n.id===dataRef.player.location)?.name||'Terras de Véspera')}</strong><span>◈ ${dataRef.profile.coins} · ◉ ${dataRef.player.provisions} · ♧ ${dataRef.player.materials.timber} · ⬡ ${dataRef.player.materials.ore} · ✧ ${dataRef.player.materials.essence}</span><span>♥ ${Math.ceil(p.hp)}/${p.maxHp}　⚡ ${Math.floor(p.energy)}/${p.maxEnergy}</span>`;}
 function resourceBadge(key,value,label){const symbols={coins:'◈',provisions:'◉'},asset=RESOURCE_ART[key];return `<span class="rw-resource" title="${label}">${asset?`<img src="${asset}" alt="">`:`<i>${symbols[key]}</i>`}<b>${value}</b><small>${label}</small></span>`;}
 function worldCardText(id){const c=CARDS[id];if(!c)return '';if(c.type==='unit')return `Frente ou influência · ${30+(c.health||0)*8} vida · ${(c.attack||1)*3} ataque · 2 madeira + 1 minério`;if(c.type==='equipment')return `Relíquia · +${(c.attack||0)*2} ataque · +${(c.health||0)*5} vida · 10 vigor`;return ({heal:'Restaura 25 de vida no líder ou em um posto aliado.',sacrifice:'Restaura 12 de vida no líder ou em um posto aliado.',influence:'Converte presença de um estandarte em influência da Casa.',pounce:'Prepara outro ataque e cura 10 de vida de um posto aliado.'})[c.effect]||`Ritual ofensivo · ${c.effect==='execute'?32:c.effect==='rend'?24:18+(c.effectAmount||0)*2} dano · ${10+c.cost*4} vigor`;}
 function marketControl(a,disabled){
  const labels={timber:'Madeira',ore:'Minério',essence:'Essência'},market=a.market,player=dataRef.player;
- const lot=market.lot||2,role=({ 'logging-waystation':'Entreposto dos lenhadores','forge-waystation':'Entreposto das forjas','industrial-city':'Câmara das forjas','canal-port':'Comércio das águas','trade-gate':'Portão mercantil','grand-market':'Grande mercado livre','healer-outpost':'Suprimentos da Vigília','astral-camp':'Banca dos astrônomos','throne-city':'Mercado da Coroa' })[market.role]||'Mercado da Vigília';
+ const lot=market.lot||2,role=({ 'logging-waystation':'Entreposto dos lenhadores','forge-waystation':'Entreposto das forjas',forge:'Mercado da forja','industrial-city':'Câmara das forjas','canal-port':'Comércio das águas','trade-gate':'Portão mercantil','grand-market':'Grande mercado livre',customs:'Entreposto dos contratos',temple:'Trocas da Abadia','wolf-clan':'Trocas da alcateia','healer-outpost':'Suprimentos da Vigília','astral-camp':'Banca dos astrônomos',observatory:'Cartas e cristais','throne-city':'Mercado da Coroa' })[market.role]||'Mercado da Vigília';
  return `<div class="rw-market"><div class="rw-market-head"><small>MERCADO VIVO · ESTOQUE LOCAL</small><b>${role}</b><span>Cada troca movimenta ${lot} unidades. Preços e oferta seguem a região.</span></div>${Object.keys(labels).map(resource=>{const price=market.prices?.[resource]||{},stock=market.stock?.[resource]||0,owned=player.materials?.[resource]||0;return `<div class="rw-market-row"><img src="${RESOURCE_ART[resource]}" alt=""><span><b>${labels[resource]}</b><small>Estoque ${stock} · sua bolsa ${owned}</small></span><button data-rw-trade="${esc(a.id)}" data-rw-operation="buy" data-rw-resource="${resource}" ${disabled||stock<lot||price.buy==null||dataRef.profile.coins<price.buy*lot?'disabled':''} title="Comprar ${lot} unidades">COMPRAR<em>◈ ${price.buy==null?'—':price.buy*lot}</em></button><button data-rw-trade="${esc(a.id)}" data-rw-operation="sell" data-rw-resource="${resource}" ${disabled||owned<lot||price.sell==null?'disabled':''} title="Vender ${lot} unidades">VENDER<em>◈ ${price.sell==null?'—':price.sell*lot}</em></button></div>`;}).join('')}</div>`;
 }
 function targetControl(w,a,cards){
@@ -54,14 +107,18 @@ function targetControl(w,a,cards){
  const object=objectArt(a),kind=KIND[a.kind]||'Viajante',enemy=a.warEnemy||['hostile','invader','raid'].includes(a.kind),dead=a.hp<=0;
  let action='';
  if(a.kind==='land')action='<p>Terreno exclusivo de cidade. Construção: 25 madeiras e 15 minérios.</p><button class="rw-primary" data-rw-land="'+esc(a.id)+'" '+disabled+'>FUNDAR SEDE NESTE TERRENO</button>';
+ else if(a.kind==='loot')action=`<p>${a.loot?.protected?'Reservado aos combatentes por 90 segundos. Depois, pode ser recolhido por qualquer viajante.':a.loot?.eligible?`${a.loot.coins} Marcas${a.loot.gear?` · ${esc(CARDS[a.loot.gear]?.name||'Relíquia')}`:''}${a.loot.scrap?` · ${a.loot.scrap} sucata`:''}`:'Esta parte do espólio já foi coletada.'}</p><button class="rw-primary" data-rw-interact="${esc(a.id)}" ${disabled||!a.loot?.eligible?'disabled':''}>✦ RECOLHER ESPÓLIO FÍSICO<small>${a.loot?.gear?'RELÍQUIA · ':''}SAQUE PROTEGIDO, DEPOIS PÚBLICO</small></button>`;
  else if(a.kind==='settlement')action=cityPanel(w,a);
- else if(a.arenaKind)action=`<button class="rw-primary" data-rw-arena="${esc(a.id)}" ${disabled||a.cooldown>0?'disabled':''}>⚔ ${a.kind==='portal'?'ADENTRAR DUNGEON':'DESAFIAR NA ARENA'}<small>${a.cooldown>0?`NOVA VIGÍLIA EM ${Math.ceil(a.cooldown/1000)}s`:'MESA COMPLETA · 2 PROVISÕES'}</small></button>`;
+ else if(a.arenaKind)action=a.kind==='portal'?`<button class="rw-primary" data-rw-dungeon-enter="${esc(a.id)}" ${disabled}>☾ EXPLORAR INTERIOR COMPARTILHADO<small>MAPA INTERNO · SOLO, COOP E CAÇA LIVRE</small></button><button class="rw-secondary" data-rw-arena="${esc(a.id)}" ${disabled||a.cooldown>0?'disabled':''}>MESA TÁTICA CLÁSSICA</button>`:`<button class="rw-primary" data-rw-arena="${esc(a.id)}" ${disabled||a.cooldown>0?'disabled':''}>⚔ DESAFIAR NA ARENA<small>${a.cooldown>0?`NOVA VIGÍLIA EM ${Math.ceil(a.cooldown/1000)}s`:'MESA COMPLETA · 2 PROVISÕES'}</small></button>`;
  else if(a.kind==='traveler'&&a.warEnemy)action='<p>Casa inimiga em guerra. Golpes, feitiços e projéteis de combate em tempo real podem atingir este viajante; barreiras, aparos e colisões continuam ativos.</p>';
  else if(a.kind==='traveler')action=`<button class="rw-primary" data-rw-pvp="${esc(a.id)}" ${disabled||a.busy?'disabled':''}>⚔ PROPOR DUELO<small>PACTO · EXIGE ACEITE DO VIAJANTE</small></button>`;
  else if(a.kind==='raid'&&dead)action=`<p>${a.contribution} de dano causado · mínimo de 20 para saque.</p><button class="rw-primary" data-rw-interact="${esc(a.id)}" ${!near||a.claimed||a.contribution<20?'disabled':''}>${a.claimed?'SAQUE RECEBIDO':'RECOLHER SAQUE DA RAID'}<small>60 MARCAS · 60 XP · MINÉRIO E ESSÊNCIA</small></button>`;
  else if(enemy)action=`${a.kind==='raid'?'<p>Colosso compartilhado. Ataque com outros viajantes e suas defesas. Cada participante conquista seu próprio saque.</p>':''}<button class="rw-primary" data-rw-attack="${esc(a.id)}" ${dead||d>w.rules.attackRange?'disabled':''}>⚔ ${dead?'DERROTADO':'ATACAR'}<small>${dead?`RETORNO EM ${Math.max(0,Math.ceil((a.respawnAt-w.serverTime)/1000))}s`:'ATAQUE CONTÍNUO · SEM CUSTO DE CARTA'}</small></button>${(selected&&CARDS[selected]?.type==='spell'?[selected]:cards.filter(id=>CARDS[id]?.type==='spell').slice(0,3)).filter(id=>!['heal','sacrifice','pounce','influence'].includes(CARDS[id].effect)).map(id=>`<button class="rw-secondary" data-rw-spell="${esc(a.id)}" data-rw-card="${esc(id)}" ${dead||d>w.rules.attackRange?'disabled':''}>✦ ${esc(CARDS[id].name)}<small>${esc(worldCardText(id))}</small></button>`).join('')}`;
  else if(a.kind==='merchant'&&a.market)action=marketControl(a,disabled);
+ else if(a.kind==='wayshrine')action=`<p>Marco seguro entre postos. Reúne seu vigor para continuar a travessia.</p><button class="rw-primary" data-rw-interact="${esc(a.id)}" ${disabled}>✧ FIRMAR PACTO DE REPOUSO<small>1 ESSÊNCIA · +30 VIDA · +30 VIGOR · +25 MANA</small></button>`;
  else {const label={rift:'INICIAR EXPEDIÇÃO · 2 PROVISÕES','expedition-loot':'RECOLHER RECOMPENSA',resource:`COLETAR ${a.resource==='timber'?'MADEIRA':a.resource==='ore'?'MINÉRIO':'ESSÊNCIA'}`,quartermaster:'DESCANSAR & REABASTECER',envoy:a.role==='chronicler'?'OUVIR CRÔNICA DA PROVÍNCIA':'CONTRATO DA VIGÍLIA',merchant:'VENDER RECURSOS',patrol:'FALAR COM A PATRULHA',satchel:'RECUPERAR ESPÓLIO',caravan:'RECEBER SUPRIMENTOS'}[a.kind]||'INTERAGIR';action=`<button class="rw-primary" data-rw-interact="${esc(a.id)}" ${disabled||dead?'disabled':''}>${dead?'RECURSO ESGOTADO':label}<small>${dead?`RENOVA EM ${Math.max(0,Math.ceil((a.respawnAt-w.serverTime)/1000))}s`:a.kind==='resource'?'+3 RECURSOS · 5 VIGOR':a.kind==='merchant'?'2 RECURSOS POR 8 MARCAS':a.role==='chronicler'?'PRIMEIRO RELATO · 30 XP + 10 MARCAS':'AÇÃO DO MUNDO'}</small></button>`;}
+ if(enemy&&dead&&!a.lineageClaimed&&a.respawnAt>w.serverTime){const vampire=w.lineage?.kind==='blood';action+=`<button class="rw-primary rw-lineage-harvest" data-rw-lineage="${vampire?'drain':'claim'}" data-rw-lineage-target="${esc(a.id)}" ${disabled}>${vampire?'◆ SUGAR SANGUE DA PRESA':'✦ REIVINDICAR CAÇA'}<small>${vampire?'RECUPERA VIDA · ABASTECE O RITO':'RECUPERA VIGOR · FORTALECE A MATILHA'}</small></button>`;}
+ if(enemy&&dead&&!a.professionClaimed&&a.lastHitBy===p.publicId&&a.respawnAt>w.serverTime){const vampire=w.profession?.kind==='domitor';if(!vampire||a.kind!=='raid')action+=`<button class="rw-secondary rw-profession-action" data-rw-profession="${vampire?'convert':'dress'}" data-rw-profession-target="${esc(a.id)}" ${disabled}>${vampire?'☾ FIRMAR PACTO DE SERVO':'◇ PREPARAR CARNE E PELES'}<small>${vampire?'EXIGE CIDADE, 12 SANGUE E 2 ESSÊNCIAS':'PROFISSÃO DE CAÇA · MERCADO E PROVISÕES'}</small></button>`;}
  return `<div class="rw-target-art ${object?'object':''}">${object?`<img src="${object}" alt="${esc(a.name)}">`:a.kind==='traveler'?`<img src="/assets/avatars/${esc(a.avatar||'oracle')}.png" alt="">`:cardFace(a.cardId,a.name)}<span>${esc(kind)}</span></div><h2>${esc(a.name)}</h2>${enemy&&!dead?`<div class="rw-target-health"><i style="width:${100*a.hp/a.maxHp}%"></i><span>${Math.ceil(a.hp)} / ${a.maxHp}</span></div>`:''}<div class="rw-target-meta"><span>${esc(a.state||kind)}</span><b>${Math.round(d*10)/10}m</b></div>${!near?'<p class="rw-distance">Aproxime-se com WASD ou as setas.</p>':''}${action}<button class="rw-secondary rw-camera-action" data-rw-center="${esc(a.id)}">◎ LOCALIZAR NO MAPA</button>`;
 }
 function frontierRegionControl(w,n){
@@ -119,7 +176,8 @@ function paintWorld(){
  const sampleAt=performance.now(),smoothActors=!matchMedia('(prefers-reduced-motion: reduce)').matches;
  for(const a of entities){
   let el=existing.get(a.id);existing.delete(a.id);
-  const moving=movingActors.has(a.kind)&&smoothActors,visibleState={...a};
+  if(el&&shouldAnimateDeath(el._wasAlive,a.hp))animateTokenDeath(el,a,w,camera.z);
+  const moving=a.hp>0&&movingActors.has(a.kind)&&smoothActors,visibleState={...a};
   delete visibleState.cooldown;delete visibleState.contribution;delete visibleState.claimed;
   if(moving){delete visibleState.x;delete visibleState.y;}
   const stamp=JSON.stringify([visibleState,selectedTarget===a.id,a.kind==='settlement'?w.settlements?.find(city=>city.houseId===a.houseId)?.buildings:null]);
@@ -128,16 +186,18 @@ function paintWorld(){
    if(el)morph(el,t.content.firstElementChild);else{layer.append(t.content);el=layer.lastElementChild;}
    el._visualStamp=stamp;
   }
+  el._wasAlive=a.hp>0;
   if(moving){
    const motion=sampleRealmMotion(actorMotion.get(a.id),a,w.serverTime,sampleAt);
    actorMotion.set(a.id,motion);motion.element=el;
    el.style.transition='none';el.style.left=motion.x*96+'px';el.style.top=motion.y*64+'px';
   }else actorMotion.delete(a.id);
  }
- for(const el of existing.values()){actorMotion.delete(el.dataset.rwActor);el.remove();}
+ for(const el of existing.values()){const id=el.dataset.rwActor;if(el._wasAlive&&['kill','pk-kill','defeat'].includes(deathEvent(w,id).kind))animateTokenDeath(el,{id},w,camera.z);actorMotion.delete(id);el.remove();}
  let districts=plane.querySelector('.rw-city-layer');if(!districts){districts=document.createElement('div');districts.className='rw-city-layer';plane.append(districts);}const cityStamp=JSON.stringify(w.settlements);if(districts._stamp!==cityStamp){districts.innerHTML=districtMarkers(w);districts._stamp=cityStamp;}
- let self=layer.querySelector('.rw-self');if(!self){self=document.createElement('div');self.className='rw-self';self.innerHTML=`<img src="/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png" alt="${esc(dataRef.profile.name)}"><i></i><span class="rw-karma-badge" title="${esc(w.karma?.title||'Karma inicial')}"><img src="${esc(w.karma?.icon||('/assets/world/sheet-details/'+(dataRef.profile?.starterFaction==='werewolf'?'werewolf':'vampire')+'-white.webp'))}" alt=""></span><b>${esc(dataRef.profile.name)}</b><span>VOCÊ</span>`;layer.append(self);}const badge=self.querySelector('.rw-karma-badge');if(badge){badge.title=w.karma?.title||'';badge.querySelector('img').src=w.karma?.icon||'/assets/world/sheet-details/'+(dataRef.profile?.starterFaction==='werewolf'?'werewolf':'vampire')+'-white.webp';}const p=controller?.pose||w.player;self.style.left=p.x*96+'px';self.style.top=p.y*64+'px';
- paintCamera();
+ let self=layer.querySelector('.rw-self');if(!self){self=document.createElement('div');self.className='rw-self';self.innerHTML=`<img src="/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png" alt="${esc(dataRef.profile.name)}"><i></i><span class="rw-karma-badge" title="${esc(w.karma?.title||'Karma inicial')}"><img src="${esc(w.karma?.icon||('/assets/world/sheet-details/'+(dataRef.profile?.starterFaction==='werewolf'?'werewolf':'vampire')+'-white.webp'))}" alt=""></span><span class="rw-karma-combo" aria-hidden="true"></span><b>${esc(dataRef.profile.name)}</b><span>VOCÊ</span>`;layer.append(self);}const badge=self.querySelector('.rw-karma-badge');if(badge){badge.title=w.karma?.title||'';const icon=w.karma?.icon||'/assets/world/sheet-details/'+(dataRef.profile?.starterFaction==='werewolf'?'werewolf':'vampire')+'-white.webp';if(badge.querySelector('img').getAttribute('src')!==icon)badge.querySelector('img').src=icon;}self.dataset.karmaFamily=w.karma?.rankFamily||'white';self.dataset.karmaTier=String(w.karma?.rankTier||0);self.dataset.comboTier=String(w.karma?.comboTier||0);const combo=self.querySelector('.rw-karma-combo');if(combo)combo.textContent=(w.karma?.comboCount||0)>=3?`×${w.karma.comboCount}`:'';const p=controller?.pose||w.player;self.style.left=p.x*96+'px';self.style.top=p.y*64+'px';
+ if(shouldAnimateDeath(self._wasAlive,w.player.hp))animateTokenDeath(self,w.player,w,camera.z);self._wasAlive=w.player.hp>0;self.dataset.life=w.player.hp>0?'alive':'dead';if(!self.querySelector('.rw-corpse-mark'))self.insertAdjacentHTML('beforeend',corpseFigure());
+ paintCamera();paintThreatMarkers();paintHarvest();
 }
 function paintHud(){
  const host=rootRef?.querySelector('.rw-hud');if(!host)return;
@@ -148,10 +208,29 @@ function paintHud(){
  if(!nextClasses.has('rw-atlas-overlay'))host.querySelector('.rw-atlas-overlay')?.remove();
  updateActionHud({...dataRef.liveWorld,gear:worldCards().filter(id=>CARDS[id].type==='equipment').map(id=>({...CARDS[id],cardId:id,art:CARD_ART[id],equipped:dataRef.liveWorld.player.equipment.includes(id)}))});
 }
+function paintDungeon(){
+ const d=dataRef?.liveWorld?.dungeon;if(!rootRef)return;
+ rootRef.classList.toggle('in-dungeon',!!d);
+ let shell=rootRef.querySelector('.rw-dungeon');if(!d){shell?.remove();if(controller)controller.dungeonPose=null;return;}
+ if(!shell){shell=document.createElement('section');shell.className='rw-dungeon';shell.innerHTML=`<div class="rw-dungeon-map"><div class="rw-dungeon-actors"></div><div class="rw-dungeon-self"><img alt=""><i></i><b>VOCÊ</b></div></div><header><small>EXPEDIÇÃO COMPARTILHADA · PvE / PvP</small><h2></h2><div class="rw-dungeon-vitals"><i></i><span></span></div><button data-rw-dungeon-exit>SAIR PELA PORTA</button></header><aside class="rw-dungeon-events"></aside><div class="rw-dungeon-controls"><div class="rw-dungeon-pad"><button data-rw-dir="w">▲</button><button data-rw-dir="a">◀</button><button data-rw-dir="s">▼</button><button data-rw-dir="d">▶</button></div><div class="rw-dungeon-skills"><button data-rw-dungeon-ability="guard">⬡<span>GUARDA</span></button><button data-rw-dungeon-ability="dodge">➶<span>ESQUIVA</span></button><button data-rw-dungeon-ability="bolt">✦<span>MAGIA</span></button><button data-rw-dungeon-ability="strike">⚔<span>ATACAR</span></button></div></div>`;rootRef.append(shell);}
+ if(!controller.dungeonPose||controller.dungeonId!==d.id){controller.dungeonPose={x:d.player.x,y:d.player.y};controller.dungeonId=d.id;controller.dungeonAccum=0;dungeonTarget=null;}
+ else if(Math.hypot(controller.dungeonPose.x-d.player.x,controller.dungeonPose.y-d.player.y)>3){controller.dungeonPose.x+=(d.player.x-controller.dungeonPose.x)*.28;controller.dungeonPose.y+=(d.player.y-controller.dungeonPose.y)*.28;}
+ const map=shell.querySelector('.rw-dungeon-map');if(map._image!==d.image){map.style.backgroundImage=`linear-gradient(0deg,#03090ec9,#03090e22 24%,#03090e12 74%,#03090e9c),url('${d.image}')`;map._image=d.image;}
+ shell.style.setProperty('--dungeon-tint',d.tint);shell.querySelector('h2').textContent=d.name;
+ shell.querySelector('.rw-dungeon-vitals span').textContent=`${Math.ceil(d.player.hp)} / ${d.player.maxHp} VIDA · ${d.hazard}`;
+ shell.querySelector('.rw-dungeon-vitals i').style.width=Math.max(0,100*d.player.hp/d.player.maxHp)+'%';
+ const art='/assets/world/objects/',token=card=>CARD_ART[card]||'/assets/avatars/mordrath.png';
+ const stamp=JSON.stringify([d.enemies,d.players,d.sigils,d.chests,d.hazards,d.serverTime>0?Math.floor(d.serverTime/1000):0,dungeonTarget]);
+ const actors=shell.querySelector('.rw-dungeon-actors');if(actors._stamp!==stamp){actors._stamp=stamp;actors.innerHTML=`${d.hazards.map((h,i)=>`<i class="rw-dungeon-hazard" style="left:${h.x}%;top:${h.y}%" title="${esc(d.hazard)}"></i>`).join('')}${d.sigils.map(s=>`<button class="rw-dungeon-sigil ${s.active?'active':''}" data-rw-dungeon-interact="${s.id}" style="left:${s.x}%;top:${s.y}%" title="${s.active?'Selo ativo':'Ativar selo'}">${s.active?'✦':'◇'}<small>SELO</small></button>`).join('')}${d.chests.map(c=>`<button class="rw-dungeon-chest ${c.claimed?'claimed':''}" data-rw-dungeon-interact="${c.id}" style="left:${c.x}%;top:${c.y}%" title="${c.claimed?'Tesouro recolhido':'Abrir tesouro'}"><img src="${art}supply-crates.png" alt=""><small>${c.secret?'SEGREDO':c.boss?'COFRE':'BAÚ'}</small></button>`).join('')}${d.enemies.filter(e=>e.hp>0).map(e=>`<button class="rw-dungeon-enemy ${e.boss?'boss':''} ${dungeonTarget===e.id?'selected':''} ${e.windup?'warning':''}" data-rw-dungeon-target="${esc(e.id)}" style="left:${e.x}%;top:${e.y}%" title="${esc(e.name)}"><img src="${token(e.boss?'ravager':'warden')}" alt=""><b>${esc(e.name)}</b><i style="width:${100*e.hp/e.maxHp}%"></i></button>`).join('')}${d.players.filter(p=>p.id!==dataRef.player.publicId).map(p=>`<button class="rw-dungeon-ally ${dungeonTarget===p.id?'selected':''}" data-rw-dungeon-target="${esc(p.id)}" style="left:${p.x}%;top:${p.y}%" title="${esc(p.name)}"><img src="/assets/avatars/${esc(p.avatar||'vesper')}.png" alt=""><b>${esc(p.name)}</b></button>`).join('')}`;}
+ const self=shell.querySelector('.rw-dungeon-self'),selfImage=self.querySelector('img'),selfArt=`/assets/avatars/${esc(dataRef.player.avatar||'vesper')}.png`;if(selfImage.getAttribute('src')!==selfArt)selfImage.src=selfArt;self.style.left=controller.dungeonPose.x+'%';self.style.top=controller.dungeonPose.y+'%';
+ const mapWidth=map.offsetWidth,viewWidth=shell.clientWidth;if(mapWidth>viewWidth)map.style.left=Math.max(viewWidth-mapWidth,Math.min(0,viewWidth*.5-controller.dungeonPose.x/100*mapWidth))+'px';
+ const log=shell.querySelector('.rw-dungeon-events'),eventStamp=d.events.map(e=>e.id).join('|');if(log._stamp!==eventStamp){log._stamp=eventStamp;log.innerHTML=d.events.slice(0,4).map(e=>`<p class="${esc(e.kind)}">${esc(e.text)}</p>`).join('');}
+}
 
 function normalizeData(d){const w=d.liveWorld;w.player.publicId=d.player.publicId;w.player.location=w.player.location||d.player.location;w.territories=d.territories;return d;}
 function paint(forceHud=false){
- paintWorld();
+ if(dataRef?.liveWorld?.dungeon){paintDungeon();return;}
+ paintDungeon();paintWorld();
  const now=performance.now();
  if(forceHud||now-lastHudPaint>=500){lastHudPaint=now;paintHud();}
  else updateActionHud({...dataRef.liveWorld,gear:worldCards().filter(id=>CARDS[id].type==='equipment').map(id=>({...CARDS[id],cardId:id,art:CARD_ART[id],equipped:dataRef.liveWorld.player.equipment.includes(id)}))});
@@ -162,28 +241,44 @@ async function send(input){
  const defensive=input.type==='world-ability'&&['guard','parry','reflect','dash'].includes(input.ability);
  if(session.commandBusy&&!defensive)return;
  if(!defensive)session.commandBusy=true;
+ if(input.type==='world-interact'){
+  const actor=dataRef.liveWorld?.actors?.find(a=>a.id===input.targetId);
+  if(actor?.kind==='resource'){localHarvest={targetId:actor.id,resource:actor.resource,startedAt:Date.now(),endsAt:Date.now()+(dataRef.liveWorld.rules.harvestMs?.[actor.resource]||1500)};feedback('Coletando '+(actor.resource==='timber'?'madeira':actor.resource==='ore'?'minério':'essência')+'...');paintHarvest();}
+ }
  try{
   const d=await callbacks.sendAction(input);if(controller!==session)return;
-  if(d){dataRef=normalizeData(d);if(d.liveWorld){if(['world-recover','world-ability'].includes(input.type)&&d.liveWorld.player.displacement!==session.displacement){session.displacement=d.liveWorld.player.displacement;session.pose={x:d.liveWorld.player.x,y:d.liveWorld.player.y};session.accumulatedMs=0;session.queuedMove=null;if(input.type==='world-recover')focusPlayer();}paint(true);}}
+  if(d){localHarvest=null;dataRef=normalizeData(d);if(d.liveWorld){const player=d.liveWorld.player,displaced=player.displacement!==session.displacement;if(displaced){if(input.type==='world-ability'&&input.ability==='dash')beginDashTravel(session,player,findDashEvent(d.liveWorld,player));else{session.pose={x:player.x,y:player.y};session.dashTravel=null;session.accumulatedMs=0;session.queuedMove=null;clearKeys();if(input.type==='world-recover')focusPlayer();}session.displacement=player.displacement;}paint(true);}}
   const message=d?._worldResult?.message||d?.liveWorld?.lastResult?.message;if(message)feedback(message);
   return d;
- }catch(e){feedback(e.message||'A ordem não foi aceita.');return null;}
+ }catch(e){localHarvest=null;paintHarvest();feedback(e.message||'A ordem não foi aceita.');return null;}
  finally{if(!defensive)session.commandBusy=false;}
+}
+function findDashEvent(world,player){
+ return (world?.combatEvents||[]).filter(event=>event.kind==='dash'&&event.source===player?.publicId&&Math.hypot((event.x-player.x)*1.5,event.y-player.y)<.08).sort((a,b)=>b.at-a.at)[0]||null;
+}
+function beginDashTravel(session,player,event){
+ const from={...session.pose},to={x:player.x,y:player.y};
+ if(Math.hypot(to.x-from.x,to.y-from.y)<.015){session.pose=to;session.dashTravel=null;return false;}
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ session.dashTravel={from,to,startedAt:performance.now(),duration:reduced?180:Math.max(260,Math.min(440,event?.duration||380))};
+ session.pose=from;session.settlePose=null;session.deferredCorrection=null;session.accumulatedMs=0;session.queuedMove=null;
+ if(controller===session)clearKeys();
+ return true;
 }
 let analog={dx:0,dy:0};
 function direction(){if(analog.dx||analog.dy)return analog;return {dx:Number(keys.has('d')||keys.has('arrowright')||keys.has('right'))-Number(keys.has('a')||keys.has('arrowleft')||keys.has('left')),dy:Number(keys.has('s')||keys.has('arrowdown')||keys.has('down'))-Number(keys.has('w')||keys.has('arrowup')||keys.has('up'))};}
 function settleMovement(session,player){
- if(!player||session.inFlight||session.queuedMove||direction().dx||direction().dy||Number(player.moveSeq)<session.sentSeq)return;
+ if(!player||session.dashTravel||session.inFlight||session.queuedMove||direction().dx||direction().dy||Number(player.moveSeq)<session.sentSeq)return;
  const dx=player.x-session.pose.x,dy=player.y-session.pose.y;
  // A small server correction at touch release looks like the joystick springing back.
  // Keep the visual token still and absorb that offset during the next movement.
  const pixelError=Math.hypot(dx*96*camera.z,dy*64*camera.z);
- if(session.analogStopped&&pixelError<=14){session.deferredCorrection={x:dx,y:dy};session.settlePose=null;return;}
+ if(session.analogStopped&&pixelError<=64){session.deferredCorrection={x:dx,y:dy};session.settlePose=null;return;}
  session.deferredCorrection=null;
  session.settlePose={x:player.x,y:player.y};
 }
 function isBlocked(){
- if(!dataRef?.liveWorld)return true;
+ if(!dataRef?.liveWorld||pinch)return true;
  const p=dataRef.liveWorld.player;
  if(dataRef.liveWorld.activeRoom||p.hp<=0||document.hidden)return true;
  if(document.querySelector('dialog[open],.game-modal:not([hidden])'))return true;
@@ -225,6 +320,19 @@ function dispatchMove(session,dx,dy,elapsedMs,now){
 function loop(now){
  if(!rootRef?.isConnected||!controller){unmountRealmWorld();return;}
  const session=controller,d=direction(),blocked=isBlocked()||!!rootRef.querySelector('.ra-sheet:not([hidden])'),dt=Math.min(50,Math.max(0,now-(lastMove||now)));lastMove=now;
+ if(dataRef?.liveWorld?.dungeon){
+  if((d.dx||d.dy)&&!blocked&&session.dungeonPose){
+   const len=Math.max(1,Math.hypot(d.dx,d.dy)),step=11*dt/1000;
+   session.dungeonPose.x=Math.max(8,Math.min(91,session.dungeonPose.x+d.dx/len*step/1.65));
+   session.dungeonPose.y=Math.max(22,Math.min(79,session.dungeonPose.y+d.dy/len*step));
+   session.dungeonAccum=(session.dungeonAccum||0)+dt;
+   if(session.dungeonAccum>=125&&!session.dungeonFlight){
+    const elapsedMs=Math.min(400,session.dungeonAccum);session.dungeonAccum=0;session.dungeonFlight=true;
+    handlers.sendAction({type:'world-dungeon-move',dx:d.dx,dy:d.dy,elapsedMs}).catch(e=>feedback(e.message||'Movimento indisponível.')).finally(()=>{if(controller===session)session.dungeonFlight=false;});
+   }
+  }else session.dungeonAccum=0;
+  paintDungeon();frame=requestAnimationFrame(loop);return;
+ }
  for(const motion of actorMotion.values()){
   if(!motion.element?.isConnected)continue;
   const oldX=motion.x,oldY=motion.y;
@@ -232,6 +340,14 @@ function loop(now){
   if(Math.abs(motion.x-oldX)+Math.abs(motion.y-oldY)>.0005){
    motion.element.style.left=motion.x*96+'px';motion.element.style.top=motion.y*64+'px';
   }
+ }
+ if(session.dashTravel){
+  const dash=session.dashTravel,t=Math.max(0,Math.min(1,(now-dash.startedAt)/dash.duration)),ease=t*t*(3-2*t);
+  session.pose.x=dash.from.x+(dash.to.x-dash.from.x)*ease;session.pose.y=dash.from.y+(dash.to.y-dash.from.y)*ease;
+  const self=rootRef.querySelector('.rw-self');if(self){self.style.left=session.pose.x*96+'px';self.style.top=session.pose.y*64+'px';self.classList.add('rw-dashing');}
+  const size=dimensions(),follow=1-Math.exp(-dt/48);camera.x+=(size.w*.5-session.pose.x*96*camera.z-camera.x)*follow;camera.y+=(size.h*.48-session.pose.y*64*camera.z-camera.y)*follow;clampCamera();paintCamera();
+  if(t>=1){session.pose={...dash.to};session.dashTravel=null;self?.classList.remove('rw-dashing');}
+  frame=requestAnimationFrame(loop);return;
  }
  if((d.dx||d.dy)&&!blocked){
   const len=Math.max(1,Math.hypot(d.dx,d.dy)),rules=dataRef.liveWorld.rules,speed=rules.speed||22,aspect=rules.aspect||1.5;
@@ -248,8 +364,13 @@ function loop(now){
    if(Math.hypot(session.deferredCorrection.x*96*camera.z,session.deferredCorrection.y*64*camera.z)<.5)session.deferredCorrection=null;
   }
   session.analogStopped=false;
-  session.pose.x=Math.max(1,Math.min(1499,session.pose.x+stepX));
-  session.pose.y=Math.max(1,Math.min(99,session.pose.y+stepY));
+  // Predict against the same nearby solid bodies as the authoritative world.
+  // Walking through an obstacle locally used to spring the token backwards
+  // whenever the server's collision result arrived.
+  const world=dataRef.liveWorld;
+  const position=moveWithCollisions({obstacles:world.combat?.obstacles||[],slots:world.slots||[],actors:world.actors||[]},session.pose,{x:session.pose.x+stepX,y:session.pose.y+stepY},{ignoreId:world.player.publicId});
+  session.pose.x=position.x;
+  session.pose.y=position.y;
   session.accumulatedMs=Math.min(750,session.accumulatedMs+dt);
   session.lastDir={dx:d.dx,dy:d.dy};
   session.settlePose=null;
@@ -263,7 +384,7 @@ function loop(now){
    dispatchMove(session,session.lastDir.dx,session.lastDir.dy,session.accumulatedMs,now);
   }
   session.accumulatedMs=0;session.lastDir={dx:0,dy:0};rootRef.querySelector('.rw-self')?.classList.remove('rw-moving');
-  if(session.settlePose&&!session.inFlight&&!session.queuedMove){
+  if(session.settlePose&&!session.inFlight&&!session.queuedMove&&!mapTouches.size){
    const distance=Math.hypot(session.settlePose.x-session.pose.x,session.settlePose.y-session.pose.y);
    if(distance>0.003){
     const blend=1-Math.exp(-dt/(distance>2?110:180));
@@ -277,17 +398,29 @@ function loop(now){
    }else session.settlePose=null;
   }
  }
- frame=requestAnimationFrame(loop);
+ paintThreatMarkers();paintHarvest();frame=requestAnimationFrame(loop);
 }
 function slotIdFromButton(b){return b?.dataset.rwSlot||b?.dataset.rwBuild||b?.dataset.rwPlace&&slotTarget||slotTarget;}
 async function click(e){const b=e.target.closest('button');if(!b)return;
+ if(b.hasAttribute('data-rw-dungeon-exit'))return send({type:'world-dungeon-exit'});
+ if(b.dataset.rwDungeonTarget){dungeonTarget=b.dataset.rwDungeonTarget;paintDungeon();return;}
+ if(b.dataset.rwDungeonInteract)return send({type:'world-dungeon-interact',targetId:b.dataset.rwDungeonInteract});
+ if(b.dataset.rwDungeonAbility){
+  const d=dataRef.liveWorld.dungeon,ability=b.dataset.rwDungeonAbility,pose=controller?.dungeonPose||d?.player;
+  if(!d)return;const dir=direction();
+  if(ability==='guard')return send({type:'world-dungeon-guard'});
+  if(ability==='dodge')return send({type:'world-dungeon-dodge',dx:dir.dx||1,dy:dir.dy});
+  const targets=[...d.enemies.filter(e=>e.hp>0),...d.players.filter(p=>p.id!==dataRef.player.publicId&&p.hp>0)],chosen=targets.find(t=>t.id===dungeonTarget)||targets.sort((a,b)=>metric(pose,a)-metric(pose,b))[0];
+  if(chosen)return send({type:'world-dungeon-attack',targetId:chosen.id,ability});feedback('Selecione um alvo vivo.');return;
+ }
+ if(b.dataset.rwThreat){selectedTarget=b.dataset.rwThreat;slotTarget=null;paintHud();return;}
  if(b.hasAttribute('data-rw-detail')){detailsOpen=!detailsOpen;paintHud();return;}
  if(b.dataset.rwFilter){cardFilter=b.dataset.rwFilter;paintHud();return;}
  if(b.dataset.rwScroll){rootRef.querySelector('.rw-cards')?.scrollBy({left:Number(b.dataset.rwScroll)*220,behavior:'smooth'});return;}
  if(b.hasAttribute('data-rw-help')){showHelp=!showHelp;paintHud();return;}
- if(b.hasAttribute('data-rw-home')){atlas=false;camera.z=innerWidth<=720?.6:.9;focusPlayer(true);paintHud();return;}
- if(b.dataset.rwZoom){camera.z*=b.dataset.rwZoom==='in'?1.15:.87;focusPlayer(true);return;}
- if(b.dataset.rwCenter){const a=dataRef.liveWorld.actors.find(a=>a.id===b.dataset.rwCenter)||dataRef.liveWorld.players.find(a=>a.id===b.dataset.rwCenter);if(a){camera.x=dimensions().w/2-a.x*96*camera.z;camera.y=dimensions().h*.45-a.y*64*camera.z;clampCamera();paintCamera(true);}return;}
+ if(b.hasAttribute('data-rw-home')){atlas=false;camera.z=innerWidth<=720?.6:.9;focusPlayer(true);paintWorld();paintHud();return;}
+ if(b.dataset.rwZoom){camera.z*=b.dataset.rwZoom==='in'?1.15:.87;focusPlayer(true);paintWorld();return;}
+ if(b.dataset.rwCenter){const a=dataRef.liveWorld.actors.find(a=>a.id===b.dataset.rwCenter)||dataRef.liveWorld.players.find(a=>a.id===b.dataset.rwCenter);if(a){camera.x=dimensions().w/2-a.x*96*camera.z;camera.y=dimensions().h*.45-a.y*64*camera.z;clampCamera();paintWorld();}return;}
  if(b.dataset.rwSelect){selected=selected===b.dataset.rwSelect?null:b.dataset.rwSelect;paintHud();return;}
  if(b.dataset.rwBlueprint){selectedBlueprint=b.dataset.rwBlueprint;selected=null;paintHud();return;}
  if(b.dataset.rwSlot){slotTarget=b.dataset.rwSlot;const s=dataRef.liveWorld.slots.find(x=>x.id===slotTarget);selectedTarget=null;showHelp=false;detailsOpen=false;paintHud();return;}
@@ -300,15 +433,18 @@ async function click(e){const b=e.target.closest('button');if(!b)return;
  if(b.dataset.rwAttack)return send({type:'world-attack',targetId:b.dataset.rwAttack});
  if(b.dataset.rwSpell)return send({type:'world-attack',targetId:b.dataset.rwSpell,cardId:b.dataset.rwCard});
  if(b.dataset.rwTrade)return send({type:'world-interact',targetId:b.dataset.rwTrade,operation:b.dataset.rwOperation,resource:b.dataset.rwResource});
+ if(b.dataset.rwLineage)return send({type:'world-lineage',operation:b.dataset.rwLineage,targetId:b.dataset.rwLineageTarget});
+ if(b.dataset.rwProfession)return send({type:'world-profession',operation:b.dataset.rwProfession,targetId:b.dataset.rwProfessionTarget});
  if(b.dataset.rwInteract)return send({type:'world-interact',targetId:b.dataset.rwInteract});
  if(b.dataset.rwRecall)return send({type:'world-recall',slotId:b.dataset.rwRecall});
  if(b.dataset.rwRepair)return send({type:'world-repair',slotId:b.dataset.rwRepair});
+ if(b.dataset.rwDungeonEnter)return send({type:'world-dungeon-enter',targetId:b.dataset.rwDungeonEnter});
  if(b.dataset.rwArena)return handlers.openEncounter(b.dataset.rwArena);
  if(b.dataset.rwPvp)return handlers.openEncounter(b.dataset.rwPvp);
  if(b.hasAttribute('data-rw-equip'))return send({type:'world-equip',cardId:selected});if(b.dataset.rwSiege)return send({type:'world-siege',slotId:b.dataset.rwSiege});if(b.hasAttribute('data-rw-heal'))return send({type:'world-attack',targetId:'self',cardId:selected});if(b.hasAttribute('data-rw-stop'))return send({type:'world-stop'});if(b.hasAttribute('data-rw-recover'))return send({type:'world-recover'});
  if(b.dataset.rwFocus){const a=dataRef.liveWorld.actors.find(x=>x.id===b.dataset.rwFocus)||dataRef.liveWorld.players.find(x=>x.id===b.dataset.rwFocus);if(a){selectedTarget=a.id;slotTarget=null;}paintHud();return;}
- if(b.dataset.rwInvasion)b.dataset.rwLocate=b.dataset.rwInvasion;if(b.dataset.rwLocate){const n=dataRef.regions.find(x=>x.id===b.dataset.rwLocate);if(n){atlas=false;camera.x=dimensions().w/2-n.x*96*camera.z;camera.y=dimensions().h/2-n.y*64*camera.z;clampCamera();paintCamera(true);paintHud();}return;}
- if(b.dataset.rwProvince){const m=provinces().find(x=>x.id===b.dataset.rwProvince);if(m){const site=dataRef.regions.find(r=>r.x>=m.offset&&r.x<m.offset+m.width);atlas=false;const x=site?.x??m.offset+m.width/2,y=site?.y??50;camera.x=dimensions().w/2-x*96*camera.z;camera.y=dimensions().h/2-y*64*camera.z;clampCamera();paintCamera(true);paintHud();}return;}
+ if(b.dataset.rwInvasion)b.dataset.rwLocate=b.dataset.rwInvasion;if(b.dataset.rwLocate){const n=dataRef.regions.find(x=>x.id===b.dataset.rwLocate);if(n){atlas=false;camera.x=dimensions().w/2-n.x*96*camera.z;camera.y=dimensions().h/2-n.y*64*camera.z;clampCamera();paintWorld();paintHud();}return;}
+ if(b.dataset.rwProvince){const m=provinces().find(x=>x.id===b.dataset.rwProvince);if(m){const site=dataRef.regions.find(r=>r.x>=m.offset&&r.x<m.offset+m.width);atlas=false;const x=site?.x??m.offset+m.width/2,y=site?.y??50;camera.x=dimensions().w/2-x*96*camera.z;camera.y=dimensions().h/2-y*64*camera.z;clampCamera();paintWorld();paintHud();}return;}
  if(b.hasAttribute('data-rw-atlas')){atlas=!atlas;paintHud();return;}
  if(b.hasAttribute('data-rw-clear')){selectedTarget=null;slotTarget=null;showHelp=false;paintHud();return;}
  if(b.dataset.rwDir)return;
@@ -322,44 +458,76 @@ function keydown(e){
   keys.add(k);e.preventDefault();
  }
  if(k==='home')focusPlayer(true);
+ if(dataRef?.liveWorld?.dungeon&&!e.repeat&&!['input','textarea','select'].includes(document.activeElement?.tagName?.toLowerCase())){
+  if(k===' '){e.preventDefault();rootRef.querySelector('[data-rw-dungeon-ability="strike"]')?.click();return;}
+  if(k==='e'){e.preventDefault();const d=dataRef.liveWorld.dungeon,pose=controller?.dungeonPose||d.player,near=[...d.sigils.filter(s=>!s.active),...d.chests.filter(c=>!c.claimed)].sort((a,b)=>metric(pose,a)-metric(pose,b))[0];if(near)send({type:'world-dungeon-interact',targetId:near.id});return;}
+ }
  if(!e.repeat&&['e'].includes(k)&&!['input','textarea','select','button'].includes(document.activeElement?.tagName?.toLowerCase())){
   e.preventDefault();const w=dataRef.liveWorld,a=w.actors.find(a=>a.id===selectedTarget)||nearest(w);
   if(a){if(k===' ')send({type:'world-attack',targetId:a.id});else if(a.arenaKind)handlers.openEncounter(a.id);else send({type:'world-interact',targetId:slotTarget||a.id});}
  }
 }
 function keyup(e){keys.delete(e.key.toLowerCase());}
-function wheel(e){if(!rootRef?.querySelector('.rw-viewport')?.contains(e.target))return;e.preventDefault();const r=rootRef.querySelector('.rw-viewport').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,ratio=e.deltaY<0?1.13:.88;camera.z*=ratio;camera.x=x-(x-camera.x)*ratio;camera.y=y-(y-camera.y)*ratio;clampCamera();paintCamera();}
+function wheel(e){if(!rootRef?.querySelector('.rw-viewport')?.contains(e.target))return;e.preventDefault();const r=rootRef.querySelector('.rw-viewport').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,old=camera.z;camera.z*=e.deltaY<0?1.13:.88;clampCamera();const ratio=camera.z/old;camera.x=x-(x-camera.x)*ratio;camera.y=y-(y-camera.y)*ratio;clampCamera();paintWorld();}
+function cameraPoints(){const r=rootRef.querySelector('.rw-viewport').getBoundingClientRect();return [...mapTouches.values()].slice(0,2).map(p=>({x:p.x-r.left,y:p.y-r.top}));}
+function startPinch(){pinch={span:touchSpan(cameraPoints()),camera:{...camera}};drag=null;keys.clear();analog={dx:0,dy:0};suppressMapClickUntil=performance.now()+500;}
+function suppressCameraClick(e){if(e.target.closest('.rw-viewport')&&(pinch||performance.now()<suppressMapClickUntil)){e.preventDefault();e.stopImmediatePropagation();}}
 function pointerdown(e){
  if(controller)controller.pointerHeld=true;
  const stick=e.target.closest('[data-ra-joystick]');if(stick){e.preventDefault();if(controller.joystickId!=null)return;controller.joystickId=e.pointerId;stick.setPointerCapture(e.pointerId);moveStick(e,stick);return;}
  const dir=e.target.closest('[data-rw-dir]');
- if(dir){
-  e.preventDefault();const d=dir.dataset.rwDir;
-  keys.add(d);touchPointers.set(e.pointerId,d);
-  try{dir.setPointerCapture(e.pointerId);}catch{}
-  drag={direction:d,id:e.pointerId};
-  return;
- }
- const vp=e.target.closest('.rw-viewport');if(!vp||e.target.closest('button'))return;
+ if(dir){e.preventDefault();const d=dir.dataset.rwDir;keys.add(d);touchPointers.set(e.pointerId,d);try{dir.setPointerCapture(e.pointerId);}catch{}return;}
+ const vp=e.target.closest('.rw-viewport');if(!vp)return;
+ if(e.pointerType==='touch'){
+  mapTouches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  // Capture on the actual target so an ordinary tap still selects its token.
+  try{e.target.setPointerCapture(e.pointerId);}catch{}
+  if(mapTouches.size>=2){e.preventDefault();startPinch();return;}
+ }else if(e.target.closest('button'))return;
  drag={x:e.clientX,y:e.clientY,cx:camera.x,cy:camera.y,id:e.pointerId,travel:0};
- try{vp.setPointerCapture(e.pointerId);}catch{}
+ if(e.pointerType!=='touch')try{vp.setPointerCapture(e.pointerId);}catch{}
 }
-function moveStick(e,stick){const rect=stick.getBoundingClientRect(),x=e.clientX-rect.left-rect.width/2,y=e.clientY-rect.top-rect.height/2,d=Math.hypot(x,y),radius=rect.width*.32,mag=Math.min(1,d/radius);analog=d<6?{dx:0,dy:0}:{dx:x/d*mag,dy:y/d*mag};stick.style.setProperty('--stick-x',analog.dx*radius+'px');stick.style.setProperty('--stick-y',analog.dy*radius+'px');}
-function pointermove(e){if(controller?.joystickId===e.pointerId){moveStick(e,rootRef.querySelector('[data-ra-joystick]'));return;}if(!drag||drag.direction)return;drag.travel=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);if(drag.travel>5){camera.x=drag.cx+e.clientX-drag.x;camera.y=drag.cy+e.clientY-drag.y;clampCamera();paintCamera();}}
-function pointerup(e){if(controller?.joystickId===e.pointerId){controller.joystickId=null;controller.analogStopped=true;analog={dx:0,dy:0};const stick=rootRef.querySelector('[data-ra-joystick]');stick?.style.setProperty('--stick-x','0px');stick?.style.setProperty('--stick-y','0px');}
- if(controller)controller.pointerHeld=false;
- if(touchPointers.has(e.pointerId)){
-  const d=touchPointers.get(e.pointerId);touchPointers.delete(e.pointerId);
-  if(![...touchPointers.values()].includes(d))keys.delete(d);
+function moveStick(e,stick){if(!stick)return;const rect=stick.getBoundingClientRect(),x=e.clientX-rect.left-rect.width/2,y=e.clientY-rect.top-rect.height/2,d=Math.hypot(x,y),radius=rect.width*.32,mag=Math.min(1,d/radius);analog=d<6?{dx:0,dy:0}:{dx:x/d*mag,dy:y/d*mag};stick.style.setProperty('--stick-x',analog.dx*radius+'px');stick.style.setProperty('--stick-y',analog.dy*radius+'px');}
+function pointermove(e){
+ if(controller?.joystickId===e.pointerId){if(!pinch)moveStick(e,rootRef.querySelector('[data-ra-joystick]'));return;}
+ if(mapTouches.has(e.pointerId))mapTouches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pinch&&mapTouches.has(e.pointerId)&&mapTouches.size>=2){
+  e.preventDefault();const {w,h}=dimensions();Object.assign(camera,pinchCamera(pinch,touchSpan(cameraPoints()),Math.max(w/SIZE.width,h/SIZE.height,.09),1.05));
+  clampCamera();paintCamera();suppressMapClickUntil=performance.now()+500;
+  if(performance.now()-lastCullingAt>100){paintWorld();lastCullingAt=performance.now();}return;
  }
- if(drag?.direction)keys.delete(drag.direction);
- if(drag?.id===e.pointerId)drag=null;
+ if(!drag||drag.id!==e.pointerId)return;drag.travel=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);
+ if(drag.travel>5){suppressMapClickUntil=performance.now()+350;camera.x=drag.cx+e.clientX-drag.x;camera.y=drag.cy+e.clientY-drag.y;clampCamera();paintCamera();if(performance.now()-lastCullingAt>100){paintWorld();lastCullingAt=performance.now();}}
 }
-function bind(){rootRef.addEventListener('click',click);rootRef.addEventListener('wheel',wheel,{passive:false});rootRef.addEventListener('pointerdown',pointerdown);rootRef.addEventListener('pointermove',pointermove);window.addEventListener('pointerup',pointerup);window.addEventListener('pointercancel',pointerup);document.addEventListener('keydown',keydown);document.addEventListener('keyup',keyup);window.addEventListener('blur',clearKeys);window.addEventListener('resize',resize);}
-function clearKeys(){analog={dx:0,dy:0};if(controller)controller.joystickId=null;const stick=rootRef?.querySelector('[data-ra-joystick]');stick?.style.setProperty('--stick-x','0px');stick?.style.setProperty('--stick-y','0px');keys.clear();touchPointers.clear();drag=null;if(controller)controller.pointerHeld=false;}
-function resize(){clampCamera();paintCamera();}
-export function renderRealmWorld(data){dataRef=normalizeData(data);const w=data.liveWorld,p=w.player;if(ownerId!==data.player.publicId){ownerId=data.player.publicId;selected=null;selectedTarget=null;slotTarget=null;seq=p.moveSeq||0;}else seq=Math.max(seq,p.moveSeq||0);return `<main class="rw-world" aria-label="Mundo aberto de Reinos de Véspera"><div class="rw-viewport" tabindex="0" aria-label="Mundo aberto; mova-se com WASD ou setas, arraste para olhar e use o zoom"><div class="rw-map-backdrop"></div><div class="rw-plane"></div></div><div class="rw-hud">${hud(w)}</div>${actionHud()}</main>`;}
-export function mountRealmWorld(root,data,callbacks){const surface=root.querySelector('.rw-world');if(!surface)return;if(rootRef!==surface){unmountRealmWorld();rootRef=surface;handlers=callbacks;controller={lastSentAt:0,accumulatedMs:0,inFlight:false,queuedMove:null,sentSeq:data.liveWorld.player.moveSeq||0,settlePose:null,deferredCorrection:null,analogStopped:false,lastDir:{dx:0,dy:0},pose:{x:data.liveWorld.player.x,y:data.liveWorld.player.y}};dataRef=normalizeData(data);camera.z=innerWidth<=720?.6:.9;bind();paint();focusPlayer();mountActionHud(surface,{send,direction,pose:()=>controller.pose,data:()=>dataRef,regions:()=>dataRef.regions,blocked:()=>isBlocked(),target:()=>selectedTarget,select:id=>{selectedTarget=id;slotTarget=null;},avatar:()=>dataRef.player.avatar||'vesper',name:()=>dataRef.profile.name,stopMovement:clearKeys,reconcile:()=>{controller.pose={x:dataRef.liveWorld.player.x,y:dataRef.liveWorld.player.y};controller.deferredCorrection=null;focusPlayer();},viewport:()=>rootRef.querySelector('.rw-viewport').getBoundingClientRect(),zoom:()=>camera.z*1.6,project:p=>({x:p.x*96*camera.z+camera.x,y:p.y*64*camera.z+camera.y}),unproject:(x,y)=>{const rect=rootRef.getBoundingClientRect();return {x:(x-rect.left-camera.x)/(96*camera.z),y:(y-rect.top-camera.y)/(64*camera.z)};},locate:n=>{camera.x=dimensions().w/2-n.x*96*camera.z;camera.y=dimensions().h/2-n.y*64*camera.z;paint();},interact:()=>{const w=dataRef.liveWorld,a=w.actors.filter(a=>!['hostile','invader'].includes(a.kind)&&(a.kind!=='raid'||a.hp<=0)&&(a.hp>0||a.kind==='raid')&&metric(w.player,a)<=w.rules.interactRange).sort((a,b)=>Number(b.id===selectedTarget)-Number(a.id===selectedTarget)||metric(w.player,a)-metric(w.player,b))[0];if(a){if(a.arenaKind)handlers.openEncounter(a.id);else send({type:'world-interact',targetId:slotTarget||a.id});}}},data.liveWorld);frame=requestAnimationFrame(loop);}else{handlers=callbacks;updateRealmWorld(surface,data);}}
-export function updateRealmWorld(root,data){if(!data?.liveWorld)return;const old=Number(dataRef?.liveWorld?.player?.moveSeq)||0,next=Number(data.liveWorld.player.moveSeq)||0;if(next<old)return;const displaced=data.liveWorld.player.displacement!==dataRef?.liveWorld?.player?.displacement;dataRef=normalizeData(data);if(displaced&&controller){controller.pose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};controller.settlePose=null;controller.deferredCorrection=null;controller.analogStopped=false;controller.accumulatedMs=0;controller.queuedMove=null;clearKeys();}if(controller&&!displaced)settleMovement(controller,data.liveWorld.player);if(!rootRef?.isConnected)rootRef=root?.querySelector?.('.rw-world')||root;seq=Math.max(seq,next);if(displaced)focusPlayer(true);paint();}
-export function unmountRealmWorld(){unmountActionHud();if(frame)cancelAnimationFrame(frame);frame=0;actorMotion.clear();keys.clear();touchPointers.clear();clearTimeout(feedbackTimer);if(rootRef){rootRef.removeEventListener('click',click);rootRef.removeEventListener('wheel',wheel);rootRef.removeEventListener('pointerdown',pointerdown);rootRef.removeEventListener('pointermove',pointermove);window.removeEventListener('pointerup',pointerup);window.removeEventListener('pointercancel',pointerup);}document.removeEventListener('keydown',keydown);document.removeEventListener('keyup',keyup);window.removeEventListener('blur',clearKeys);window.removeEventListener('resize',resize);rootRef=null;dataRef=null;controller=null;handlers={};}
+function pointerup(e){
+ if(controller?.joystickId===e.pointerId){controller.joystickId=null;controller.analogStopped=true;analog={dx:0,dy:0};const stick=rootRef.querySelector('[data-ra-joystick]');stick?.style.setProperty('--stick-x','0px');stick?.style.setProperty('--stick-y','0px');}
+ if(touchPointers.has(e.pointerId)){const d=touchPointers.get(e.pointerId);touchPointers.delete(e.pointerId);if(![...touchPointers.values()].includes(d))keys.delete(d);}
+ if(mapTouches.delete(e.pointerId)&&pinch){
+  suppressMapClickUntil=performance.now()+500;
+  if(mapTouches.size>=2)startPinch();else{pinch=null;const remaining=[...mapTouches.entries()][0];drag=remaining?{id:remaining[0],x:remaining[1].x,y:remaining[1].y,cx:camera.x,cy:camera.y,travel:0}:null;paintWorld();}
+ }
+ if(drag?.id===e.pointerId){if(drag.travel>5)paintWorld();drag=null;}
+ if(controller)controller.pointerHeld=!!(mapTouches.size||touchPointers.size||controller.joystickId!=null);
+}
+function bind(){rootRef.addEventListener('click',suppressCameraClick,true);rootRef.addEventListener('click',click);rootRef.addEventListener('wheel',wheel,{passive:false});rootRef.addEventListener('pointerdown',pointerdown);rootRef.addEventListener('pointermove',pointermove);window.addEventListener('pointerup',pointerup);window.addEventListener('pointercancel',pointerup);document.addEventListener('keydown',keydown);document.addEventListener('keyup',keyup);window.addEventListener('blur',clearKeys);window.addEventListener('resize',resize);}
+function clearKeys(){mapTouches.clear();pinch=null;analog={dx:0,dy:0};if(controller)controller.joystickId=null;const stick=rootRef?.querySelector('[data-ra-joystick]');stick?.style.setProperty('--stick-x','0px');stick?.style.setProperty('--stick-y','0px');keys.clear();touchPointers.clear();drag=null;if(controller)controller.pointerHeld=false;}
+function resize(){clampCamera();paintWorld();}
+export function renderRealmWorld(data){dataRef=normalizeData(data);const w=data.liveWorld,p=w.player;if(ownerId!==data.player.publicId){ownerId=data.player.publicId;selected=null;selectedTarget=null;slotTarget=null;seq=p.moveSeq||0;}else seq=Math.max(seq,p.moveSeq||0);return `<main class="rw-world" aria-label="Mundo aberto de Reinos de Véspera"><div class="rw-viewport" tabindex="0" aria-label="Mundo aberto; mova-se com WASD ou setas, arraste para olhar e use o zoom"><div class="rw-map-backdrop"></div><div class="rw-plane"></div><div class="rw-threat-markers" aria-label="Ameaças fora da visão"></div></div><div class="rw-hud">${hud(w)}</div>${actionHud()}</main>`;}
+export function mountRealmWorld(root,data,callbacks){const surface=root.querySelector('.rw-world');if(!surface)return;if(rootRef!==surface){unmountRealmWorld();rootRef=surface;handlers=callbacks;controller={lastSentAt:0,accumulatedMs:0,inFlight:false,queuedMove:null,sentSeq:data.liveWorld.player.moveSeq||0,displacement:data.liveWorld.player.displacement||0,settlePose:null,deferredCorrection:null,analogStopped:false,lastDir:{dx:0,dy:0},pose:{x:data.liveWorld.player.x,y:data.liveWorld.player.y}};dataRef=normalizeData(data);camera.z=innerWidth<=720?.6:.9;bind();focusPlayer();paint();mountActionHud(surface,{send,direction,pose:()=>controller.pose,data:()=>dataRef,regions:()=>dataRef.regions,blocked:()=>isBlocked(),target:()=>selectedTarget,select:id=>{selectedTarget=id;slotTarget=null;},avatar:()=>dataRef.player.avatar||'vesper',name:()=>dataRef.profile.name,stopMovement:clearKeys,reconcile:()=>{controller.pose={x:dataRef.liveWorld.player.x,y:dataRef.liveWorld.player.y};controller.deferredCorrection=null;focusPlayer();},viewport:()=>rootRef.querySelector('.rw-viewport').getBoundingClientRect(),zoom:()=>camera.z*1.6,tokenZoom:()=>camera.z,project:p=>({x:p.x*96*camera.z+camera.x,y:p.y*64*camera.z+camera.y}),unproject:(x,y)=>{const rect=rootRef.getBoundingClientRect();return {x:(x-rect.left-camera.x)/(96*camera.z),y:(y-rect.top-camera.y)/(64*camera.z)};},locate:n=>{camera.x=dimensions().w/2-n.x*96*camera.z;camera.y=dimensions().h/2-n.y*64*camera.z;paint();},interact:()=>{const w=dataRef.liveWorld,a=w.actors.filter(a=>!['hostile','invader'].includes(a.kind)&&(a.kind!=='raid'||a.hp<=0)&&(a.hp>0||a.kind==='raid')&&metric(w.player,a)<=w.rules.interactRange).sort((a,b)=>Number(b.id===selectedTarget)-Number(a.id===selectedTarget)||metric(w.player,a)-metric(w.player,b))[0];if(a){if(a.arenaKind)handlers.openEncounter(a.id);else send({type:'world-interact',targetId:slotTarget||a.id});}}},data.liveWorld);frame=requestAnimationFrame(loop);}else{handlers=callbacks;updateRealmWorld(surface,data);}}
+export function updateRealmWorld(root,data){
+ if(!data?.liveWorld)return;
+ const old=Number(dataRef?.liveWorld?.player?.moveSeq)||0,next=Number(data.liveWorld.player.moveSeq)||0;if(next<old)return;
+ const displaced=data.liveWorld.player.displacement!==(controller?.displacement??dataRef?.liveWorld?.player?.displacement);
+ dataRef=normalizeData(data);let animatedDash=false;
+ if(displaced&&controller){
+  const dash=findDashEvent(data.liveWorld,data.liveWorld.player);
+  if(dash)animatedDash=beginDashTravel(controller,data.liveWorld.player,dash);
+  if(!animatedDash){controller.pose={x:data.liveWorld.player.x,y:data.liveWorld.player.y};controller.dashTravel=null;controller.settlePose=null;controller.deferredCorrection=null;controller.accumulatedMs=0;controller.queuedMove=null;clearKeys();}
+  controller.displacement=data.liveWorld.player.displacement;controller.analogStopped=false;
+ }
+ if(controller&&!displaced)settleMovement(controller,data.liveWorld.player);
+ if(!rootRef?.isConnected)rootRef=root?.querySelector?.('.rw-world')||root;
+ seq=Math.max(seq,next);if(displaced&&!animatedDash)focusPlayer();paint();
+}
+export function unmountRealmWorld(){clearTokenDeaths();mapTouches.clear();pinch=null;suppressMapClickUntil=0;unmountActionHud();if(frame)cancelAnimationFrame(frame);frame=0;localHarvest=null;actorMotion.clear();keys.clear();touchPointers.clear();clearTimeout(feedbackTimer);if(rootRef){rootRef.removeEventListener('click',suppressCameraClick,true);rootRef.removeEventListener('click',click);rootRef.removeEventListener('wheel',wheel);rootRef.removeEventListener('pointerdown',pointerdown);rootRef.removeEventListener('pointermove',pointermove);window.removeEventListener('pointerup',pointerup);window.removeEventListener('pointercancel',pointerup);}document.removeEventListener('keydown',keydown);document.removeEventListener('keyup',keyup);window.removeEventListener('blur',clearKeys);window.removeEventListener('resize',resize);rootRef=null;dataRef=null;controller=null;handlers={};}
 export function isRealmWorldMoving(){const d=direction();return !!(d.dx||d.dy);}

@@ -7,6 +7,10 @@ export const REALM_ASPECT=1.5;
 // 0..300 coordinates intact so persisted players and buildings do not move.
 export const WORLD_MAX_X=WORLD_MAP_BOUNDS.maxX;
 export const realmDistance=(a,b)=>Math.hypot((a.x-b.x)*REALM_ASPECT,a.y-b.y);
+export function combatBodyRadius(entity){
+  const authored=Number(entity?.hitRadius);
+  return Number.isFinite(authored)&&authored>0?Math.max(.2,Math.min(1.8,authored)):entity?.kind==='raid'?1:.45;
+}
 export function realmDirection(from,to,fallback={x:1,y:0}){
   const x=(to.x-from.x)*REALM_ASPECT,y=to.y-from.y,length=Math.hypot(x,y);
   return length>.00001?{x:x/length,y:y/length}:fallback;
@@ -77,7 +81,7 @@ export function firstObstacleCollision(w,from,to,radius=0,options={}){
   return nearest;
 }
 
-export function moveWithCollisions(w,entity,destination,{radius=.45,ignoreId=entity.id,actors=true,profiles=[],slide=true}={}){
+export function moveWithCollisions(w,entity,destination,{radius=combatBodyRadius(entity),ignoreId=entity.id,actors=true,profiles=[],slide=true}={}){
   let position={x:entity.x,y:entity.y},goal={x:Math.max(1,Math.min(WORLD_MAX_X,destination.x)),y:Math.max(1,Math.min(99,destination.y))},blocked=false,normal=null;
   for(let pass=0;pass<(slide?2:1);pass++){
     let collision=firstObstacleCollision(w,position,goal,radius,{escapeOverlap:true,ignoreId});
@@ -88,10 +92,10 @@ export function moveWithCollisions(w,entity,destination,{radius=.45,ignoreId=ent
       if(contact&&(!collision||contact.t<collision.t))collision=contact;
     };
     if(actors)for(const body of w.actors||[]){
-      if(body.id!==ignoreId&&body.hp>0&&['hostile','invader','raid','patrol','caravan'].includes(body.kind))collideBody(body,body.kind==='raid'?1:.45);
+      if(body.id!==ignoreId&&body.hp>0&&['hostile','invader','raid','patrol','caravan'].includes(body.kind))collideBody(body,combatBodyRadius(body));
     }
     for(const profile of profiles){
-      if(profile.realm?.publicId!==ignoreId&&!profile.realm?.activeRoom&&profile.realm?.roaming?.hp>0)collideBody(profile.realm.roaming,.45);
+      if(profile.realm?.publicId!==ignoreId&&!profile.realm?.activeRoom&&profile.realm?.roaming?.hp>0)collideBody(profile.realm.roaming,combatBodyRadius(profile.realm.roaming));
     }
     if(!collision){position=goal;break;}
     blocked=true;normal=collision.normal;const t=Math.max(0,collision.t-.001),contact=pointAt(position,goal,t);

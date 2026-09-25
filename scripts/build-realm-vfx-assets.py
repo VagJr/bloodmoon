@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 import re
+import runpy
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,6 +47,10 @@ def main():
         raise ValueError("The VFX cell map is empty")
     manifest = {}
     for name, cells in cells_by_sheet.items():
+        if name == 'token-auras':
+            runpy.run_path(str(ROOT / 'scripts/build-token-auras.py'), run_name='__main__')
+            manifest[name] = {'cells': cells, 'source': 'scripts/build-token-auras.py', 'bytes': (OUT / 'token-auras.webp').stat().st_size}
+            continue
         source_path = SHEETS.get(name, LEGACY / f"{name}.webp")
         if not source_path.is_file():
             raise FileNotFoundError(source_path)

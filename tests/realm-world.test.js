@@ -29,12 +29,13 @@ test('movimento após atraso de rede recupera tempo sem ultrapassar o relógio d
 });
 test('Recursos renovam no local; produção cobra materiais uma vez e coleta não duplica estoque',()=>{
  const f=fixture(),a=f.w.actors.find(a=>a.kind==='resource'&&a.node==='haven'&&a.resource==='timber');Object.assign(f.s,{x:a.x,y:a.y});
- const material=f.p.realm.materials.timber;f.act({type:'world-interact',targetId:a.id});assert.equal(f.p.realm.materials.timber,material+3);assert.throws(()=>f.act({type:'world-interact',targetId:a.id},epoch+300));
- f.tick(epoch+30500);assert.equal(a.hp,1);assert.equal(a.x,a.homeX);assert.equal(a.y,a.homeY);assert.equal(f.p.realm.adventure.stats.gathers,1);
+ const material=f.p.realm.materials.timber;f.act({type:'world-interact',targetId:a.id});assert.equal(f.p.realm.materials.timber,material);assert.ok(f.s.harvest?.endsAt>epoch);assert.throws(()=>f.act({type:'world-interact',targetId:a.id},epoch+300));
+ f.tick(epoch+WORLD_RULES.harvestMs.timber+300);assert.equal(f.p.realm.materials.timber,material+3);assert.equal(a.hp,0);
+ const afterRespawn=a.respawnAt+500;f.tick(afterRespawn);assert.equal(a.hp,1);assert.equal(a.x,a.homeX);assert.equal(a.y,a.homeY);assert.equal(f.p.realm.adventure.stats.gathers,1);
  const node=REGIONS.find(n=>n.resource==='timber'),slot=f.w.slots.find(s=>s.node===node.id&&s.kind==='resource');Object.assign(f.s,{x:slot.x,y:slot.y});
- const before=f.p.realm.materials.timber;f.act({type:'world-deploy',slotId:slot.id,blueprintId:'lumbermill'},epoch+31000);assert.equal(f.p.realm.materials.timber,before-3);
- assert.throws(()=>f.act({type:'world-deploy',slotId:slot.id,blueprintId:'lumbermill'},epoch+32000));assert.equal(f.p.realm.materials.timber,before-3);
- f.tick(epoch+52000);f.act({type:'world-interact',targetId:slot.id},epoch+52500);assert.equal(slot.occupant.stock,0);assert.equal(f.p.realm.materials.timber,before-2);assert.throws(()=>f.act({type:'world-interact',targetId:slot.id},epoch+53000));
+ const before=f.p.realm.materials.timber;f.act({type:'world-deploy',slotId:slot.id,blueprintId:'lumbermill'},afterRespawn+500);assert.equal(f.p.realm.materials.timber,before-3);
+ assert.throws(()=>f.act({type:'world-deploy',slotId:slot.id,blueprintId:'lumbermill'},afterRespawn+1500));assert.equal(f.p.realm.materials.timber,before-3);
+ f.tick(afterRespawn+21500);f.act({type:'world-interact',targetId:slot.id},afterRespawn+22000);assert.equal(slot.occupant.stock,0);assert.equal(f.p.realm.materials.timber,before-2);assert.throws(()=>f.act({type:'world-interact',targetId:slot.id},afterRespawn+22500));
 });
 test('Relíquias concedem atributos e cada cópia só ocupa um posto ou viajante',()=>{
  const f=fixture();f.act({type:'world-equip',cardId:'ward'});assert.equal(f.s.maxHp,115);assert.equal(f.s.hp,115);assert.throws(()=>f.act({type:'world-equip',cardId:'ward'},epoch+300));

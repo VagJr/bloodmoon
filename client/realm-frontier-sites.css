@@ -1,0 +1,41 @@
+/* The ten painted provinces share one readable, physical site language. The
+   board art fades into the province rather than ending at a circular crop. */
+.rw-world .rw-island.frontier{--site-light:#c9ab73;--site-dark:#523b25;width:950px;height:710px;isolation:isolate;pointer-events:none}
+.rw-world .rw-island.frontier.rw-site-wilds{--site-light:#a7c692;--site-dark:#344b36}
+.rw-world .rw-island.frontier.rw-site-quarry{--site-light:#b5c8c8;--site-dark:#344854}
+.rw-world .rw-island.frontier.rw-site-crypt{--site-light:#b89acb;--site-dark:#493651}
+.rw-world .rw-island.frontier.rw-site-bastion{--site-light:#d3a884;--site-dark:#613e3d}
+.rw-world .rw-island.frontier.rw-site-city{--site-light:#ecd19a;--site-dark:#6b5234}
+.rw-world .rw-island.frontier .rw-biome{display:block!important;position:absolute;inset:-110px -155px;z-index:0;opacity:.54;clip-path:none;overflow:hidden;pointer-events:none;mask-image:radial-gradient(ellipse 58% 46% at 50% 49%,#000 22%,#000d 53%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse 58% 46% at 50% 49%,#000 22%,#000d 53%,transparent 100%)}
+.rw-world .rw-island.frontier .rw-biome img{width:100%;height:100%;object-fit:cover;opacity:1;clip-path:none;mix-blend-mode:luminosity;filter:saturate(.7) contrast(1.08) brightness(.8)}
+.rw-world .rw-island.frontier.here .rw-biome{opacity:.66}
+.rw-world .rw-island.frontier .rw-biome:after{inset:0;box-shadow:none;background:radial-gradient(ellipse at center,transparent 24%,#0810136b 67%,transparent 92%)}
+.rw-world .rw-site-foundation{position:absolute;z-index:1;inset:4% 5%;pointer-events:none;background:radial-gradient(ellipse 44% 34% at 50% 51%,#050d10a3 3%,#17222074 53%,transparent 100%);filter:drop-shadow(0 17px 18px #0006)}
+.rw-world .rw-site-foundation:before{content:'';position:absolute;inset:12% 7%;border:1px solid color-mix(in srgb,var(--site-light),transparent 75%);clip-path:polygon(18% 3%,73% 8%,94% 24%,98% 68%,74% 94%,25% 95%,3% 71%,9% 31%);background:repeating-linear-gradient(31deg,transparent 0 36px,#efe0b10c 37px 38px,transparent 39px 79px),radial-gradient(ellipse at 50% 53%,#12202190 0 24%,transparent 69%);mask-image:radial-gradient(ellipse 59% 49% at center,#000 39%,transparent 100%)}
+.rw-world .rw-site-foundation:after{content:'';position:absolute;inset:18% 13%;border:1px solid color-mix(in srgb,var(--site-light),transparent 55%);clip-path:polygon(20% 0,78% 4%,99% 36%,94% 78%,72% 100%,27% 93%,0 66%,3% 28%);mask-image:radial-gradient(ellipse,#000 22%,transparent 76%);box-shadow:inset 0 0 60px var(--site-dark),0 0 20px var(--site-dark)}
+.rw-world .rw-site-foundation>i{position:absolute;display:block;pointer-events:none}
+.rw-world .rw-site-trail{left:48%;top:4%;width:8%;height:92%;transform:rotate(-7deg);background:linear-gradient(90deg,transparent,#c1b58b16 19%,#eed3a82b 47%,#a28d6920 76%,transparent);filter:blur(4px);mask-image:linear-gradient(transparent,#000 25% 75%,transparent)}
+.rw-world .rw-site-crossing{left:14%;top:46%;width:73%;height:9%;transform:rotate(3deg);background:linear-gradient(transparent,#ccb68b18 35%,#d7c39b22 49%,#ccb68b18 68%,transparent);filter:blur(5px);mask-image:linear-gradient(90deg,transparent,#000 18% 82%,transparent)}
+.rw-world .rw-site-court{left:37%;top:35%;width:26%;height:31%;border-radius:48%;border:1px solid color-mix(in srgb,var(--site-light),transparent 58%);background:radial-gradient(ellipse,#17201bb8 18%,#26312d8a 51%,transparent 72%);box-shadow:0 0 0 13px #c7b2810a,0 0 0 25px #d1bd7c07,inset 0 0 29px #0009;transform:perspective(350px) rotateX(38deg)}
+.rw-world .rw-site-architecture{position:absolute;object-fit:contain;filter:drop-shadow(0 12px 9px #000b) saturate(.8) contrast(1.06);opacity:.83;max-width:none!important;max-height:none!important;mask-image:radial-gradient(ellipse 48% 55% at 50% 53%,#000 18%,#000c 42%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse 48% 55% at 50% 53%,#000 18%,#000c 42%,transparent 100%)}
+.rw-world .rw-island.frontier.rw-site-city .rw-site-architecture,.rw-world .rw-island.frontier.rw-site-bastion .rw-site-architecture{filter:drop-shadow(0 0 13px var(--site-dark)) brightness(1.35) saturate(1.12)}
+.rw-world .rw-scenery>img.rw-frontier-scenery{mask-image:radial-gradient(ellipse 72% 72% at 50% 53%,#000 30%,#000d 55%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse 72% 72% at 50% 53%,#000 30%,#000d 55%,transparent 100%)}
+.rw-world .rw-site-architecture.main{left:15%;top:26%;width:166px;height:170px}
+.rw-world .rw-site-architecture.support{right:15%;top:24%;width:160px;height:167px;transform:scaleX(-1)}
+.rw-world .rw-site-architecture.resource{left:43%;bottom:9%;width:115px;height:113px;opacity:.55}
+.rw-world .rw-island.frontier.rw-site-crypt .rw-site-architecture.resource,.rw-world .rw-island.frontier.rw-habitat-astral .rw-site-architecture.resource{filter:drop-shadow(0 0 18px #b972e180) saturate(1.25);opacity:.72}
+.rw-world .rw-island.frontier .rw-sheet-landmark{z-index:2;top:49%;width:180px;opacity:.29;filter:drop-shadow(0 0 20px var(--site-dark));mix-blend-mode:screen}
+.rw-world .rw-island.frontier.here .rw-sheet-landmark{opacity:.38}
+.rw-world .rw-island.frontier .rw-ring{z-index:2;top:51%;width:450px;height:310px;opacity:.34;border:1px solid color-mix(in srgb,var(--site-light),transparent 42%);border-style:solid;box-shadow:0 0 0 9px #0c171825,0 0 28px var(--site-dark),inset 0 0 30px var(--site-dark)}
+.rw-world .rw-island.frontier .rw-place{z-index:5;top:88px;width:60%;min-height:72px;padding:10px 22px 12px;border-block:1px solid color-mix(in srgb,var(--site-light),transparent 49%);background:linear-gradient(90deg,transparent,#071017ea 13% 87%,transparent);box-shadow:0 4px 14px #0008;text-shadow:0 2px 8px #000}
+.rw-world .rw-island.frontier .rw-place>i{font-size:31px;color:var(--site-light);filter:drop-shadow(0 0 8px var(--site-dark))}
+.rw-world .rw-island.frontier .rw-place b{font-size:23px;line-height:1.13;white-space:normal;text-align:center;color:#f6e3bf}
+.rw-world .rw-island.frontier .rw-place small{font-size:8px;letter-spacing:1.65px;text-align:center;color:var(--site-light)}
+.rw-world .rw-island.frontier .rw-slot{z-index:4;pointer-events:auto}
+.rw-world .rw-island.frontier .rw-slot:not(.occupied){width:121px;height:70px;background:radial-gradient(ellipse at 47% 16%,#4b5446ed,#1e2a2bed 42%,#071117f2 76%)!important;border-color:var(--site-light)!important;box-shadow:0 5px 0 #332d23,0 9px 0 #0b1213,0 14px 21px #000c,inset 0 0 0 3px #cdb5782b,0 0 13px var(--site-dark)!important}
+.rw-world .rw-island.frontier .rw-slot:not(.occupied)>i{font-size:21px;color:var(--site-light);line-height:1.05}
+.rw-world .rw-island.frontier .rw-slot:not(.occupied)>b{display:block;font:9px Georgia;color:#efe1c1;letter-spacing:.2px}
+.rw-world .rw-island.frontier .rw-slot-distant{opacity:.84!important;filter:saturate(.8)!important;cursor:default}
+.rw-world .rw-island.frontier .rw-slot.near:not(.occupied){box-shadow:0 5px 0 #332d23,0 9px 0 #0b1213,0 14px 21px #000c,inset 0 0 0 3px #cdb5782b,0 0 19px var(--site-light)!important}
+@media(max-width:720px){.rw-world .rw-island.frontier .rw-biome{display:block!important;opacity:.45}.rw-world .rw-island.frontier .rw-place{top:88px;width:59%;min-height:61px;padding:8px 12px}.rw-world .rw-island.frontier .rw-place b{font-size:20px}.rw-world .rw-island.frontier .rw-place small{font-size:7px}.rw-world .rw-island.frontier .rw-slot:not(.occupied){width:107px;height:65px}.rw-world .rw-site-architecture.main,.rw-world .rw-site-architecture.support{opacity:.72}}
+@media(prefers-reduced-motion:reduce){.rw-world .rw-island.frontier .rw-slot{transition:none}}
