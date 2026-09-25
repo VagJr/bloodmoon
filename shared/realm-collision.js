@@ -61,6 +61,9 @@ export function firstObstacleCollision(w,from,to,radius=0,options={}){
   let nearest=null;
   for(const obstacle of combatObstacles(w)){
     if(obstacle.id===options.ignoreId)continue;
+    const reachX=(obstacle.width?obstacle.width/2:(obstacle.radius||.7)/REALM_ASPECT)+radius/REALM_ASPECT;
+    const reachY=(obstacle.height?obstacle.height/2:(obstacle.radius||.7))+radius;
+    if(obstacle.x+reachX<Math.min(from.x,to.x)||obstacle.x-reachX>Math.max(from.x,to.x)||obstacle.y+reachY<Math.min(from.y,to.y)||obstacle.y-reachY>Math.max(from.y,to.y))continue;
     const collision=obstacle.width&&obstacle.height?sweepBox(from,to,obstacle,radius,options):sweepCircle(from,to,obstacle,(obstacle.radius||.7)+radius,options);
     if(collision&&(!nearest||collision.t<nearest.t))nearest={...collision,obstacle};
   }
@@ -69,11 +72,20 @@ export function firstObstacleCollision(w,from,to,radius=0,options={}){
 
 export function moveWithCollisions(w,entity,destination,{radius=.45,ignoreId=entity.id,actors=true,profiles=[],slide=true}={}){
   let position={x:entity.x,y:entity.y},goal={x:Math.max(1,Math.min(299,destination.x)),y:Math.max(1,Math.min(99,destination.y))},blocked=false,normal=null;
-  const bodies=actors?(w.actors||[]).filter(a=>a.id!==ignoreId&&a.hp>0&&['hostile','invader','raid','patrol','caravan'].includes(a.kind)).map(a=>({...a,radius:a.kind==='raid'?1:.45})):[];
-  for(const p of profiles)if(p.realm?.publicId!==ignoreId&&!p.realm?.activeRoom&&p.realm?.roaming?.hp>0)bodies.push({...p.realm.roaming,radius:.45});
   for(let pass=0;pass<(slide?2:1);pass++){
     let collision=firstObstacleCollision(w,position,goal,radius,{escapeOverlap:true,ignoreId});
-    for(const body of bodies){const contact=sweepCircle(position,goal,body,radius+body.radius,{escapeOverlap:true});if(contact&&(!collision||contact.t<collision.t))collision=contact;}
+    const collideBody=(body,bodyRadius)=>{
+      const reach=radius+bodyRadius;
+      if(body.x+reach/REALM_ASPECT<Math.min(position.x,goal.x)||body.x-reach/REALM_ASPECT>Math.max(position.x,goal.x)||body.y+reach<Math.min(position.y,goal.y)||body.y-reach>Math.max(position.y,goal.y))return;
+      const contact=sweepCircle(position,goal,body,reach,{escapeOverlap:true});
+      if(contact&&(!collision||contact.t<collision.t))collision=contact;
+    };
+    if(actors)for(const body of w.actors||[]){
+      if(body.id!==ignoreId&&body.hp>0&&['hostile','invader','raid','patrol','caravan'].includes(body.kind))collideBody(body,body.kind==='raid'?1:.45);
+    }
+    for(const profile of profiles){
+      if(profile.realm?.publicId!==ignoreId&&!profile.realm?.activeRoom&&profile.realm?.roaming?.hp>0)collideBody(profile.realm.roaming,.45);
+    }
     if(!collision){position=goal;break;}
     blocked=true;normal=collision.normal;const t=Math.max(0,collision.t-.001),contact=pointAt(position,goal,t);
     const rest={x:(goal.x-contact.x)*REALM_ASPECT,y:goal.y-contact.y},inward=Math.min(0,rest.x*normal.x+rest.y*normal.y);

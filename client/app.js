@@ -1,5 +1,6 @@
 import {tableSelectedCard,worldTableInteracting} from '/world-table.js';
 import {mountRealmWorld,unmountRealmWorld,updateRealmWorld} from '/realm-world-ui.js?v=difficulty1';
+import {applyRealmWorldDelta} from '/shared/realm-delta.js';
 import {academyStart,academyView,academyAct,academyPanel,academyStep,academyHighlight,LESSONS} from '/academy.js';
 import {CHAPTERS} from '/shared/adventure.js';
 import {ORDERS} from '/shared/battle-design.js';
@@ -39,23 +40,30 @@ function inspectCard(id){hideMobileCardPeek();document.querySelector('#card-prev
 async function openRealms(){await guarded(async()=>{await ensureProfile();realmData=await api('/realms');worldOpen=true;room=null;modal=null;selected=null;realmFocus=realmData.player.location;});}
 async function doRealmAction(type,extra={}){await guarded(async()=>{try{const previous=realmData;realmData=await api('/realms/actions','POST',{type,version:realmData.player.version,...extra});profile=realmData.profile;if(['travel','retreat'].includes(type)){realmFocus=realmData.player.location;playSound('start');}else playSound('loot');showRealmReward(realmRewardDiff(previous,realmData,type));}catch(e){realmData=await api('/realms');throw e;}});}
 async function realmEncounter(){await guarded(async()=>{readiness=await api(`/readiness?faction=${profile.selectedFaction||profile.starterFaction||'vampire'}`);if(readiness.activeRoom){room=await api(`/rooms/${readiness.activeRoom.id}`);selected=null;modal=null;remember();return;}if(!readiness.canStart){modal='readiness';return;}room=await api('/realms/encounter','POST',{version:realmData.player.version});selected=null;modal=null;remember();});if(room?.encounter)await playMotionScene({title:room.encounter.title,text:room.opponent?.style||'Toda conquista começa com uma escolha.',portrait:room.opponent?.avatar||'oracle',board:room.battlefield});}
-function applyLiveWorld(next){
+function applyLiveWorld(next,paint=true){
  if(!next||!realmData||next.player?.publicId&&next.player.publicId!==realmData.player.publicId)return;
  const previous=realmData.liveWorld;
+ next=applyRealmWorldDelta(previous,next);
+ if(!next)return;
  if(previous&&((next.player?.moveSeq||0)<(previous.player?.moveSeq||0)||next.serverTime<previous.serverTime))return;
  realmData.liveWorld=next;
  if(next.wallet){const {coins,materials,provisions,xp,level,version}=next.wallet;Object.assign(realmData.player,{materials,provisions,xp,level,version});realmData.profile.coins=coins;if(profile)profile.coins=coins;}
  if(next.player?.location)realmData.player.location=next.player.location;
  if(next.activeRoom!==undefined)realmData.player.activeRoom=next.activeRoom;
- if(worldOpen&&!room&&!modal&&realmTab==='map')updateRealmWorld(app,realmData);
+ if(paint&&worldOpen&&!room&&!modal&&realmTab==='map')updateRealmWorld(app,realmData);
 }
 async function sendWorldAction(input){
  const owner=realmData?.player?.publicId;
  const response=await api('/realms/world/action','POST',input);
  if(owner!==realmData?.player?.publicId)return realmData;
+ if(response.movement){
+  const current=realmData.liveWorld?.player,move=response.movement;
+  if(current&&move.sequence>=(current.moveSeq||0))Object.assign(current,{x:move.x,y:move.y,moveSeq:move.sequence,location:move.location});
+  return {...realmData,_movementOnly:true};
+ }
  if(response.profile){profile=response.profile;realmData.profile=profile;if(profile.realm)realmData.player=profile.realm;}
  realmData._worldResult=response.result;
- applyLiveWorld(response.liveWorld);
+ applyLiveWorld(response.liveWorld,false);
  return realmData;
 }
 async function openWorldEncounter(targetId){

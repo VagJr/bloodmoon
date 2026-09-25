@@ -77,7 +77,7 @@ function paintWorld(){
  if(!rootRef||!dataRef?.liveWorld)return;const w=dataRef.liveWorld,plane=rootRef.querySelector('.rw-plane');if(!plane)return;
  if(!plane.children.length)plane.innerHTML='<div class="rw-terrain-layer"></div><div class="rw-live-layer"></div>';
  const regions=w.regions||dataRef.regions,terrain=plane.querySelector('.rw-terrain-layer'),layer=plane.querySelector('.rw-live-layer'),visibleRegions=regions.filter(n=>visiblePoint(n,650*camera.z));
- const oldRegions=new Map([...terrain.children].map(e=>[e.dataset.region,e]));for(const n of visibleRegions){let el=oldRegions.get(n.id);oldRegions.delete(n.id);if(!el){el=document.createElement('div');el.dataset.region=n.id;el.innerHTML=island(w,n)+scenery([n]);terrain.append(el);}else if(el.dataset.version!==String(w.version)){const t=document.createElement('template');t.innerHTML=island(w,n);morph(el.firstElementChild,t.content.firstElementChild);}el.dataset.version=String(w.version);}for(const el of oldRegions.values())el.remove();
+ const oldRegions=new Map([...terrain.children].map(e=>[e.dataset.region,e]));for(const n of visibleRegions){let el=oldRegions.get(n.id);oldRegions.delete(n.id);const stamp=JSON.stringify([w.player.location,metric(w.player,n)<18,w.slots.filter(slot=>slot.node===n.id)]);if(!el){el=document.createElement('div');el.dataset.region=n.id;el.innerHTML=island(w,n)+scenery([n]);terrain.append(el);}else if(el._stamp!==stamp){const t=document.createElement('template');t.innerHTML=island(w,n);morph(el.firstElementChild,t.content.firstElementChild);}el._stamp=stamp;}for(const el of oldRegions.values())el.remove();
  const people=w.players.filter(p=>p.id!==w.player.publicId).map(p=>({...p,kind:'traveler'})),entities=[...w.actors,...people].filter(a=>(a.kind!=='resource'||a.hp>0)&&visiblePoint(a,140));
  const existing=new Map([...layer.querySelectorAll('[data-rw-actor]')].map(e=>[e.dataset.rwActor,e]));for(const a of entities){let el=existing.get(a.id);existing.delete(a.id);const t=document.createElement('template');t.innerHTML=actor(a,w);if(el)morph(el,t.content.firstElementChild);else layer.append(t.content);}for(const el of existing.values())el.remove();
  let districts=plane.querySelector('.rw-city-layer');if(!districts){districts=document.createElement('div');districts.className='rw-city-layer';plane.append(districts);}const cityStamp=JSON.stringify(w.settlements);if(districts._stamp!==cityStamp){districts.innerHTML=districtMarkers(w);districts._stamp=cityStamp;}
@@ -114,7 +114,7 @@ function dispatchMove(session,dx,dy,elapsedMs,now){
  session.inFlight=true;const moveSeq=++seq;
  const magnitude=Math.hypot(dx,dy),power=Math.min(1,magnitude),length=Math.max(.001,magnitude);
  handlers.sendAction({type:'world-move',dx:dx/length,dy:dy/length,power:Math.max(.12,power),elapsedMs:sendMs,sequence:moveSeq}).then(data=>{
-  if(controller!==session||!data)return;updateRealmWorld(rootRef,data);
+  if(controller!==session||!data)return;if(!data._movementOnly)updateRealmWorld(rootRef,data);
   const sp=data.liveWorld?.player;
   if(sp){
    const cur=direction();

@@ -1,4 +1,4 @@
-import {gainRpg} from '../shared/realm-rpg.js';
+﻿import {gainRpg} from '../shared/realm-rpg.js';
 import {realmStream,realmPulse,realmLivePulse,closeRealmStreams} from './realm-stream.js';
 import {AVATAR_IDS,ORIGINS} from '../shared/battle-design.js';
 import {applyDoctrine} from '../shared/expedition-doctrines.js';
@@ -742,8 +742,8 @@ const server = http.createServer(async (req,res) => {
   } catch (e) { if (!(e instanceof RuleError)) console.error(e); json(res,e instanceof RuleError ? 400 : 500,{ error: e instanceof RuleError ? e.message : 'Falha interna do servidor.' }); }
   finally { release?.(); }
 });
-const port=Number(process.env.PORT||4173);
-const host=process.env.HOST||(process.env.NODE_ENV==='production'?'0.0.0.0':'127.0.0.1');
+const port = Number(process.env.PORT || 4173);
+const host = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
 ensureRealmWorld(world,REGIONS);
 let worldTickPending=false;
 const worldTimer=setInterval(()=>{
@@ -772,3 +772,4 @@ for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{
     catch{process.exit(1);}
   });
 });
+

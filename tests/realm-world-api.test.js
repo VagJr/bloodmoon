@@ -41,12 +41,14 @@ test('Mundo online: autenticação, movimento limitado, presença pública, cons
     assert.ok(!JSON.stringify(initial.players).includes('private-player-'));
     const moved=await request('/api/realms/world/action','POST',{type:'world-move',dx:1,dy:0,elapsedMs:250,sequence:1});
     assert.equal(moved.status,200,JSON.stringify(moved.data));assert.equal(moved.data.profile,undefined);
-    const distance=Math.hypot((moved.data.liveWorld.player.x-initial.player.x)*1.5,moved.data.liveWorld.player.y-initial.player.y);
+    assert.ok(moved.data.movement,'O movimento comum retorna apenas a confirmação de posição.');
+    assert.equal(moved.data.liveWorld,undefined);
+    const distance=Math.hypot((moved.data.movement.x-initial.player.x)*1.5,moved.data.movement.y-initial.player.y);
     assert.ok(distance<=initial.rules.speed*.3,'O servidor limita a distância a um passo autorizado.');
     const duplicate=await request('/api/realms/world/action','POST',{type:'world-move',dx:1,dy:0,elapsedMs:250,sequence:1});
-    assert.ok(duplicate.status===400||duplicate.data.liveWorld.player.x===moved.data.liveWorld.player.x,'Repetir a sequência não duplica o passo.');
+    assert.ok(duplicate.status===400||duplicate.data.movement?.x===moved.data.movement.x,'Repetir a sequência não duplica o passo.');
     const injected=await request('/api/realms/world/action','POST',{type:'world-move',dx:1,dy:0,elapsedMs:900000,sequence:2,x:99,y:99});
-    if(injected.status===200)assert.ok(Math.abs(injected.data.liveWorld.player.x-moved.data.liveWorld.player.x)<1,'Coordenadas do cliente não teleportam.');
+    if(injected.status===200)assert.ok(Math.abs(injected.data.movement.x-moved.data.movement.x)<1,'Coordenadas do cliente não teleportam.');
     else assert.equal(injected.status,400);
 
     const controller=new AbortController(),stream=await fetch(origin+'/api/realms/events',{headers:{Authorization:`Bearer ${a.id}`},signal:controller.signal});
