@@ -5,20 +5,20 @@ import {grantStarter} from '../shared/progression.js';
 import {createWorld,enterRealms,REGIONS} from '../shared/realms.js';
 import {ensureRealmWorld,ensureWorldPlayer,realmWorldAction} from '../shared/realm-world.js';
 import {rollD20,ensureRpg,gainRpg,rpgChoice,rpgStats} from '../shared/realm-rpg.js';
-import {actionCombat,enemyAttack} from '../shared/realm-action-combat.js';
+import {actionCombat,enemyAttack,advanceActionCombat} from '../shared/realm-action-combat.js';
 import {campaignAction,campaignView,advanceCampaign} from '../shared/realm-campaign.js';
 const now=1800000000000;
 function fixture(){const p={id:randomUUID(),name:'Teste',xp:0,level:1,matches:0,wins:0,trophies:[]};grantStarter(p,'vampire',randomUUID);enterRealms(p,randomUUID,now);const world=createWorld(),w=ensureRealmWorld(world,REGIONS,now),s=ensureWorldPlayer(p,REGIONS,now);p.realm.materials={timber:100,ore:100,essence:100};Object.assign(s,{x:30,y:50});return {p,world,w,s};}
 test('d20: extremos, vantagem e crítico dobram dados, com recarga sem débito repetido',()=>{
  assert.equal(rollD20(-100,30,()=>.999).critical,true);assert.equal(rollD20(100,1,()=>0).hit,false);let rolls=[0,.99];assert.deepEqual(rollD20(0,10,()=>rolls.shift(),1).rolls,[1,20]);
  const {p,w,s}=fixture(),a=w.actors.find(a=>a.kind==='hostile');Object.assign(a,{x:31,y:50,hp:100});let dealt=0;
- actionCombat(w,p,{ability:'strike',targetId:a.id},REGIONS,now,(_,t,d)=>{dealt=d;t.hp-=d;},()=>.999);assert.equal(dealt,13);assert.equal(w.combatEvents.at(-1).kind,'critical');
+ const hit=(_,t,d)=>{dealt=d;t.hp-=d;};actionCombat(w,p,{ability:'strike',targetId:a.id},REGIONS,now,hit,()=>.999);assert.equal(dealt,0);advanceActionCombat(w,[p],REGIONS,now+160,hit,()=>.999);assert.equal(dealt,13);assert.equal(w.combatEvents.at(-1).kind,'critical');
  assert.throws(()=>actionCombat(w,p,{ability:'strike',targetId:a.id},REGIONS,now+100,()=>{}),/recuperando/);assert.equal(a.hp,87);assert.equal(s.energy,100);
 });
-test('esquiva evita golpe; guarda reduz dano e recursos insuficientes não alteram estado',()=>{
+test('esquiva evita golpe; barreira absorve dano e recursos insuficientes não alteram estado',()=>{
  const {p,w,s}=fixture(),a=w.actors.find(a=>a.kind==='hostile');a.attack=10;
  actionCombat(w,p,{ability:'dash',dx:1,dy:0},REGIONS,now,()=>{});assert.ok(s.x>30);assert.equal(enemyAttack(w,a,p,now+200,()=>.8),0);
- actionCombat(w,p,{ability:'guard'},REGIONS,now+500,()=>{});assert.equal(enemyAttack(w,a,p,now+600,()=>.8),5);
+ Object.assign(a,{x:s.x+1.2,y:s.y,attackType:'physical'});actionCombat(w,p,{ability:'guard'},REGIONS,now+500,()=>{});const shield=p.rpg.barrier.hp;assert.equal(enemyAttack(w,a,p,now+600,()=>.8),0);assert.equal(p.rpg.barrier.hp,shield-10);
  p.rpg.mana=0;assert.throws(()=>actionCombat(w,p,{ability:'bolt',x:s.x,y:s.y},REGIONS,now+1000,()=>{}),/mana/);assert.equal(p.rpg.cooldowns.bolt,undefined);
 });
 test('personagem: pontos não duplicam, vocação permanente, talentos, equipamento e grimório persistem',()=>{

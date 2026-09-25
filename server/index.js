@@ -729,7 +729,7 @@ const worldTimer=setInterval(()=>{
     realmLivePulse(id=>{const profile=profiles.get(id);return profile?.realm?liveWorldFor(profile,now):null;});
     await flushRealmWorld();
   }).catch(error=>console.error('Falha ao atualizar o mundo dos Reinos.',error)).finally(()=>{worldTickPending=false;});
-},500);
+},250);
 worldTimer.unref();
 server.listen(port,host,() => console.log(`Bloodmoon em http://${host}:${server.address().port} · ${mongoStore?'MongoDB Atlas':'persistência local'}`));
 
