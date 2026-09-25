@@ -1,6 +1,7 @@
 import {RuleError} from './engine.js';
 import {ensureRpg,gainRpg} from './realm-rpg.js';
-export const CONTINENTS=[{id:'vespera',name:'Véspera',offset:0,image:'/assets/world/vespera-map.png',level:1},{id:'boreal',name:'Coroa Boreal',offset:100,image:'/assets/world/boreal-map.png',level:3},{id:'cinder',name:'Arquipélago da Brasa',offset:200,image:'/assets/world/cinder-map.png',level:5}];
+import {FRONTIER_CONTINENTS} from './realm-geography.js';
+export const CONTINENTS=[{id:'vespera',name:'Véspera',offset:0,width:100,image:'/assets/world/vespera-map.png',level:1},{id:'boreal',name:'Coroa Boreal',offset:100,width:100,image:'/assets/world/boreal-map.png',level:3},{id:'cinder',name:'Arquipélago da Brasa',offset:200,width:100,image:'/assets/world/cinder-map.png',level:5},...FRONTIER_CONTINENTS];
 const make=(id,name,kind,x,y,level,resource,board,links,description)=>({id,name,kind,x,y,level,resource,board,links,description,icon:({sanctuary:'⌂',fortress:'♜',dungeon:'☠',mine:'⚒',capital:'♛'})[kind]||'✧'});
 export const EXPANSION_REGIONS=[
  make('frostport','Porto da Aurora','sanctuary',111,49,3,'timber','forest-board',['lake','frostwood'],'O sino da travessia une Véspera às terras sob a aurora.'),
@@ -14,7 +15,7 @@ export const EXPANSION_REGIONS=[
  make('cinderforge','Forjas do Sol Morto','mine',235,72,5,'ore','siege-board',['ashgrove','pyrecrypt'],'Aço escuro abastece as guerras do arquipélago.'),
  make('blackkeep','Fortaleza do Mar Negro','fortress',256,20,6,'ore','siege-board',['ashgrove','emberthrone'],'O fogo dos invasores põe as linhas de frente à prova.'),
  make('pyrecrypt','Sepulcro da Última Chama','dungeon',266,76,6,'essence','crypt-board',['cinderforge','emberthrone'],'Uma campanha em três mesas e uma raid na caldeira.'),
- make('emberthrone','Coroa do Sol Morto','capital',286,43,7,'essence','court-board',['blackkeep','pyrecrypt'],'O último trono. Política, suprimentos e vitórias convergem aqui.')
+ make('emberthrone','Coroa do Sol Morto','capital',286,43,7,'essence','court-board',['blackkeep','pyrecrypt','gloam-gate'],'A antiga fronteira. Política e vitórias convergem aqui antes da estrada do Crepúsculo.')
 ];
 export const EDICTS={stewardship:{name:'Abastecimento',text:'Gaste 4 madeiras e 2 minérios para gerar provisões, prosperidade e XP.',cost:{timber:4,ore:2}},patrol:{name:'Vigília das estradas',text:'Gaste 3 minérios e 2 essências para estabilizar o domínio e fortalecer a reputação.',cost:{ore:3,essence:2}},festival:{name:'Conciliação das linhagens',text:'Gaste 5 essências para reduzir tensão e ganhar favores nas duas linhagens.',cost:{essence:5}},research:{name:'Pesquisa do Véu',text:'Gaste 4 essências e 2 madeiras para produzir fragmentos do Arsenal.',cost:{essence:4,timber:2}}};
 const MILESTONES=[{id:'watch',name:'Primeira vigília',text:'Vença 5 criaturas e faça 3 coletas.',stat:'kills',need:5,extra:'gathers',extraNeed:3,coins:60,xp:100,dust:8},{id:'arena',name:'O mundo e a mesa',text:'Vença 3 partidas de Arena em qualquer modo.',stat:'arena',need:3,coins:80,xp:160,dust:12},{id:'dungeon',name:'Além das três portas',text:'Conclua uma dungeon no mundo ou vença o chefe no modo Dungeon.',stat:'dungeons',need:1,coins:100,xp:200,dust:20},{id:'raid',name:'Juramento coletivo',text:'Participe do saque de uma raid.',stat:'raids',need:1,coins:100,xp:180,dust:15}];

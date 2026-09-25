@@ -211,6 +211,29 @@
 .rw-world .rw-actor.settlement .rw-object-art{width:165px;height:140px;max-width:165px;max-height:140px;object-fit:contain}
 .rw-world .rw-actor.resource.down{display:none}
 
+/* The expanded world is drawn as local illustrated plates. Its interactive
+   actors retain global coordinates, but the parent never allocates a giant
+   144000px raster surface on mobile GPUs. */
+.rw-world .rw-plane{width:0;height:0;overflow:visible}
+.rw-world .rw-map-backdrop{overflow:hidden;background:radial-gradient(ellipse at center,#233036,#0c1820 73%,#060e16)}
+.rw-world .rw-map-tile{position:absolute;background-position:center;background-size:100% 100%;background-repeat:no-repeat;pointer-events:none;box-shadow:inset 0 0 0 1px #c5aa7040;}
+
 .rw-world .rw-city-buildings{display:flex;position:absolute;left:-45px;right:-45px;top:95px;justify-content:space-between;pointer-events:none}.rw-world .rw-city-buildings img{width:75px;height:80px;object-fit:contain;border:0;border-radius:0;box-shadow:none}.ra-frontier-cities{display:grid;gap:8px;margin:22px 0}.ra-frontier-cities button{padding:14px;text-align:left;min-height:44px}.ra-frontier-news p{padding:10px 0;border-bottom:1px solid #c4a87833;line-height:1.6}
 
 .rw-world .rw-city-layer{position:absolute;inset:0;pointer-events:none;z-index:4}.rw-world .rw-city-lot{position:absolute;transform:translate(-50%,-70%);width:108px;min-height:90px;padding:5px;pointer-events:auto;background:#101d23bd;border:1px dashed #c4a87888}.rw-city-lot img{width:80px;height:75px;object-fit:contain}.rw-city-lot b,.rw-city-lot small{display:block;font-size:9px}.rw-city-lot i{font:30px Georgia}.rw-city-lot.built{border-style:solid;background:#15232dba}.rw-world .rw-city-buildings{display:none}.rw-world .rw-inspector:has(.rw-city-panel){top:85px;bottom:155px;max-height:none;width:min(370px,90vw)}.rw-city-summary{display:grid;gap:5px;padding:12px;background:#1b2931;border:1px solid #c4a87866}.rw-city-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.rw-city-districts article{padding:10px;margin:10px 0;border:1px solid #c4a87844;background:#0d1822}.rw-city-districts img{width:55px;height:55px;object-fit:contain;float:left;margin-right:10px}.rw-city-panel button{min-height:42px}.rw-city-alert{color:#ffbb92}@media(max-width:1024px){.rw-world .rw-inspector:has(.rw-city-panel){top:80px;bottom:85px;width:min(360px,calc(100% - 20px));z-index:35}}
+
+.rw-world .ra-combat-state:after{transition:width 80ms linear}
+.rw-world .ra-combat-state.anticipating:after{width:24%;animation:ra-cast-anticipation 580ms ease-in-out infinite alternate}
+@keyframes ra-cast-anticipation{from{opacity:.3;transform:translateX(0)}to{opacity:.9;transform:translateX(290%)}}
+@media (prefers-reduced-motion:reduce){.rw-world .ra-combat-state.anticipating:after{animation:none}}
+
+/* Painted province plates already carry the terrain. New sites get a light
+   cartographic marker instead of the old circular biome illustration. */
+.rw-world .rw-island.frontier .rw-biome{display:none!important}
+.rw-world .rw-island.frontier .rw-ring{opacity:.055;border-style:dashed;box-shadow:none}
+.rw-world .rw-island.frontier .rw-sheet-landmark{width:clamp(125px,20%,190px);opacity:.33;filter:none;mix-blend-mode:screen}
+.rw-world .rw-island.frontier.here .rw-sheet-landmark{opacity:.48}
+.rw-world .rw-island.frontier .rw-place{top:9px;width:66%;height:auto;min-height:58px;padding:8px 18px;background:linear-gradient(90deg,transparent,#07131cdc 14% 86%,transparent);border-block:1px solid #c7ad6e30;text-shadow:0 2px 8px #000}
+.rw-world .rw-island.frontier .rw-place b{font-size:22px;white-space:normal;text-align:center}
+.rw-world .rw-island.frontier .rw-place small{font-size:8px}
+@media(max-width:720px){.rw-world .rw-island.frontier .rw-place{width:55%;min-height:52px;padding:7px 11px}.rw-world .rw-island.frontier .rw-place b{font-size:19px}.rw-world .rw-island.frontier .rw-place small{font-size:7px}}

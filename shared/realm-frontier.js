@@ -1,5 +1,6 @@
 import {ensureDominion,advanceDominion} from './realm-dominion.js';
 import {RuleError} from './engine.js';
+import {WORLD_MAP_BOUNDS} from './realm-geography.js';
 const check=(v,m)=>{if(!v)throw new RuleError(m);};
 const distance=(a,b)=>Math.hypot((a.x-b.x)*1.5,a.y-b.y);
 const names={timber:'Bosque de coleta',ore:'Afloramento mineral',essence:'Nascente do Véu'};
@@ -8,24 +9,37 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function respawnDeposit(w,a,rng=Math.random){
  for(let attempt=0;attempt<16;attempt++){
   const angle=rng()*Math.PI*2,radius=1+rng()*3;
-  const x=clamp(a.deposit.x+Math.cos(angle)*radius/1.5,2,298),y=clamp(a.deposit.y+Math.sin(angle)*radius,2,98);
+  const x=clamp(a.deposit.x+Math.cos(angle)*radius/1.5,2,WORLD_MAP_BOUNDS.maxX-1),y=clamp(a.deposit.y+Math.sin(angle)*radius,2,98);
   if((w.obstacles||[]).some(o=>distance({x,y},o)<(o.radius||0)+.7))continue;
   a.x=a.homeX=x;a.y=a.homeY=y;return;
  }
 }
 export function ensureFrontier(world,w,regions,now){
  if(!w.frontierVersion){
-  for(const n of regions.filter(n=>n.kind!=='sanctuary'))for(let i=0;i<4;i++){
+  for(const n of regions.filter(n=>n.kind!=='sanctuary'&&!n.provinceId))for(let i=0;i<4;i++){
    const angle=i*Math.PI/2+.6,resource=n.resource||'timber';
-   const deposit={x:clamp(n.x+Math.cos(angle)*9,2,298),y:clamp(n.y+Math.sin(angle)*11,2,98)};
+   const deposit={x:clamp(n.x+Math.cos(angle)*9,2,WORLD_MAP_BOUNDS.maxX-1),y:clamp(n.y+Math.sin(angle)*11,2,98)};
    const a={id:`deposit-${n.id}-${i}`,node:n.id,kind:'resource',name:names[resource],resource,deposit,x:deposit.x,y:deposit.y,homeX:deposit.x,homeY:deposit.y,hp:1,maxHp:1,state:'Fonte de recursos',respawnAt:0};
    respawnDeposit(w,a);w.actors.push(a);
   }
   w.frontierVersion=1;
  }
+ // Province deposits are anchored to authored fields rather than four generic
+ // radial spawns. IDs make this migration safe to run on an existing save.
+ if((w.frontierVersion||0)<2){
+  const existing=new Set(w.actors.map(a=>a.id));
+  for(const n of regions.filter(n=>n.provinceId))for(const [i,field] of (n.resourceFields||[]).slice(0,4).entries()){
+   const id=`field-${n.id}-${i}`;if(existing.has(id))continue;
+   const resource=['timber','ore','essence'].includes(field.resource)?field.resource:n.resource;
+   const deposit={x:clamp(field.x,2,WORLD_MAP_BOUNDS.maxX-1),y:clamp(field.y,2,98)};
+   const a={id,node:n.id,provinceId:n.provinceId,kind:'resource',name:names[resource],resource,richness:clamp(Number(field.richness)||1,1,3),deposit,x:deposit.x,y:deposit.y,homeX:deposit.x,homeY:deposit.y,hp:1,maxHp:1,state:'Fonte de recursos',respawnAt:0};
+   respawnDeposit(w,a);w.actors.push(a);existing.add(id);
+  }
+  w.frontierVersion=2;
+ }
  for(const h of world.houses||[]){
   if(!h.settlement&&h.requiresPlot)continue;
-  if(!h.settlement){const index=world.houses.indexOf(h),sites=regions.filter(n=>n.kind!=='sanctuary'),n=sites[index%sites.length]||regions[0];h.settlement={node:n.id,x:clamp(n.x+9+(Math.floor(index/regions.length)%3)*2,2,298),y:clamp(n.y+7,2,98),level:1,hp:600,maxHp:600,stock:{timber:0,ore:0,essence:0},protectedUntil:now+300000};}
+  if(!h.settlement){const index=world.houses.indexOf(h),sites=regions.filter(n=>n.kind!=='sanctuary'),n=sites[index%sites.length]||regions[0];h.settlement={node:n.id,x:clamp(n.x+9+(Math.floor(index/regions.length)%3)*2,2,WORLD_MAP_BOUNDS.maxX-1),y:clamp(n.y+7,2,98),level:1,hp:600,maxHp:600,stock:{timber:0,ore:0,essence:0},protectedUntil:now+300000};}
   const s=h.settlement;s.buildings||={warehouse:0,forge:0,watchtower:0};h.allies||=[];h.allianceOffers||=[];let a=w.actors.find(a=>a.id===`house-${h.id}`);
   if(!a){a={id:`house-${h.id}`,kind:'settlement',houseId:h.id,cardId:'warden',state:'Cidade de Casa'};w.actors.push(a);}
   Object.assign(a,{name:h.name,node:s.node,x:s.x,y:s.y,homeX:s.x,homeY:s.y,hp:s.hp,maxHp:s.maxHp,faction:h.faction,state:s.hp?'Cidade · nível '+s.level:'Ruínas · reconstrução disponível'});

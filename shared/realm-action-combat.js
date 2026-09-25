@@ -267,7 +267,8 @@ export function advanceActionCombat(w,profiles,regions,now,hit,rng=Math.random){
   for(const p of players)if(p.rpg?.barrier?.expiresAt<=now)removeBarrier(p.rpg);
 }
 
-export function combatWorldView(w,profiles,now){
+export function combatWorldView(w,profiles,now,observer=null){
   state(w);const players=profileList(profiles).filter(p=>active(p,now));
-  return {projectiles:w.projectiles.map(({team,damage,level,lastAt,...shot})=>({...shot,updatedAt:lastAt})),barriers:players.filter(p=>p.rpg?.barrier?.expiresAt>now).map(barrierGeometry),casts:w.combatCasts.map(c=>({...c})),obstacles:combatObstacles(w)};
+  const near=thing=>!observer||distance(thing,observer)<52;
+  return {projectiles:w.projectiles.filter(near).map(({team,damage,level,lastAt,...shot})=>({...shot,updatedAt:lastAt})),barriers:players.filter(p=>p.rpg?.barrier?.expiresAt>now&&near(p.realm.roaming)).map(barrierGeometry),casts:w.combatCasts.filter(near).map(c=>({...c})),obstacles:combatObstacles(w,observer,52)};
 }

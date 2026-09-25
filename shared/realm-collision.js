@@ -1,6 +1,11 @@
+import {WORLD_MAP_BOUNDS} from './realm-geography.js';
+
 // All collision radii and velocities use the map's metric space (x * 1.5, y).
 // Keeping this independent of rendering makes server ticks and replays identical.
 export const REALM_ASPECT=1.5;
+// Ten new provinces extend the illustrated world eastward. Keep the old
+// 0..300 coordinates intact so persisted players and buildings do not move.
+export const WORLD_MAX_X=WORLD_MAP_BOUNDS.maxX;
 export const realmDistance=(a,b)=>Math.hypot((a.x-b.x)*REALM_ASPECT,a.y-b.y);
 export function realmDirection(from,to,fallback={x:1,y:0}){
   const x=(to.x-from.x)*REALM_ASPECT,y=to.y-from.y,length=Math.hypot(x,y);
@@ -51,15 +56,17 @@ export function sweepCapsule(from,to,start,end,radius){
   return hits.filter(Boolean).sort((a,b)=>a.t-b.t)[0]||null;
 }
 
-export function combatObstacles(w){
-  const staticObstacles=(w.obstacles||[]).filter(o=>o.solid!==false&&(o.hp===undefined||o.hp>0)).map(o=>({...o,kind:o.kind||'obstacle'}));
-  const structures=(w.slots||[]).filter(slot=>slot.occupant?.hp>0&&['construction','resource','weapon','frontline'].includes(slot.kind)).map(slot=>({id:slot.id,kind:'structure',x:slot.x,y:slot.y,radius:slot.kind==='construction'?.95:.6}));
-  return [...staticObstacles,...structures,...(w.cityBlocks||[]).filter(b=>b.hp>0)];
+export function combatObstacles(w,center=null,radius=Infinity){
+  const nearby=body=>!center||realmDistance(body,center)<radius+Math.max(body.radius||0,body.width||0,body.height||0)+1;
+  const staticObstacles=(w.obstacles||[]).filter(o=>nearby(o)&&o.solid!==false&&(o.hp===undefined||o.hp>0)).map(o=>({...o,kind:o.kind||'obstacle'}));
+  const structures=(w.slots||[]).filter(slot=>nearby(slot)&&slot.occupant?.hp>0&&['construction','resource','weapon','frontline'].includes(slot.kind)).map(slot=>({id:slot.id,kind:'structure',x:slot.x,y:slot.y,radius:slot.kind==='construction'?.95:.6}));
+  return [...staticObstacles,...structures,...(w.cityBlocks||[]).filter(b=>nearby(b)&&b.hp>0)];
 }
 
 export function firstObstacleCollision(w,from,to,radius=0,options={}){
   let nearest=null;
-  for(const obstacle of combatObstacles(w)){
+  const center={x:(from.x+to.x)/2,y:(from.y+to.y)/2},reach=realmDistance(from,to)/2+radius+2;
+  for(const obstacle of combatObstacles(w,center,reach)){
     if(obstacle.id===options.ignoreId)continue;
     const reachX=(obstacle.width?obstacle.width/2:(obstacle.radius||.7)/REALM_ASPECT)+radius/REALM_ASPECT;
     const reachY=(obstacle.height?obstacle.height/2:(obstacle.radius||.7))+radius;
@@ -71,7 +78,7 @@ export function firstObstacleCollision(w,from,to,radius=0,options={}){
 }
 
 export function moveWithCollisions(w,entity,destination,{radius=.45,ignoreId=entity.id,actors=true,profiles=[],slide=true}={}){
-  let position={x:entity.x,y:entity.y},goal={x:Math.max(1,Math.min(299,destination.x)),y:Math.max(1,Math.min(99,destination.y))},blocked=false,normal=null;
+  let position={x:entity.x,y:entity.y},goal={x:Math.max(1,Math.min(WORLD_MAX_X,destination.x)),y:Math.max(1,Math.min(99,destination.y))},blocked=false,normal=null;
   for(let pass=0;pass<(slide?2:1);pass++){
     let collision=firstObstacleCollision(w,position,goal,radius,{escapeOverlap:true,ignoreId});
     const collideBody=(body,bodyRadius)=>{

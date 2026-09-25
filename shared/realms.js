@@ -1,4 +1,5 @@
 import {EXPANSION_REGIONS} from './realm-campaign.js';
+import {FRONTIER_REGIONS} from './realm-geography.js';
 import {tableAction,tableView} from './world-table.js';
 import {ensureRealmWorld,ensureWorldPlayer,realmWorldView} from './realm-world.js';
 import {legacyClaim} from './legacy.js';
@@ -26,8 +27,8 @@ export const REGIONS = [
   {id:'ashroad',name:'Estrada dos Exilados',kind:'wilds',x:67,y:88,level:3,board:'siege-board',resource:'timber',links:['crypt','bridge','abyss'],description:'Caravanas de ambas as linhagens cruzam cinzas que ainda guardam calor.',icon:'◇'},
   {id:'abyss',name:'Coração do Abismo',kind:'dungeon',x:94,y:59,level:5,board:'crypt-board',resource:'ore',links:['citadel','ashroad','lake'],description:'A última fronteira. Uma fome sem rosto aguarda além das três portas do eclipse.',icon:'☠'}
 ];
-REGIONS.push(...EXPANSION_REGIONS);
-for(const node of REGIONS){const continent=Math.floor(node.x/100);node.recommendedLevel=node.kind==='sanctuary'?1:Math.min(18,node.level+continent*4);const threat=node.recommendedLevel+(node.kind==='capital'?1:0);node.levelRange={min:Math.max(1,threat-1),max:Math.min(20,threat+2)};}
+REGIONS.push(...EXPANSION_REGIONS,...FRONTIER_REGIONS);
+for(const node of REGIONS){const continent=Math.floor(node.x/100);node.recommendedLevel??=node.kind==='sanctuary'?1:Math.min(18,node.level+continent*4);const threat=node.recommendedLevel+(node.kind==='capital'?1:0);node.levelRange={min:Math.max(1,threat-1),max:Math.min(20,threat+2)};}
 for(const node of REGIONS)for(const id of [...node.links]){const other=REGIONS.find(n=>n.id===id);if(other&&!other.links.includes(node.id))other.links.push(node.id);}
 export const AVATARS=['vesper','kael','mordrath','raven','thorn','oracle'];
 export const POLICIES={expedition:{name:'Expedição',description:'+1 madeira, minério ou essência nas vitórias de expedição.'},commerce:{name:'Comércio',description:'+5 Marcas na primeira vitória remunerada em cada região a cada cinco minutos.'},bastion:{name:'Bastião',description:'Fortalezas exigem uma vitória adicional de invasores para serem tomadas.'}};

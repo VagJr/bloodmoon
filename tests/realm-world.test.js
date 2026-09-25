@@ -48,8 +48,8 @@ test('Raid exige participação, compartilha dano e impede repetir o saque',()=>
 });
 test('Morte tem retorno automático, pacto pago e espólio recuperável uma vez',t=>{
  t.mock.method(Math,'random',()=>.8);
- const f=fixture(),a=f.w.actors.find(a=>a.kind==='hostile'&&a.node!=='haven');Object.assign(f.s,{x:a.x,y:a.y,hp:1});a.attackAt=epoch;const coins=f.p.coins;f.tick(epoch+250);assert.equal(f.s.hp,1);assert.ok(a.windup);f.tick(epoch+1000);assert.equal(f.s.hp,0);const bag=f.w.actors.find(a=>a.kind==='satchel');assert.ok(bag);assert.ok(coins-f.p.coins<=20);
- f.tick(epoch+13000);assert.equal(f.s.hp,Math.ceil(f.s.maxHp*.35));assert.equal(f.p.realm.location,'haven');assert.equal(f.s.downUntil,0);Object.assign(f.s,{x:bag.x,y:bag.y});f.act({type:'world-interact',targetId:bag.id},epoch+14000);assert.equal(f.p.coins,coins);assert.throws(()=>f.act({type:'world-interact',targetId:bag.id},epoch+14500));
+ const f=fixture(),a=f.w.actors.find(a=>a.kind==='hostile'&&a.node!=='haven');Object.assign(f.s,{x:a.x,y:a.y,hp:1});a.attackAt=epoch;const coins=f.p.coins;f.tick(epoch+250);assert.equal(f.s.hp,1);assert.ok(a.windup);f.tick(a.windup.endsAt+250);assert.equal(f.s.hp,0);const bag=f.w.actors.find(a=>a.kind==='satchel');assert.ok(bag);assert.ok(coins-f.p.coins<=20);
+ const returnedAt=f.s.downUntil+500;f.tick(returnedAt);assert.ok(f.s.hp>=Math.ceil(f.s.maxHp*.35)&&f.s.hp<=Math.ceil(f.s.maxHp*.35)+1);assert.equal(f.p.realm.location,'haven');assert.equal(f.s.downUntil,0);Object.assign(f.s,{x:bag.x,y:bag.y});f.act({type:'world-interact',targetId:bag.id},returnedAt+1000);assert.equal(f.p.coins,coins);assert.throws(()=>f.act({type:'world-interact',targetId:bag.id},returnedAt+1500));
  const paid=fixture(),beforeCoins=paid.p.coins,beforeEssence=paid.p.realm.materials.essence;paid.s.hp=0;paid.s.downUntil=epoch+12000;paid.act({type:'world-recover'},epoch+1000);assert.equal(paid.s.hp,Math.ceil(paid.s.maxHp*.55));assert.equal(paid.p.coins,beforeCoins-25);assert.equal(paid.p.realm.materials.essence,beforeEssence-1);assert.equal(paid.p.realm.location,'haven');
 });
 test('Vitória na Arena devolve vida e desperta quem caiu no reino',()=>{

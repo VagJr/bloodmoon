@@ -77,11 +77,14 @@ function pumpSheets(){
   image.onerror=()=>finish(false);image.src=`/assets/world/vfx/frames/${name}.webp?v=aura2`;
  }
 }
-function loadSheet(name){
- if(SHEET_IMAGES.has(name))return SHEET_IMAGES.get(name).ready;
+function loadSheet(name,priority=false,delayPump=false){
+ if(SHEET_IMAGES.has(name)){
+  if(priority){const index=loadQueue.findIndex(item=>item.name===name);if(index>0)loadQueue.unshift(...loadQueue.splice(index,1));}
+  return SHEET_IMAGES.get(name).ready;
+ }
  if(typeof Image==='undefined'||!SHEET_INDEX.has(name))return Promise.resolve(null);
  const entry={image:null,loaded:false};entry.ready=new Promise(resolve=>entry.resolve=resolve);
- SHEET_IMAGES.set(name,entry);loadQueue.push({name,entry});pumpSheets();return entry.ready;
+ SHEET_IMAGES.set(name,entry);if(priority)loadQueue.unshift({name,entry});else loadQueue.push({name,entry});if(!delayPump)pumpSheets();return entry.ready;
 }
 function configFor(event){
  if(IMPACTS[event.kind])return IMPACTS[event.kind];
@@ -96,7 +99,12 @@ function themeFor(event,config){
 }
 export function primeVfx(event){
  const configs=new Set([configFor(event),VFX[event.ability]]);
- return Promise.all([...configs].filter(Boolean).flatMap(config=>config.frames.map(([sheet])=>loadSheet(sheet))));
+ const sheets=[...new Set([...configs].filter(Boolean).flatMap(config=>config.frames.map(([sheet])=>sheet)))];
+ // loadSheet moves priority requests to the front; reverse here so the primary
+ // frame is decoded before its decorative layers.
+ const ready=sheets.reverse().map(sheet=>loadSheet(sheet,true,true));
+ pumpSheets();
+ return Promise.all(ready);
 }
 export function warmVfx(rpg){
  const ids=new Set(['strike','bolt','dash','guard','parry','reflect',...(rpg?.loadout||[]),...(rpg?.abilities||[]).filter(a=>a.unlocked).map(a=>a.id)]);
@@ -104,13 +112,13 @@ export function warmVfx(rpg){
  for(const id of ids)for(const [sheet] of VFX[id]?.frames||[])sheets.add(sheet);
  for(const config of Object.values(IMPACTS))for(const [sheet] of config.frames)sheets.add(sheet);
  for(const sheet of ['vampire-frame','werewolf-frame','moon-atmosphere','blood-atmosphere'])sheets.add(sheet);
- return Promise.all([...sheets].map(loadSheet));
+ return Promise.all([...sheets].map(sheet=>loadSheet(sheet)));
 }
 export function abilityIcon(id){return `/assets/world/ability-icons/${ICON_ALIASES[id]||id}.webp`;}
 export function getAbilityArt(id){return {icon:abilityIcon(id),name:ABILITY_NAMES[id]||id};}
 export function vfxDuration(event){
  // Sustained casts/wards are drawn from authoritative entities, not event replay.
- if(event.kind==='cast')return 260;
+ if(event.kind==='cast')return event.local?Math.max(260,Math.min(1200,event.duration||260)):260;
  if(event.kind==='launch')return 230;
  return configFor(event).duration||650;
 }
@@ -170,10 +178,16 @@ function drawDefenseCollision(ctx,event,x,y,angle,t,size,color,zoom){
  ring(ctx,x,y,7+travel*.92,'#f8f4de',burst*.32,1.3*zoom,1);
  if(t<.22)glow(ctx,x,y,24*zoom*(1-t/.22),'#fffaf0',.7*(1-t/.22));
 }
-function drawCharge(ctx,event,t,from,zoom,color){
- const progress=1-t,radius=(10+progress*20)*zoom;
- glow(ctx,from.x,from.y-22*zoom,radius,color,progress*.26);
- ring(ctx,from.x,from.y-2*zoom,radius*1.3,color,progress*.65,1.4*zoom);
+function drawCharge(ctx,event,t,from,to,zoom,color,config){
+ const strength=event.local ? .35+.65*t : 1-t,radius=(11+strength*22)*zoom;
+ const angle=Math.atan2(to.y-from.y,to.x-from.x);
+ glow(ctx,from.x,from.y-22*zoom,radius,color,.18+strength*.2);
+ ring(ctx,from.x,from.y-2*zoom,radius*1.25,color,.3+strength*.42,1.4*zoom,.7,-Math.PI/2,0,Math.PI*1.7*strength);
+ drawCell(ctx,config.sheet,config.cell,from.x,from.y-22*zoom,(27+strength*27)*zoom,angle,.1+strength*.27);
+ if(event.local&&Math.hypot(to.x-from.x,to.y-from.y)>12){
+  const reach=Math.min(64*zoom,Math.hypot(to.x-from.x,to.y-from.y)*.34),x=from.x+Math.cos(angle)*reach,y=from.y-22*zoom+Math.sin(angle)*reach;
+  ctx.save();ctx.globalAlpha=.12+strength*.2;ctx.strokeStyle=color;ctx.lineWidth=(1+strength)*zoom;ctx.beginPath();ctx.moveTo(from.x,from.y-22*zoom);ctx.lineTo(x,y);ctx.stroke();ctx.restore();
+ }
 }
 
 export function drawVfx(ctx,event,now,to,from,zoom=1){
@@ -182,7 +196,7 @@ export function drawVfx(ctx,event,now,to,from,zoom=1){
  // fallback animation while a damage label is still alive.
  if(elapsed<0||elapsed>=duration)return true;
  const t=clamp(elapsed/duration),ease=1-(1-t)**3,color=themeFor(event,config),motion=motionScale();
- if(event.kind==='cast'||event.kind==='launch'){drawCharge(ctx,event,t,from,zoom,color);return true;}
+ if(event.kind==='cast'||event.kind==='launch'){drawCharge(ctx,event,t,from,to,zoom,color,config);return true;}
  const impact=!!IMPACTS[event.kind]&&!['guard','heal','miss','evade'].includes(event.kind);
  let x=to.x,y=to.y-22*zoom,rotation=Math.atan2(to.y-from.y,to.x-from.x);
  if(config.motion==='dash'){

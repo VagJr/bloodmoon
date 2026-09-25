@@ -1,5 +1,6 @@
 import {RuleError} from './engine.js';
 import {realmDistance as distance} from './realm-collision.js';
+import {WORLD_MAP_BOUNDS} from './realm-geography.js';
 export const CITY_BUILDINGS={
  warehouse:{name:'Armazém',art:'supply-crates',hp:240,timber:15,ore:10,text:'Cada grau protege 10% do estoque e amplia a capacidade.'},
  forge:{name:'Oficina',art:'blacksmith',hp:280,timber:15,ore:20,text:'Cada grau reforça os reparos e a resistência da muralha.'},
@@ -15,10 +16,18 @@ export function dominionLog(w,text,now,kind='politics'){
  w.events||=[];w.serial||=0;w.events.unshift({id:`dominion-${++w.serial}`,text,at:now,kind});w.events=w.events.slice(0,35);
 }
 export function ensureDominion(world,w,regions,now){
- w.plots||=regions.filter(n=>n.kind!=='sanctuary').flatMap(n=>[-1,1].map((side,i)=>({id:`land-${n.id}-${i}`,node:n.id,name:`Terreno ${i?'oriental':'ocidental'} · ${n.name}`,x:clamp(n.x+side*8,3,297),y:clamp(n.y+8,3,97),houseId:null})));
+ w.plots||=[];
+ if((w.plotVersion||0)<2){
+  const known=new Set(w.plots.map(plot=>plot.id));
+  for(const n of regions.filter(n=>n.kind!=='sanctuary'))for(const [i,side] of [-1,1].entries()){
+   const id=`land-${n.id}-${i}`;if(known.has(id))continue;
+   w.plots.push({id,node:n.id,name:`Terreno ${i?'oriental':'ocidental'} · ${n.name}`,x:clamp(n.x+side*8,3,WORLD_MAP_BOUNDS.maxX-2),y:clamp(n.y+8,3,97),houseId:null});
+  }
+  w.plotVersion=2;
+ }
  for(const h of world.houses||[]){const s=h.settlement;if(!s)continue;
   if(!s.plotId){const plot=w.plots.find(p=>!p.houseId&&p.node===s.node)||w.plots.find(p=>!p.houseId);if(plot){plot.houseId=h.id;plot.x=s.x;plot.y=s.y;s.plotId=plot.id;}}
-  s.buildings||={};s.districts||=Object.keys(CITY_BUILDINGS).map((kind,index)=>{const spec=CITY_BUILDINGS[kind],level=s.buildings[kind]||0,angle=index*Math.PI/3;return {id:`${h.id}:${kind}`,kind,level,hp:spec.hp*level,maxHp:spec.hp*level,x:clamp(s.x+Math.cos(angle)*1.9,1,299),y:clamp(s.y+Math.sin(angle)*2.6,1,99)};});
+  s.buildings||={};s.districts||=Object.keys(CITY_BUILDINGS).map((kind,index)=>{const spec=CITY_BUILDINGS[kind],level=s.buildings[kind]||0,angle=index*Math.PI/3;return {id:`${h.id}:${kind}`,kind,level,hp:spec.hp*level,maxHp:spec.hp*level,x:clamp(s.x+Math.cos(angle)*1.9,1,WORLD_MAP_BOUNDS.maxX),y:clamp(s.y+Math.sin(angle)*2.6,1,99)};});
   s.food??=30;s.population??=10;s.morale??=65;s.influence??=0;s.tax??=5;s.policy??='balanced';s.history||=[];
   for(const d of s.districts)s.buildings[d.kind]=d.hp>0?d.level:0;
   const guardId='garrison-'+h.id,guard=w.actors.find(a=>a.id===guardId);if(s.hp>0&&s.buildings.watchtower&&!guard)w.actors.push({id:guardId,guardHouse:h.id,kind:'patrol',node:s.node,name:'Guarnição · '+h.name,cardId:'warden',x:s.x,y:s.y+1,homeX:s.x,homeY:s.y,hp:100+s.buildings.watchtower*30,maxHp:100+s.buildings.watchtower*30,attack:7+s.buildings.watchtower*2,phase:0,attackAt:now,respawnAt:0,state:'Defendendo a cidade'});
